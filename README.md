@@ -8,6 +8,7 @@
 
 # Current functions:
 - A class to extract all the info from vasprun.xml 
+- Functions to read WAVEDER (binary) and WAVEDERF (formatted)
 - Plotting band structure
 - Computing bandgap
 
