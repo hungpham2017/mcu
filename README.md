@@ -19,9 +19,10 @@
 
 # Future functions:
  - Projected band structure
- - Topological analysis
  - Optical adsorption coefficient
  - Set up a EOS calculation
  - Phonon calculation
  - Spin texture
  - Band structure unfolding
+ - Topological analysis
+ - Connecting to Bilbao Crystallographic Server
