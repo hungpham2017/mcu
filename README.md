@@ -1,5 +1,6 @@
 # Modeling and Crystallographic Utilities (mcu)
 - A package for post periodic wave function and crystallography analysis.
+- **mcu** is designed for large scale analysis rather than a code for generating figures for one calculation.
 - Currently **mcu** only supports VASP outputs but other electronic codes are under development and will be released soon.
 
 # Prerequisites
