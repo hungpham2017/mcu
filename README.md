@@ -6,6 +6,12 @@
 - Python 3.5 or higher
 - Numby 1.8.0 or higher
 
+# Current functions:
+- A class to extract all the info from vasprun.xml 
+- Plotting band structure
+- Computing bandgap
+
+
 # Future functions:
  - Projected band structure
  - Topological analysis
