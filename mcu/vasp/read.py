@@ -3,8 +3,9 @@
 
 import numpy as np
 from mcu.vasp import utils
+import subprocess
 
-class read:
+class vasprun:
     def __init__(self, file="vasprun.xml"):
         
         if not utils.check_exist(file):
@@ -33,12 +34,14 @@ class read:
         kpointlist = self.copy_block(kpoints,'varray','kpointlist', level=2)     
         weights = self.copy_block(kpoints,'varray','weights', level=2) 
         kpoints_dict = {}
+        kpoint_type = 0         # for hybrid band structure calculation
         
         if len(generation) == 1:
             if 'listgenerated' in generation[0][0]:
                 kpoints_dict['type'] = 'listgenerated'
                 kpoints_dict['divisions'] = np.int64(utils.str_extract(generation[0][1],'>','<').strip())         
                 kpoints_dict['points'] = self.extract_vec(generation[0][1:])      
+                kpoint_type = 1    # for conventional band structure calculation      
             elif 'Gamma' in generation[0][0] or 'Monkhorst-Pack' in generation[0][0]:
                 if 'Gamma' in generation[0][0]:
                     kpoints_dict['type'] = 'Gamma'       
@@ -47,10 +50,12 @@ class read:
                 kpoints_dict['divisions'] = np.int64(utils.str_extract(generation[0][1],'>','<').strip().split())
                 kpoints_dict['usershift'] = np.float64(utils.str_extract(generation[0][2],'>','<').strip().split()) 
                 kpoints_dict['genvec'] = self.extract_vec(generation[0][2:-1])             
-                kpoints_dict['usershift'] = np.float64(utils.str_extract(generation[0][2],'>','<').strip().split())  
+                kpoints_dict['usershift'] = np.float64(utils.str_extract(generation[0][2],'>','<').strip().split()) 
+                kpoint_type = 2     # for a normal SCF or geometry optimization
                 
         kpoints_dict['kpointlist'] = self.extract_vec(kpointlist)   # fractional        
-        kpoints_dict['weights'] = self.extract_vec(weights)           
+        kpoints_dict['weights'] = self.extract_vec(weights) 
+        kpoints_dict['type'] = kpoint_type
         
         return kpoints_dict
         
@@ -309,7 +314,7 @@ class read:
         if len(DOS) == 0:
             print('DOS was not computed')        
         else:
-            print('Get total density of states (tdos)')           
+            # print('Get total density of states (tdos)')           
             self.efermi = np.float64(utils.str_extract(DOS[0][1],'>','<').strip())
             
             # Total DOS
@@ -323,7 +328,6 @@ class read:
             
             # Partial DOS            
             partial = self.copy_block(DOS,'partial', level=3) 
-            
             if len(partial) == 1 and self.lm != None:
                 print('Get partial density of states (pdos)')             
                 # Get lm 
@@ -345,13 +349,17 @@ class read:
                 self.pdos = np.asarray(partial_out)
                   
     def get_projected(self):
-        '''Get info from the <projected> block'''         
+        '''Get info from the <projected> block
+           pro_wf = [spin,kpt,band,atom,l] 
+           spin 0           : partial charge
+           spin 1,2,3       : mx, my, mz for LSORBIT = .TRUE.
+        '''         
         
         projected = self.copy_block(self.calculation_block[-1],'projected', level=2)
         if len(projected) == 0:
             print('Projected wave function character was not computed')        
         else:  
-            print('Get projected wave function character')             
+            # print('Get projected wave function character')             
             self.pro_band = self.get_eigenvalues(projected[0], level=3)
             array = self.copy_block(projected,'array', level=3)
             if self.lm == None:
@@ -383,7 +391,7 @@ class read:
         if len(dielectric) == 0:
             print('Frequency-dependent dielectric function was not computed')        
         else:  
-            print('Get frequency-dependent dielectric function')
+            # print('Get frequency-dependent dielectric function')
             out = []
             for dielec in dielectric:
                 imag = self.copy_block(dielec,'imag', level=3)
@@ -488,4 +496,18 @@ class read:
             array.append(vec)
             
         return np.asarray(array)                        
+       
+class OUTCAR:
+    def __init__(self, file="OUTCAR"):
+        '''Read additional infomation that cannot be extracted from vasprun.xml'''
+        if not utils.check_exist(file):
+            print('Cannot find the OUTCAR file. Check the path:', file)
+        else:
+            #self.outcar = open(file, "r").readlines()  
+            rungrep = subprocess.run(['grep', 'E-fermi', file], stdout=subprocess.PIPE) 
+            self.efermi = np.float64(str(rungrep.stdout).split()[3])
         
+    def get_efermi(self):    
+        '''Extract E_fermi'''
+        pass
+       
