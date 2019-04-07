@@ -25,7 +25,37 @@ class vasprun:
             self.calculation_block = self.copy_block(self.vasprun,'calculation', level=1)    
             self.lm = None
         
+    def get_lm(self):  
+        '''Extract lm from either dos block or projected block'''
         
+        projected = self.copy_block(self.calculation_block[-1],'projected', level=2)
+        if len(projected) != 0:           
+            self.proj_band = self.get_eigenvalues(projected[0], level=3)
+            array = self.copy_block(projected,'array', level=3)
+            self.lm = []
+            for line in array[0][5:]:
+                if '<field>' not in line: break  
+                self.lm.append(utils.str_extract(line,'>','<').strip()) 
+            if 'dx2' in self.lm: self.lm[self.lm.index('dx2')] = 'dx2-y2'
+            if 'x2-y2' in self.lm: self.lm[self.lm.index('x2-y2')] = 'dx2-y2'
+        else:
+            DOS = self.copy_block(self.calculation_block[-1],'dos', level=2)   
+            if len(DOS) != 0:
+                partial = self.copy_block(DOS,'partial', level=3) 
+                if len(partial) == 1:
+                    self.lm = []
+                    for line in partial[0][6:]:
+                        if '<field>' not in line: break  
+                        self.lm.append(utils.str_extract(line,'>','<').strip())
+                    if 'dx2' in self.lm: self.lm[self.lm.index('dx2')] = 'dx2-y2'
+                    if 'x2-y2' in self.lm: self.lm[self.lm.index('x2-y2')] = 'dx2-y2'
+                else:
+                    print("There is no lm information in vasprun.xml")                    
+            else:
+                print("There is no lm information in vasprun.xml")
+
+        return self.lm
+    
     def get_kpoints(self):    
         ''' Extract the <kpoints> block'''
         
@@ -328,13 +358,10 @@ class vasprun:
             
             # Partial DOS            
             partial = self.copy_block(DOS,'partial', level=3) 
-            if len(partial) == 1 and self.lm != None:
+            if len(partial) == 1:
                 print('Get partial density of states (pdos)')             
                 # Get lm 
-                self.lm = []
-                for line in partial[0][6:]:
-                    if '<field>' not in line: break  
-                    self.lm.append(utils.str_extract(line,'>','<').strip())
+                if self.lm == None: self.get_lm()
 
                 # Get pdos                     
                 dos_ion = self.copy_block(partial,'set', 'ion', level=6)
@@ -350,39 +377,49 @@ class vasprun:
                   
     def get_projected(self):
         '''Get info from the <projected> block
-           pro_wf = [spin,kpt,band,atom,l] 
-           spin 0           : partial charge
-           spin 1,2,3       : mx, my, mz for LSORBIT = .TRUE.
+           proj_wf = [spin,kpt,band,atom,l] 
+           
+           l = py     pz     px    dxy    dyz    dz2    dxz  x2-y2
+           
+           if ISPIN = 1 and ISPIN = 2:
+               proj_wf = \big| \langle Y_{lm}^{\alpha} | \phi_{nk} \rangle \big|
+               with Y_{lm}^{\alpha} is the spherical harmonic centered at ion index \alpha, angular moment l and magnetic quantum m
+                    \phi_{nk} is the Bloch wave function
+           
+               spin 0           : proj_wf for alpha electrons 
+               spin 1           : proj_wf for beta electrons
+               
+           if LSORBIT = .TRUE.
+               proj_wf = 1/2 \sum_{\mu,\nu=1}^{2} \sigma_{\mu\nu}^{j}\langle \chi_{nk}^{\mu} | Y_{lm}^{\alpha} \rangle 
+                            \langle Y_{lm}^{\alpha} | \chi_{nk}^{\nu} \rangle 
+               
+               spin 0           : total magnetization m 
+               spin 1,2,3       : partial magnetization mx, my, mz                
         '''         
         
         projected = self.copy_block(self.calculation_block[-1],'projected', level=2)
         if len(projected) == 0:
             print('Projected wave function character was not computed')        
-        else:  
-            # print('Get projected wave function character')             
-            self.pro_band = self.get_eigenvalues(projected[0], level=3)
+        else:          
+            self.proj_band = self.get_eigenvalues(projected[0], level=3)
             array = self.copy_block(projected,'array', level=3)
-            if self.lm == None:
-                self.lm = []
-                for line in array[0][5:]:
-                    if '<field>' not in line: break  
-                    self.lm.append(utils.str_extract(line,'>','<').strip())  
-            
-            pro_spin = self.copy_block(array,'set', 'spin', level=5)
+            if self.lm == None: self.get_lm()
+                
+            proj_spin = self.copy_block(array,'set', 'spin', level=5)
             out = []            
-            for spin in pro_spin:
-                pro_spin = self.copy_block(spin,'set', 'kpoint', level=6)   
+            for spin in proj_spin:
+                proj_spin = self.copy_block(spin,'set', 'kpoint', level=6)   
                 out_spin = []                
-                for kpt in pro_spin:
-                    pro_kpt = self.copy_block(kpt,'set', 'band', level=7) 
+                for kpt in proj_spin:
+                    proj_kpt = self.copy_block(kpt,'set', 'band', level=7) 
                     out_kpt = []
-                    for band in pro_kpt:
+                    for band in proj_kpt:
                         pro = self.extract_vec(band)
                         out_kpt.append(pro)
                     out_spin.append(out_kpt)
                 out.append(out_spin)
                 
-            self.pro_wf = np.asarray(out)         
+            self.proj_wf = np.asarray(out)         
       
     def get_dielectric(self):
         '''Get info from the <dielectricfunction> block'''
@@ -391,7 +428,6 @@ class vasprun:
         if len(dielectric) == 0:
             print('Frequency-dependent dielectric function was not computed')        
         else:  
-            # print('Get frequency-dependent dielectric function')
             out = []
             for dielec in dielectric:
                 imag = self.copy_block(dielec,'imag', level=3)

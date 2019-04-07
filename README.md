@@ -3,6 +3,8 @@
 - **mcu** is designed for large scale analysis rather than a code for generating figures for one calculation.
 - Currently **mcu** only supports VASP outputs but other electronic codes are under development and will be released soon.
 
+<img src="https://github.com/hungpham2017/mcu/blob/master/doc/MoS2.png" width="500" align="middle">
+
 # Prerequisites
 - The code was tested for the below libraries, the older versions, however, can work too. Just need to be tested. I do it soon ...
 - Python 3.5 or higher
@@ -13,12 +15,11 @@
 # Current functions:
 - A class to extract all the info from vasprun.xml 
 - Functions to read WAVEDER (binary) and WAVEDERF (formatted)
-- Plotting band structure
+- Plotting band structure, projected band structure with different styles (will be documented soon)
 - Computing bandgap
 
 
 # Future functions:
- - Projected band structure
  - Optical adsorption coefficient
  - Set up a EOS calculation
  - Phonon calculation
