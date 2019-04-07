@@ -1,8 +1,0 @@
-SYSTEM = Ni fcc bulk
-ISTART = 0
-ISPIN = 1
-ISYM = 2
-ISMEAR = 0
-SIGMA = 0.1
-LOPTICS = .TRUE.
-NEDOS = 50
