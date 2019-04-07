@@ -4,6 +4,7 @@
 - Currently **mcu** only supports VASP outputs but other electronic codes are under development and will be released soon.
 
 <img src="https://github.com/hungpham2017/mcu/blob/master/doc/MoS2.png" width="500" align="middle">
+Projected band structure of MoS2 using the color map style: p (red), d (blue)
 
 # Prerequisites
 - The code was tested for the below libraries, the older versions, however, can work too. Just need to be tested. I do it soon ...
