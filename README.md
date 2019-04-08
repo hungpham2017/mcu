@@ -23,7 +23,7 @@ can be easily accessed via the **vasprun** attribute of an **mcu.VASP** object. 
 I don't promise to put everything you like in **mcu** because sometimes you can modify the code with ease for your need.
 Necessary functions for sure will be included.
 
-# Function to be released soon:
+# Function will be released soon:
 - Projected density of State 
 
 # Future functions:
