@@ -279,8 +279,8 @@ class VASP:
         
         return band, path, sym_kpoint_coor, label, conventional
                 
-    def plot_band(self, efermi=None, spin=0, label=None, save=False,
-                    figsize=(5,8), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
+    def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
+                    figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
             Attribute:
@@ -289,12 +289,18 @@ class VASP:
                                   0 or 1 for spin polarized
                 label           : label for high symmetric points, e.g. 'G-X-L-W-G'
                                   if hybridXC=True, the lavel should be a list of labels plus their coordinates
+                color           : a list of three color codes for band curves, high symmetric kpoint grid, and Fermi level
+                                  
+                                  
         '''
         
         # matplotlib is required
         import matplotlib
         import matplotlib.pyplot as plt
-            
+        
+        assert isinstance(band_color,list)
+        assert len(band_color) == 3
+        
         band, path, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label)  
 
         ##----------------------------------------------------------
@@ -307,7 +313,7 @@ class VASP:
         # Plot the high symmetric kpoint grid
         if conventional == True or label != None:
             for kpt in range(sym_kpoint_coor.shape[0]):
-                ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color="#808080",linewidth=1.0)
+                ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
 
         if label != None:
             nkpts = len(label)
@@ -319,9 +325,9 @@ class VASP:
                         color='black', fontsize=fontsize)     
             
         # Plot bands            
-        ax.plot([0,path.max()],[0,0],color="#808080",linewidth=1.0, dashes=[6,3])
+        ax.plot([0,path.max()],[0,0],color=band_color[2],linewidth=1.0, dashes=[6,3])       # Fermi level
         for ith in range(band.shape[1]):
-            ax.plot(path.T,band[:,ith],color="#007acc",linewidth=1.0)    
+            ax.plot(path.T,band[:,ith],color=band_color[0],linewidth=1.0)    
              
         # Graph adjustments             
         ax.tick_params(labelsize=fontsize)
@@ -541,14 +547,14 @@ class VASP:
         return pband
                 
                     
-    def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band_idx=None, color=None,
-                    scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, 
+    def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band_idx=None, color=None, band_color=['#007acc','#808080','#808080'],
+                    scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
                     legend=None, loc="upper right", legend_size=22, 
                     save=False, figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            
             Attribute:
-                efermi      : a Fermi level or a list of Fermi levels, it is automatically extracted frim vasprun.xml or OUTCAR, consider to remove
+                efermi      : a Fermi level or a list of Fermi levels, it is automatically extracted frim vasprun.xml or OUTCAR
                 spin        : 0  for spin unpolarized and LSORBIT = .TRUE.
                                   0 or 1 for spin polarized
                 label       : label for high symmetric points, e.g. 'G-X-L-W-G',
@@ -569,7 +575,7 @@ class VASP:
                 band_idx    : the first value indicates the number of valence bands from the VBM
                               the second value indicates the number of conduction bands from the CBM
                 color       : a list of strings indicating the color, following matplotlib
-                scale       : the size of the marker in style 1 and 2
+                scale       : the size of the marker
                 alpha       : the transparency level of curves
                 cmap        : color map in the style 3, following the matplotlib
                 edgecolor   : the marker's border color in the style 3, default: 'none', any color code should work
@@ -577,6 +583,7 @@ class VASP:
                               None              : taking from the color arg
                               'none'            : unfilling circle
                               [False,True,...]  : True for filling markers and False for empty ones
+                marker      : a list of marker shape, default is: 'o'
                 legend      : a list of labels for different group of orbitals (same color) for the style 1 and 2            
         '''
                     
@@ -585,7 +592,7 @@ class VASP:
         import matplotlib.pyplot as plt
         
         if style == 2 and lm == 'spd' : lm = [atom+':s,p,d' for atom in self.atype]       
-        if style == 3 and lm == 'spd' : lm = 'sp'
+        if style == 3 and lm == 'spd' : lm = 'sp'   
        
         # Check if the band values are reasonable otherwise generate it
         if band_idx == None:
@@ -619,7 +626,7 @@ class VASP:
         # Plot the high symmetric kpoint grid
         if conventional == True or label != None:
             for kpt in range(sym_kpoint_coor.shape[0]):
-                ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color="#808080",linewidth=1.0)
+                ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
 
         if label != None:
             nkpts = len(label)
@@ -627,13 +634,13 @@ class VASP:
             for kpt in range(nkpts):   
                 point = label[kpt]
                 if point == 'G': point = r'$\Gamma$'
-                ax.text(sym_kpoint_coor[kpt]/path.max()+0.02, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
+                ax.text(sym_kpoint_coor[kpt]/path.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
                         color='black', fontsize=fontsize)     
             
         # Plot bands            
-        ax.plot([0, path.max()], [0,0], color="#808080", linewidth=1.0, dashes=[6,3])
+        ax.plot([0, path.max()], [0,0], color=band_color[2], linewidth=1.0, dashes=[6,3])
         for ith in range(band.shape[1]):
-            ax.plot(path.T, band[:,ith], color="#007acc",linewidth=1.0)    
+            ax.plot(path.T, band[:,ith], color=band_color[0],linewidth=1.0)    
              
         # Plot pbands 
         color_list = ['r','g','b','y','m','c']
@@ -655,6 +662,14 @@ class VASP:
             elif facecolor == 'none':
                 fcolors = ['none']*len(pband)
 
+            # Marker
+            if marker == None: 
+                marker = ['o']*len(pband)
+            else:
+                assert isinstance(marker,list)
+                assert len(marker) == len(pband)                
+            
+            
             # legend    
             if legend != None:
                 legends = []   
@@ -664,12 +679,12 @@ class VASP:
             # Actual plotting
             for lm in range(len(pband)):
                 for ith in range(band_idx[0],band_idx[1]):
-                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha)
+                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm])
                 ith = band_idx[1]
                 if legend == None:
-                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha)
+                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm])
                 else:
-                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, label=legend[lm])                    
+                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm],label=legend[lm])                    
                 
             if legend != None: 
                 lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
@@ -677,8 +692,12 @@ class VASP:
                 
         elif style == 3:
             path = np.array(path).flatten()
+            if marker == None: 
+                marker = 'o'
+            else:
+                assert isinstance(marker,str)
             for ith in range(band_idx[0],band_idx[1]+1):
-                plt.scatter(path, band[:,ith], c=pband[:,ith], vmin=0.0, vmax=1., cmap=cmap, edgecolor=edgecolor) 
+                plt.scatter(path, band[:,ith], c=pband[:,ith], s=50*scale, vmin=0.0, vmax=1., cmap=cmap, marker=marker, edgecolor=edgecolor) 
             cbar = plt.colorbar(ticks=[])
             cbar.outline.set_linewidth(border)
         
