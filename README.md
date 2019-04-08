@@ -14,11 +14,17 @@ Projected band structure of MoS2 using the color map style
 
  
 # Current functions:
-- A class to extract all the info from vasprun.xml 
+- A class to extract all the info from vasprun.xml. All the infomation (starting/intermediate/final structure, electronic inputs,...)
+can be easily accessed in the vasprun attribute of an VASP object. Will be documented soon.
 - Functions to read WAVEDER (binary) and WAVEDERF (formatted)
 - Plotting band structure, projected band structure with different styles (will be documented soon)
 - Computing bandgap
+- There is a function that you would like it to be included in **mcu**. Shoot me an email or open an issue here!
+I don't promise to put everything you like in **mcu** because sometimes you can modify the code with ease for your need.
+Necessary functions for sure will be included.
 
+# Function to be released soon:
+- Projected density of State 
 
 # Future functions:
  - Optical adsorption coefficient

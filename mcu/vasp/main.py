@@ -542,30 +542,42 @@ class VASP:
                 
                     
     def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band_idx=None, color=None,
-                    scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolors=None,
+                    scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, 
+                    legend=None, loc="upper right", legend_size=22, 
                     save=False, figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            
             Attribute:
-                efermi      : a Fermi level or a list of Fermi levels
+                efermi      : a Fermi level or a list of Fermi levels, it is automatically extracted frim vasprun.xml or OUTCAR, consider to remove
                 spin        : 0  for spin unpolarized and LSORBIT = .TRUE.
                                   0 or 1 for spin polarized
                 label       : label for high symmetric points, e.g. 'G-X-L-W-G',
                                   if hybridXC=True, the lavel should be a list of labels plus their coordinates
-                style = 0   : all atoms are considered
+                                  
+                ########################PLOTTING STYLE###################################
+                style = 1   : all atoms are considered
                              lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','x2-y2' or a list of them
                                  'sp', 'pd', 'sd', 'spd'  => shortcut
                                  each color is used for each lm
                                  the marker's radius is proportional to the % of lm 
-                style = 1   : gradient map to show the character transition
-                             lm = 'sp', 'pd', 'sd'
-                
                 style = 2   : considering only a list of orbitals
                              e.g. orb = ['Ni_s','C_pz']
-
+                style = 3   : gradient map to show the character transition
+                             lm = 'sp', 'pd', 'sd'
+                #########################################################################
+                             
                 band_idx    : the first value indicates the number of valence bands from the VBM
                               the second value indicates the number of conduction bands from the CBM
-                    
+                color       : a list of strings indicating the color, following matplotlib
+                scale       : the size of the marker in style 1 and 2
+                alpha       : the transparency level of curves
+                cmap        : color map in the style 3, following the matplotlib
+                edgecolor   : the marker's border color in the style 3, default: 'none', any color code should work
+                facecolor   : the filling color of style 1 and 2
+                              None              : taking from the color arg
+                              'none'            : unfilling circle
+                              [False,True,...]  : True for filling markers and False for empty ones
+                legend      : a list of labels for different group of orbitals (same color) for the style 1 and 2            
         '''
                     
         # matplotlib is required
@@ -629,23 +641,40 @@ class VASP:
         if style == 1 or style == 2:
             pband = 200 * scale * np.power(pband,2)     # The radius of the marker ~ the percent 
             
-            # Colors:
+            # Color
             if color == None: color = color_list
-            if facecolors == None: 
+            if facecolor == None: 
                 fcolors = color
-            elif isinstance(facecolors,list):
-                assert len(facecolors) == len(pband)
+            elif isinstance(facecolor,list):
+                assert len(facecolor) == len(pband)
                 fcolors = []
-                for i in range(len(facecolors)):
-                    assert facecolors[i] == True or facecolors[i] == False
-                    if facecolors[i] == True: fcolors.append(color[i]) 
-                    if facecolors[i] == False: fcolors.append('none') 
-            elif facecolors == 'none':
+                for i in range(len(facecolor)):
+                    assert facecolor[i] == True or facecolor[i] == False
+                    if facecolor[i] == True: fcolors.append(color[i]) 
+                    if facecolor[i] == False: fcolors.append('none') 
+            elif facecolor == 'none':
                 fcolors = ['none']*len(pband)
-                    
+
+            # legend    
+            if legend != None:
+                legends = []   
+                assert isinstance(legend,list)
+                assert len(legend) == len(pband)
+                
+            # Actual plotting
             for lm in range(len(pband)):
-                for ith in range(band_idx[0],band_idx[1]+1):
-                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha)              
+                for ith in range(band_idx[0],band_idx[1]):
+                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha)
+                ith = band_idx[1]
+                if legend == None:
+                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha)
+                else:
+                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, label=legend[lm])                    
+                
+            if legend != None: 
+                lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
+                for i in range(len(pband)): lgnd.legendHandles[i]._sizes = [legend_size]
+                
         elif style == 3:
             path = np.array(path).flatten()
             for ith in range(band_idx[0],band_idx[1]+1):
