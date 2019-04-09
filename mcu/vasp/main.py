@@ -280,7 +280,7 @@ class VASP:
         return band, path, sym_kpoint_coor, label, conventional
                 
     def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
-                    figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
+                    figsize=(6,6), figname='BAND', ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
             Attribute:
@@ -550,7 +550,7 @@ class VASP:
     def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band_idx=None, color=None, band_color=['#007acc','#808080','#808080'],
                     scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
                     legend=None, loc="upper right", legend_size=1.0, 
-                    save=False, figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
+                    save=False, figname='pBAND', figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            
             Attribute:
@@ -722,7 +722,7 @@ class VASP:
         plt.xticks([])
         plt.tight_layout()
         if save == True: 
-            fig.savefig('Band.'+format, dpi=dpi, format=format)      
+            fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
         else:
             plt.show() 
             
