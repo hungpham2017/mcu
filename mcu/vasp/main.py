@@ -549,7 +549,7 @@ class VASP:
                     
     def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band_idx=None, color=None, band_color=['#007acc','#808080','#808080'],
                     scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
-                    legend=None, loc="upper right", legend_size=22, 
+                    legend=None, loc="upper right", legend_size=1.0, 
                     save=False, figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            
@@ -649,7 +649,12 @@ class VASP:
             pband = 200 * scale * np.power(pband,2)     # The radius of the marker ~ the percent 
             
             # Color
-            if color == None: color = color_list
+            if color == None: 
+                color = color_list
+            else:
+                assert isinstance(color,list) or isinstance(color,str)
+                if isinstance(color,str): color = [color]
+                
             if facecolor == None: 
                 fcolors = color
             elif isinstance(facecolor,list):
@@ -666,14 +671,16 @@ class VASP:
             if marker == None: 
                 marker = ['o']*len(pband)
             else:
-                assert isinstance(marker,list)
+                assert isinstance(marker,list) or isinstance(legend,str)
+                if isinstance(marker,str): marker = [marker]
                 assert len(marker) == len(pband)                
             
             
             # legend    
             if legend != None:
                 legends = []   
-                assert isinstance(legend,list)
+                assert isinstance(legend,list) or isinstance(legend,str)
+                if isinstance(legend,str): legend = [legend]
                 assert len(legend) == len(pband)
                 
             # Actual plotting
@@ -688,7 +695,7 @@ class VASP:
                 
             if legend != None: 
                 lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
-                for i in range(len(pband)): lgnd.legendHandles[i]._sizes = [legend_size]
+                for i in range(len(pband)): lgnd.legendHandles[i]._sizes = [legend_size*60]
                 
         elif style == 3:
             path = np.array(path).flatten()
