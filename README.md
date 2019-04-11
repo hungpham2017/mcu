@@ -7,8 +7,8 @@ A laziest demonstration where most of default values are used
 ```
 import mcu
 run = mcu.VASP()        # Define a VASP object
-mcu.get_bandgap()       # Compute bandgap
-mcu.plot_pband()        # Plot projected band structure
+run.get_bandgap()       # Compute bandgap
+run.plot_pband()        # Plot projected band structure
 ```
 
 <img src="https://github.com/hungpham2017/mcu/blob/master/doc/MoS2.png" width="500" align="middle">
