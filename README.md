@@ -40,7 +40,7 @@ can be easily accessed via the **vasprun** attribute of an **mcu.VASP** object. 
  - Topological analysis
  - Connecting to Bilbao Crystallographic Server
  
-## Bugs and suggesting useful functions:
+## Reporting bugs and suggesting useful functions:
 There is a function that you would like it to be included in **mcu**. Shoot me an email or open an issue here!
 I don't promise to put everything you like in **mcu** because sometimes you can modify the code with ease for your need.
 Necessary functions for sure will be included.
