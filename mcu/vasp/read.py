@@ -337,7 +337,32 @@ class vasprun:
         self.band = self.get_eigenvalues(self.calculation_block[-1], level=2)
         
     def get_dos(self):
-        '''Get info from the <dos> block''' 
+        '''Get info from the <dos> block
+        
+        #################################################
+           tdos = [spin,epsilon,ith]   
+                ith = 0: epsilon
+                ith = 1: DOS
+               
+           dos = \bar{n}(\epsilon_i) = (N(\epsilon_i) - \epsilon_{i-1})\Delta\epsilon
+           N(\epsilon_i) = \int_{-infty}^{epsilon_i} n(\epsilon) d\epsilon
+            
+        #################################################
+           tdos = [atom,spin,epsilon,ith]           
+                ith = 0     : epsilon
+                ith = 1-9   : lm =  pz     px    dxy    dyz    dz2    dxz  x2-y2
+           
+           if ISPIN = 1 and ISPIN = 2:
+               spin 0           : proj_wf for alpha electrons 
+               spin 1           : proj_wf for beta electrons
+               
+           if LSORBIT = .TRUE.
+               spin 0           : total magnetization m 
+               spin 1,2,3       : partial magnetization mx, my, mz   
+
+        IMPORTANT NOTE: the total dos provided in vasprun.xml and the one calculated from pdos do not
+                        neccessarily equal.
+        '''   
 
         DOS = self.copy_block(self.calculation_block[-1],'dos', level=2) 
         
@@ -358,8 +383,8 @@ class vasprun:
             
             # Partial DOS            
             partial = self.copy_block(DOS,'partial', level=3) 
-            if len(partial) == 1:
-                print('Get partial density of states (pdos)')             
+            self.pdos_exist = False
+            if len(partial) == 1:            
                 # Get lm 
                 if self.lm == None: self.get_lm()
 
@@ -374,12 +399,14 @@ class vasprun:
                     partial_out.append(out_ion)
 
                 self.pdos = np.asarray(partial_out)
+                self.pdos_exist = True
+
                   
     def get_projected(self):
         '''Get info from the <projected> block
            proj_wf = [spin,kpt,band,atom,l] 
            
-           l = py     pz     px    dxy    dyz    dz2    dxz  x2-y2
+           lm = py     pz     px    dxy    dyz    dz2    dxz  x2-y2
            
            if ISPIN = 1 and ISPIN = 2:
                proj_wf = \big| \langle Y_{lm}^{\alpha} | \phi_{nk} \rangle \big|

@@ -4,7 +4,9 @@
 import numpy as np
 import mcu
 from mcu.vasp import utils, read
-
+import matplotlib
+import matplotlib.pyplot as plt
+        
 class VASP:
     def __init__(self, path='./', vaspruns='vasprun', outcars=None):
         '''
@@ -60,6 +62,7 @@ class VASP:
         self.atom  = vasprun.atom     
         self.atm  = vasprun.atm 
         self.atype = [atom[1] for atom in vasprun.types]
+        self.get_efermi()
         
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
@@ -88,9 +91,7 @@ class VASP:
         '''Get the bandgap'''
         
         # Get the fermi level
-        if efermi == None: 
-            self.get_efermi()
-            efermi = self.efermi
+        if efermi == None: efermi = self.efermi
             
         if isinstance(self.vasprun,mcu.vasp.read.vasprun):              # For one vasprun.xml file
             assert isinstance(efermi,float) 
@@ -99,7 +100,6 @@ class VASP:
             self.co_occ = self.vasprun.band[:,:,:,1] 
             self.co_occ_ = self.co_occ > 0.5       
             electronic = self.vasprun.parameters['electronic']
-            ispin = electronic.spin['ISPIN']
             self.kpts = self.vasprun.kpoints['kpointlist']
             nkpts = self.kpts.shape[0]
         elif isinstance(self.vasprun,list):                             # For multiple vasprun.xml file
@@ -109,12 +109,11 @@ class VASP:
                 
             electronic = self.vasprun[0].parameters['electronic']
             nbands = electronic.general['NBANDS']
-            ispin = electronic.spin['ISPIN']
             
             band_spin = [] 
             co_occ_spin1 = []
             co_occ_spin2 = []            
-            for spin in range(ispin):
+            for spin in range(self.ispin):
                 bands = np.zeros([1,nbands])
                 co_occ1 = np.zeros([1,nbands])    
                 co_occ2 = np.zeros([1,nbands], dtype=bool)                 
@@ -139,9 +138,9 @@ class VASP:
             nkpts = self.kpts.shape[0]
             self.co_occ, self.co_occ_ = np.asarray(co_occ_spin1), np.asarray(co_occ_spin2)
             
-        bandedge = np.zeros([ispin,nkpts,2,2])
+        bandedge = np.zeros([self.ispin,nkpts,2,2])
         self.bandgap = []
-        for spin in range(ispin):
+        for spin in range(self.ispin):
             print('Spin:', spin)        
             for kpt in range(nkpts):
                 band_kpt = self.band[spin,kpt]
@@ -179,9 +178,7 @@ class VASP:
         '''
         
         # Get the fermi level
-        if efermi == None: 
-            self.get_efermi()
-            efermi = self.efermi        
+        if efermi == None: efermi = self.efermi        
         
         sym_kpoint_coor = None
         band = None
@@ -221,7 +218,6 @@ class VASP:
         else:
             if isinstance(vasprun,mcu.vasp.read.vasprun):                       # For one vasprun.xml file
                 assert isinstance(efermi,float)
-                vasprun = vasprun
                 vasprun.get_band()
                 band = vasprun.band[spin][:,:,0]
                 kpts = vasprun.kpoints['kpointlist']
@@ -294,10 +290,6 @@ class VASP:
                                   
         '''
         
-        # matplotlib is required
-        import matplotlib
-        import matplotlib.pyplot as plt
-        
         assert isinstance(band_color,list)
         assert len(band_color) == 3
         
@@ -348,16 +340,15 @@ class VASP:
         '''Processing/collecting the projected band data before the plotting function
             proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.read.vasprun.get_projected for more details info
             
-            style = 0   : all atoms are considered, user proves the lm
-                         lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them lm ['s', ['px','pz']]
-                         'p', 'd', 'sp', 'pd', 'sd', 'spd': shortcuts 
-                         each color is used for each lm
-                             
-            style = 1   : gradient map to show the character transition
-                         lm = 'sp', 'pd', 'sd', or a list ['s',['px','dx2-y2']]
-            
+            style = 1   : all atoms are considered
+                         lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','x2-y2' or a list of them
+                             'sp', 'pd', 'sd', 'spd'  => shortcut
+                             each color is used for each lm
+                             the marker's radius is proportional to the % of lm 
             style = 2   : considering only a list of orbitals
-                         e.g. lm = 'Ni:s', ['Ni:s','C:s,px,pz']
+                         e.g. orb = ['Ni_s','C_pz']
+            style = 3   : gradient map to show the character transition
+                         lm = 'sp', 'pd', 'sd'
 
             band        : [first_band, final_band]
                           by default, it is roughly 6 bands around fermi level
@@ -549,7 +540,7 @@ class VASP:
                     
     def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band_idx=None, color=None, band_color=['#007acc','#808080','#808080'],
                     scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
-                    legend=None, loc="upper right", legend_size=1.0, 
+                    legend=None, loc="upper right", legend_size=1.0,
                     save=False, figname='pBAND', figsize=(6,6), ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            
@@ -586,11 +577,7 @@ class VASP:
                 marker      : a list of marker shape, default is: 'o'
                 legend      : a list of labels for different group of orbitals (same color) for the style 1 and 2            
         '''
-                    
-        # matplotlib is required
-        import matplotlib
-        import matplotlib.pyplot as plt
-        
+
         if style == 2 and lm == 'spd' : lm = [atom+':s,p,d' for atom in self.atype]       
         if style == 3 and lm == 'spd' : lm = 'sp'   
        
@@ -675,7 +662,6 @@ class VASP:
                 if isinstance(marker,str): marker = [marker]
                 assert len(marker) == len(pband)                
             
-            
             # legend    
             if legend != None:
                 legends = []   
@@ -726,10 +712,182 @@ class VASP:
         else:
             plt.show() 
             
-        
-    def plot_dos(self):
-        pass       
-      
-        
-        
 
+    def _generate_dos(self, vasprun, efermi=None, spin=0, lm=None):
+        '''Processing/collecting the DOS data before the plotting function
+            Note: unlike plot_band function, only one vasprun.xml is used. Combining vasprun.xml for DOS sounds a bit weird
+            and unececessary
+            
+            spin            : spin of DOS.
+                              For LSORBIT == True: spin = 0,1,2,3
+                              For ISPIN = 2      : spin = 0,1
+                              
+            lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
+        '''
+        
+        # Get the fermi level
+        pdos_exist = False
+        lm_list = vasprun.lm
+        
+        vasprun.get_dos()
+        tdos = vasprun.tdos[spin,:,:2]
+        if vasprun.pdos_exist == True: 
+            pdos_data = vasprun.pdos[:,spin,:,:]         # [atom,energy,lm]
+            pdos_exist = True
+        else:
+            pdos = None
+            
+             
+        # Compute pDOS
+        if pdos_exist == True:
+        
+            # Collecting group of lm
+            if isinstance(lm,str):
+                atom, lm_ = lm.split(':')
+                lm_  = lm_.split(',') 
+                temp = []
+                for i in range(len(lm_)):               
+                    if lm_[i] == 'p': 
+                        for m in ['px','py','pz']: temp.append(m)
+                    elif lm_[i] == 'd': 
+                        for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                    else:
+                        temp.append(lm_[i])
+                lms = [temp]
+                atoms = [atom]
+                
+            elif isinstance(lm,list):
+                atoms = []
+                lms = []   
+                atom_list = self.vasprun.atom
+                for orb in lm:
+                    atom, lm_ = orb.split(':')
+                    lm_  = lm_.split(',') 
+                    temp = []
+                    for i in range(len(lm_)):               
+                        if lm_[i] == 'p': 
+                            for m in ['px','py','pz']: temp.append(m)
+                        elif lm_[i] == 'd': 
+                            for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                        else:
+                            temp.append(lm_[i])
+                    atoms.append(atom)
+                    lms.append(temp)
+            
+            # Recompute tDOS from pdos_data, the one provided in the vasprun does not neccessarily equal to this tDOS
+            # however, this one is consistent with the pDOS below
+            temp = pdos_data[:,:,1:].sum(axis=0)
+            tdos = np.empty([temp.shape[0],2])
+            tdos[:,0] = pdos_data[0,:,0]          
+            tdos[:,1] = temp.sum(axis=1)  
+            
+            # Compute pDOS
+            pdos = [] 
+            for i in range(len(atoms)):
+                idx_atom = [idx for idx in range(len(self.atom)) if atoms[i] == self.atom[idx]]
+                idx_lm = [lm_list.index(lm) for lm in lms[i]] 
+                proj_val_atom = 0
+                proj_val = 0
+                for idx in idx_atom: proj_val_atom += pdos_data[idx,:,1:]        # Sum over all atoms
+                for idx in idx_lm: proj_val += proj_val_atom[:,idx]
+                pdos.append(proj_val)
+            pdos = np.asarray(pdos).T
+            
+        # Shift the energy 
+        tdos[:,0] = tdos[:,0] - efermi
+                
+        return tdos, pdos_exist, pdos
+        
+    def plot_dos(self, vasprun=None, efermi=None, spin=0, lm=None, color=None, vertical=False,
+                    legend=None, loc="upper right", fill=True, alpha=0.2,
+                    save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
+        '''Plot projected band structure
+            For multiple vasprun.xml, user can choose one of them to plot the DOS. Default: the first vasprun.xml
+
+            spin            : spin of DOS.
+                              For LSORBIT == True: spin = 0,1,2,3
+                              For ISPIN = 2      : spin = 0,1
+                              
+            lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
+        '''
+        
+        if vasprun == None: 
+            if isinstance(self.vasprun,mcu.vasp.read.vasprun): 
+                vasprun = self.vasprun
+                if efermi == None: efermi = self.efermi
+            if isinstance(self.vasprun,list): 
+                vasprun = self.vasprun[0]  
+                if efermi == None: efermi = self.efermi[0]
+        else:
+            assert isinstance(vasprun,mcu.vasp.read.vasprun)
+            
+        if lm == None: 
+            lm = [atom+':s,p,d' for atom in self.atype]  
+            legend = lm
+        elif lm != None and legend == None:
+            legend = lm
+              
+        if spin == 'updown':
+            if self.ispin != 2: raise Exception('ISPIN must be 2 for the up-down DOS plotting')
+            tdos0, pdos_exist, pdos0 = self._generate_dos(vasprun, efermi=efermi, spin=0, lm=lm)
+            tdos1, pdos_exist, pdos1 = self._generate_dos(vasprun, efermi=efermi, spin=1, lm=lm) 
+            tdos = [tdos0,-tdos1]
+            pdos = [pdos0,-pdos1]
+            if figsize == (6,3): figsize = (6,6)
+        else:
+            tdos, pdos_exist, pdos = self._generate_dos(vasprun, efermi=efermi, spin=spin, lm=lm)
+            tdos = [tdos]
+            pdos = [pdos]
+        
+        ##----------------------------------------------------------
+        ##Plotting:        
+        ##----------------------------------------------------------
+        border = 1.08
+        if vertical == True and figsize == (6,3): figsize = (3,6)
+        color_list = ['k','r','g','b','y','m','c']
+        if color == None: color = color_list
+        
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        yrange = (-50,50)
+        
+        # Plot DOS         
+        for dos_id in range(len(tdos)): 
+            ax.plot(tdos[0][:,0], tdos[dos_id][:,1], color=color[0],linewidth=1.0)
+            if pdos_exist == True:
+                for orb in range(pdos[dos_id].shape[1]): 
+                    ax.plot(tdos[0][:,0], pdos[dos_id][:,orb], color=color[orb+1],linewidth=1.0,label=legend[orb])
+                    if fill == True: ax.fill(tdos[0][:,0], pdos[dos_id][:,orb], color=color[orb+1], alpha=alpha)
+          
+        # Legend
+        lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
+                
+        # Graph adjustments             
+        ax.tick_params(labelsize=fontsize, width=border)
+        ax.spines['top'].set_linewidth(border)
+        ax.spines['right'].set_linewidth(border)
+        ax.spines['bottom'].set_linewidth(border)
+        ax.spines['left'].set_linewidth(border)
+        plt.xlabel('Energy (eV)', size=fontsize+4)   
+        plt.ylabel('DOS', size=fontsize+4)
+        if spin == 'updown':
+            plt.ylim([tdos[1][:,1].min()*yscale, tdos[0][:,1].max()*yscale])  
+            ax.plot([0,0], [tdos[1][:,1].min(), tdos[0][:,1].max()], color=color[0], linewidth=1.0, dashes=[6,3]) 
+            ax.plot([tdos[0][:,0].min(),tdos[0][:,0].max()], [0,0], color=color[0], linewidth=1.0) 
+        else:
+            plt.ylim([0, tdos[0][:,1].max()*yscale])
+            ax.plot([0,0], [0, tdos[0][:,1].max()], color=color[0], linewidth=1.0, dashes=[6,3]) 
+        plt.xlim(elim)
+        plt.yticks([])
+        plt.tight_layout()
+        if save == True: 
+            fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
+        else:
+            plt.show() 
+                
+                
+                
+                
+                
+                
+                
