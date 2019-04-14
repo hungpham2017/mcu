@@ -12,14 +12,10 @@ A projected band structure can be plotted simply by:
    import mcu
    mymcu = mcu.VASP()
    mymcu.plot_pband()
-   
-Tutorials
-=========
-* :ref:`basic`
-* :ref:`plotting`
 
 .. toctree::
    :maxdepth: 3
+   :caption: Tutorials
    
    basic
    plotting
