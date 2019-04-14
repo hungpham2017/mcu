@@ -1,4 +1,4 @@
-Welcome to **mcu**'s documentation!
+Welcome to mcu's documentation!
 ===============================
 A package for post periodic wave function and crystallography analysis. mcu is designed for large scale analysis rather than for generating figures for one calculation.
 
@@ -18,16 +18,8 @@ Tutorials
 * :ref:`basic`
 * :ref:`plotting`
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
-
 .. toctree::
-   :maxdepth: 4
-   index
+   :maxdepth: 3
+   
    basic
    plotting
-   genindex
-   search
