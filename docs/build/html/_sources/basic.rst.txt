@@ -2,7 +2,8 @@
 
 Basic functions in mcu 
 ===============================
-#. Compute bandgap:
+
+Compute bandgap and Fermi level:
 
 .. code-block:: python
    :linenos:
