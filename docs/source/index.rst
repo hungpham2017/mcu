@@ -22,6 +22,7 @@ Basic tutorials
 
 .. toctree::
    :maxdepth: 2
+   :caption: Basic tutorials
    
    basic
    plotting
