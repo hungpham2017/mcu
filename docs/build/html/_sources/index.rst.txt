@@ -18,14 +18,16 @@ Tutorials
 * :ref:`basic`
 * :ref:`plotting`
 
-.. toctree::
-   :maxdepth: 4
-
-
-
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
+
+.. toctree::
+   :maxdepth: 4
+   index
+   basic
+   plotting
+   genindex
+   search
