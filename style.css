@@ -1,0 +1,31 @@
+#main-hearder{
+	text-align: :center;
+	background-color: :black;
+	color:green;
+	padding: :10px;	
+}
+
+#main-footer{
+	text-align: center;
+	font-size: 14px;
+	color:red;
+
+}
+
+body{
+	background-color:#f4f4f4;
+	color:black;
+	font: normal 16px Times;
+	line-height:1.0em;
+}
+
+
+.container{
+	width:80%;
+	margin:auto;
+}
+
+.box-1{
+	background-color: #010101;
+	color:#ffffff;
+}

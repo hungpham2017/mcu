@@ -2,11 +2,101 @@
 <html>
     <head>
         <title> Welcome to mcu documentation </title>
+        <link rel="stylesheet" type="text/css" href="style.css">
     </head>
 
     <body>
+    	<a href="plotband.html">How to plot band structure</a>
         <!-- comment -->
         <h2>Hung Q. Pham</h2>
-        <p>Home page for mcu</p>
+        <p>
+        	<strong>Home page for mcu. Weirdo</strong>
+       		<em>Home page for mcu. Weirdo</em>
+       		Space group 225:  <a href="http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-kv-list" target="_blank"> here </a>
+
+       		<!-- List -->
+			<ul> <!-- or <ol> -->
+				<li> List 1</li>
+				<li> List 2</li>
+
+			</ul>
+
+			<!-- Table -->
+
+			<table>
+				<thead>
+					<tr> 
+						<th> Name </th>
+						<th> Email </th>
+						<th> Age </th>	
+					</tr>
+				</thead>
+
+				<tbody>
+					<tr> 
+						<td> Hung </td>
+						<td> phamx494@umn.edu</td>
+						<td> 29 </td>
+					</tr>
+					<tr> 
+						<td> Pham </td>
+						<td> pqh3.14@gmail.com</td>
+						<td> 29 </td>
+					</tr>
+				</tbody>
+
+			</table>
+
+			<br>
+			<hr>
+
+
+			<!-- form -->
+			<form action="process.php" method="POST">
+				<dir>
+					<label> First name</label>
+					<input type="text" name="first-name">
+				</dir>
+
+				<dir>
+					<label> Last name</label>
+					<input type="text" name="last-name">
+				</dir>
+
+				<dir>
+					<label> Email</label>
+					<input type="email" name="email">
+				</dir>
+
+				<dir>
+					<label> Message</label>
+					<textarea name="Message"></textarea>
+				</dir>
+
+				<dir>
+					<label>Gender</label>
+					<select name="gender">
+						<option value="Male"> Male</option>
+						<option value="Female"> Female</option>
+						<option value="Others"> Others</option>
+					</select>
+
+				</dir>
+
+
+			</form>
+
+			<div style="margin-top: :500px"> </div>
+        </p>
+
+        <!-- Image -->
+        <a href="img/DOS.png">
+		<img src="img/DOS.png" width="200">
+		</a>
+
+	<footer id="main-footer">
+		<p> Copyright &copy; 2019, My website</p>
+	</footer>
+
     </body>
 </html>
