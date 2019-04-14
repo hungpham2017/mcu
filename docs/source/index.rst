@@ -1,6 +1,6 @@
 Welcome to mcu's documentation!
 ===============================
-A package for post periodic wave function and crystallography analysis. mcu is designed for large scale analysis rather than for generating figures for one calculation.
+A package for post periodic wave function and crystallography analysis.
 
 A quick look
 ------------
@@ -11,7 +11,7 @@ A projected band structure can be plotted simply by:
    
    import mcu           
    mymcu = mcu.VASP()               # Define a mcu object
-   mymcu.plot_pband(save=True)      # plot projected band structure, save=True to export an image
+   mymcu.plot_pband()               # plot projected band structure
 
 .. image:: ../image/MoS2.png
    :scale: 80 %
@@ -21,11 +21,9 @@ A projected band structure can be plotted simply by:
     :glob:
     :maxdepth: 2
     :caption: Basic tutorials:
-    :numbered:
    
     basic
     plotting
-    *
    
 Bugs and request new functions
 ------------------------------
@@ -34,5 +32,5 @@ Bugs and request new functions
 
 Contact
 -------
-Author: Hung Q. Pham
-Email : pqh3.14@gmail.com
+* Author: Hung Q. Pham
+* Email : pqh3.14@gmail.com
