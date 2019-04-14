@@ -15,7 +15,14 @@ A projected band structure can be plotted simply by:
 
 .. toctree::
    :maxdepth: 3
-   :caption: Tutorials
+   :caption: Basic tutorials
+   
+   basic
+   plotting
+   
+.. toctree::
+   :maxdepth: 3
+   :caption: Advanced tutorials
    
    basic
    plotting
