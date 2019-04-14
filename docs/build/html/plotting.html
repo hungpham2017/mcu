@@ -152,11 +152,38 @@
             
   <div class="section" id="plotting-band-structure">
 <span id="plotting"></span><h1>Plotting band structure<a class="headerlink" href="#plotting-band-structure" title="Permalink to this headline">¶</a></h1>
-<p>How to plot band structure</p>
+<p>In python environment, band structure can be plotted by using <strong>mcu.plot_band()</strong> function</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<p>To customize the band, one can modify these attributes:
+* efermi: Fermi level. <strong>Default</strong>: from the vasprun.xml or OUTCAR (need to be specified in mcu.VASP())
+* spin: Spin. For ISPIN = 1, spin = 0. For ISPIN = 2, spin = 1, 2. For LSORBIT = True, spin = 0, 1, 2, 3. <strong>Default</strong>: 0
+* label: labels for high symmetric kpoints. For conventional band structure, label can be label = ‘G-X-L-F’.
+For hydrib functional, not only labels but also the coordinates need to be specified. <strong>Default</strong>: None.
+* save=False
+* band_color=[‘#007acc’,’#808080’,’#808080’]
+* figsize=(6,6)
+* figname=’BAND’
+* ylim=[-6,6]
+* fontsize=18
+* dpi=600
+* format=’png’</p>
 </div>
 <div class="section" id="plotting-density-of-states">
 <h1>Plotting density of states<a class="headerlink" href="#plotting-density-of-states" title="Permalink to this headline">¶</a></h1>
-<p>How to plot density of states</p>
+<p>For DOS, the total DOS is always shown together with projected DOS (if computed).</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_dos</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
 <div class="toctree-wrapper compound">
 </div>
 </div>
