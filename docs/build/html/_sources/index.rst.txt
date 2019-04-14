@@ -6,11 +6,6 @@ A quick look
 ============
 A projected band structure can be plotted simply by:
 
-.. code-block:: python
-    :linenos:
-    
-    import mcu
-    mymcu = mcu.VASP()
    
 Tutorials
 =========
