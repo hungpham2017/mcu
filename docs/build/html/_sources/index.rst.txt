@@ -4,14 +4,13 @@ A package for post periodic wave function and crystallography analysis. mcu is d
 
 A quick look
 ============
-A porjected band structure can be plotted simply by:
+A projected band structure can be plotted simply by:
 
 .. code-block:: python
-..   :linenos:
-..   :emphasize-lines: 3,5
-   
-..   import mcu
-..   mymcu = mcu.VASP()
+    :linenos:
+    
+    import mcu
+    mymcu = mcu.VASP()
    
 Tutorials
 =========
