@@ -9,9 +9,9 @@ A projected band structure can be plotted simply by:
 .. code-block:: python
    :linenos:
    
-   import mcu
-   mymcu = mcu.VASP()
-   mymcu.plot_pband(save=True)
+   import mcu           
+   mymcu = mcu.VASP()               # Define a mcu object
+   mymcu.plot_pband(save=True)      # plot projected band structure, save=True to export an image
 
 .. image:: ../image/MoS2.png
    :scale: 80 %
