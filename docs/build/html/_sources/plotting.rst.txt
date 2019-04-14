@@ -11,7 +11,7 @@ In python environment, band structure can be plotted by calling the **mcu.plot_b
    mymcu = mcu.VASP()               
    mymcu.plot_band()
 
-To customize the band, one can modify these attributes:
+To customize the band, one can modify some of these attributes:
 
 .. code-block:: python
    :linenos:
@@ -19,6 +19,23 @@ To customize the band, one can modify these attributes:
    import mcu           
    mymcu = mcu.VASP()               
    mymcu.plot_band(spin=0, save=True, figsize=(6,6), dpi=600, format='png')
+    
+All the attributes and their defaults are given below.
+
+.. code-block:: python
+   :linenos:
+   
+    efermi      = None
+    spin        = 0
+    label       = None
+    save        = False
+    band_color  = ['#007acc','#808080','#808080']
+    figsize     = (6,6)
+    figname     = 'BAND'
+    ylim        = [-6,6]
+    fontsize    = 18
+    dpi         = 600
+    format      = 'png'
     
 For projected band structure:
 
