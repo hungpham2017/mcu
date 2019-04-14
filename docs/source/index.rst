@@ -15,11 +15,12 @@ A projected band structure can be plotted simply by:
    
 Tutorials
 =========
-* :ref:`plotband`
+* :ref:`basic`
+* :ref:`plotting`
 
 .. toctree::
    :maxdepth: 4
-   :caption: Contents:
+
 
 
 Indices and tables
