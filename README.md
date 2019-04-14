@@ -1,8 +1,8 @@
 # Modeling and Crystallographic Utilities (mcu)
 A package for post periodic wave function and crystallography analysis. **mcu** is designed for large scale analysis rather than for generating figures for one calculation.
 
-## Getting Started
-A laziest demonstration where most of default values are used
+## A quick look
+A laziest demo where most of default values are used
 
 ```
 import mcu
@@ -13,6 +13,9 @@ run.plot_pband()        # Plot projected band structure
 
 <img src="https://github.com/hungpham2017/mcu/blob/master/doc/MoS2.png" width="500" align="middle">
 Projected band structure of MoS2 using the color map style
+
+## Tutorials:
+-  Tutorials can be found [here](https://hungpham2017.github.io/mcu)
 
 ## Prerequisites
 - The code was tested for the below libraries, the older versions, however, can work too. Just need to be tested. I do it soon ...
