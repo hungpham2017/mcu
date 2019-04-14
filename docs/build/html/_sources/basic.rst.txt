@@ -1,4 +1,4 @@
-.. _Basic_functions:
+.. _basic:
 
 Basic functions in mcu 
 ===============================

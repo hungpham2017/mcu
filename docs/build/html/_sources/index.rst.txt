@@ -15,8 +15,8 @@ A projected band structure can be plotted simply by:
    
 Tutorials
 =========
-* :ref:`Basic_functions`
-* :ref:`Plotting_with_mcu`
+* :ref:`basic`
+* :ref:`plotting`
 
 Indices and tables
 ==================

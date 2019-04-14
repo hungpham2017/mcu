@@ -1,4 +1,4 @@
-.. _Plotting_with_mcu:
+.. _plotting:
 
 Plotting with mcu
 ===============================
