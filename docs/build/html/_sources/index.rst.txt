@@ -14,6 +14,7 @@ A projected band structure can be plotted simply by:
    mymcu.plot_pband()
 
 .. image:: ../image/MoS2.png
+   :scale: 80 %
 
 .. toctree::
    :maxdepth: 2
