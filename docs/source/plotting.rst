@@ -1,5 +1,11 @@
 .. _plotting:
 
-Plotting with mcu
------------------
-How to plot band structure, density of states, etc.
+Plotting band structure
+-----------------------
+How to plot band structure
+
+
+
+Plotting density of states
+--------------------------
+How to plot density of states
