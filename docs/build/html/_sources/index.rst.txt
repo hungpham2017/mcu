@@ -1,4 +1,4 @@
-Welcome to mcu's documentation!
+Welcome to **mcu**'s documentation!
 ===============================
 A package for post periodic wave function and crystallography analysis. mcu is designed for large scale analysis rather than for generating figures for one calculation.
 
@@ -15,8 +15,8 @@ A projected band structure can be plotted simply by:
    
 Tutorials
 =========
-* :ref:`basic`
-* :ref:`plotting`
+* :ref:`Basic_functions`
+* :ref:`Plotting_with_mcu`
 
 Indices and tables
 ==================
