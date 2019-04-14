@@ -1,3 +1,7 @@
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
 Welcome to mcu's documentation!
 ===============================
 A package for post periodic wave function and crystallography analysis. mcu is designed for large scale analysis rather than for generating figures for one calculation.
@@ -13,9 +17,6 @@ A projected band structure can be plotted simply by:
    mymcu = mcu.VASP()
    mymcu.plot_pband()
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
 .. toctree::
    :maxdepth: 2
