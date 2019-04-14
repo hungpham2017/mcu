@@ -11,7 +11,7 @@ A projected band structure can be plotted simply by:
    
    import mcu
    mymcu = mcu.VASP()
-   mymcu.plot_pband()
+   mymcu.plot_pband(save=True)
 
 .. image:: ../image/MoS2.png
    :scale: 80 %

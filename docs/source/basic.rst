@@ -2,5 +2,15 @@
 
 Basic functions in mcu 
 ===============================
-Some basic function that is likely used
+#. Compute bandgap:
 
+.. code-block:: python
+   :linenos:
+   
+   import mcu
+   mymcu = mcu.VASP()    # Define an mcu object
+   mymcu.get_bandgap()   # Get the bandgap
+   mymcu.efermi          # Get Fermi level                         
+
+
+   
