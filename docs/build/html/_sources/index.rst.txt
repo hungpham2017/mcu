@@ -1,10 +1,11 @@
-.. mcu documentation master file, created by
-   sphinx-quickstart on Sun Apr 14 13:09:15 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to mcu's documentation!
 ===============================
+A package for post periodic wave function and crystallography analysis. mcu is designed for large scale analysis rather than for generating figures for one calculation.
+
+
+Tutorials
+=========
+* :ref:`plotband`
 
 .. toctree::
    :maxdepth: 2
