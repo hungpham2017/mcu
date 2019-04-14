@@ -7,11 +7,11 @@ A quick look
 A porjected band structure can be plotted simply by:
 
 .. code-block:: python
-   :linenos:
-   :emphasize-lines: 3,5
+..   :linenos:
+..   :emphasize-lines: 3,5
    
-   import mcu
-   mymcu = mcu.VASP()
+..   import mcu
+..   mymcu = mcu.VASP()
    
 Tutorials
 =========
