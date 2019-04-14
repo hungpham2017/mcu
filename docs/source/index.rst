@@ -24,3 +24,12 @@ A projected band structure can be plotted simply by:
    basic
    plotting
    
+Bugs and request new functions
+==============================
+* Bugs can be reported via openning an issue on my github or shooting me an email
+* Suggest a new function? Shoot me an email
+
+Contact
+=======
+Author: Hung Q. Pham
+Email : pqh3.14@gmail.com
