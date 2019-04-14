@@ -15,6 +15,7 @@ A projected band structure can be plotted simply by:
 
 .. image:: ../image/MoS2.png
    :scale: 80 %
+   :align: center
 
 .. toctree::
    :maxdepth: 2
