@@ -6,15 +6,21 @@ A quick look
 ============
 A projected band structure can be plotted simply by:
 
+.. code-block:: python
+   :linenos:
+   :emphasize-lines: 3,5
+   
+   import mcu
+   mymcu = mcu.VASP()
+   mymcu.plot_pband()
    
 Tutorials
 =========
 * :ref:`plotband`
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
-
 
 
 Indices and tables
