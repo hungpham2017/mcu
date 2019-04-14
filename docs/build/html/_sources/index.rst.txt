@@ -20,6 +20,7 @@ A projected band structure can be plotted simply by:
 .. toctree::
    :maxdepth: 2
    :caption: Basic tutorials:
+   :numbered:
    
    basic
    plotting
