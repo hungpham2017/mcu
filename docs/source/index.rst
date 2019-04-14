@@ -18,12 +18,14 @@ A projected band structure can be plotted simply by:
    :align: center
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Basic tutorials:
-   :numbered:
+    :glob:
+    :maxdepth: 2
+    :caption: Basic tutorials:
+    :numbered:
    
-   basic
-   plotting
+    basic
+    plotting
+    *
    
 Bugs and request new functions
 ------------------------------
