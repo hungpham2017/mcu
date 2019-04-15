@@ -17,10 +17,12 @@ A projected band structure can be plotted simply by:
     :scale: 80 %
     :align: center
 
+Content:
+--------
+
 .. toctree::
     :maxdepth: 2
-    :caption: Content:
-   
+
     install
     tutorial
     contact
