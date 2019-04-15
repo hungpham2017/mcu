@@ -23,7 +23,7 @@ To customize the band, one can modify some of these attributes. For mcu/exampple
 You should get:
 
 .. image:: ../image/plot_band_MoS2_a.png
-    :scale: 80 %
+    :scale: 60 %
     :align: center
     
 All parameters and their defaults of **plot_band** function are given below. Most of the parameters are passed to matplotlib functions.
