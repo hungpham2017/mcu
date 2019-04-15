@@ -174,7 +174,7 @@ alpha : float
     * Used to adjust the transparency of the marker
 cmap : str
     * Default: 'bwr'
-    * Colormap used in style = 3. Other colormap type can be found `here <https://matplotlib.org/tutorials/colors/colormaps.html/>`_ 
+    * Colormap used in style = 3. Other colormap type can be found `here <https://matplotlib.org/tutorials/colors/colormaps.html>`_ 
 edgecolor : 
     * Default: 'none'
     * The marker's border color in the style 3
@@ -189,14 +189,14 @@ marker : str or a list of str
     * Default: 'o'
     * marker = 'o' means 'o' used for all lm
     * marker = ['o','H'] and lm ='sp' means 'o' used s orbitals and 'H' used for p orbitals.
-    * More detail about marker type can be found `here <https://matplotlib.org/api/markers_api.html/>`_ 
+    * More detail about marker type can be found `here <https://matplotlib.org/api/markers_api.html>`_ 
 legend : list of str
     * Defaul: None
     * A list of labels for different group of orbitals. For example, ['Mo_s','S_p']
 loc : 
     * Defaul: "upper right"
     * Location of legend 
-    * Possile **loc** value can be found `here <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html/>`_ . Look for 'Location String' or 'Location Code'
+    * Possile **loc** value can be found `here <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>`_ . Look for 'Location String' or 'Location Code'
 legend_size : float
     * Default: 1.0
     * Size of the legend
@@ -290,7 +290,7 @@ legend : list of str
 loc : 
     * Defaul: "upper right"
     * Location of legend 
-    * Possile **loc** value can be found `here <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html/>`_ . Look for 'Location String' or 'Location Code'
+    * Possile **loc** value can be found `here <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>`_ . Look for 'Location String' or 'Location Code'
 fill : bool
     * Default: True
     * Whether to fill the area below the DOS curve.
