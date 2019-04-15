@@ -5,10 +5,10 @@ Installation
 
 Prerequisites
 -------------
-* `Link Python <https://www.python.org/>`_
-* `Link Numpy <http://www.numpy.org/>`_ 
-* `Link Scipy <https://www.scipy.org/>`_ 
-* `Link matplotlib <https://matplotlib.org/>`_ 
+* `Python <https://www.python.org/>`_
+* `Numpy <http://www.numpy.org/>`_ 
+* `Scipy <https://www.scipy.org/>`_ 
+* `matplotlib <https://matplotlib.org/>`_ 
 
 
 Downloading mcu
