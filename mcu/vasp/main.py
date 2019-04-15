@@ -341,12 +341,12 @@ class VASP:
             proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.read.vasprun.get_projected for more details info
             
             style = 1   : all atoms are considered
-                         lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','x2-y2' or a list of them
+                         lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them
                              'sp', 'pd', 'sd', 'spd'  => shortcut
                              each color is used for each lm
                              the marker's radius is proportional to the % of lm 
             style = 2   : considering only a list of orbitals
-                         e.g. orb = ['Ni_s','C_pz']
+                         e.g. orb = ['Ni:s','C:pz']
             style = 3   : gradient map to show the character transition
                          lm = 'sp', 'pd', 'sd'
 
