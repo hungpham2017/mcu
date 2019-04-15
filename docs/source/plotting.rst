@@ -5,20 +5,26 @@ Plotting band structure
 In python environment, band structure can be plotted by calling the **mcu.plot_band()** function
 
 .. code-block:: python
-   :linenos:
+    :linenos:
    
-   import mcu           
-   mymcu = mcu.VASP()               
-   mymcu.plot_band()
+    import mcu           
+    mymcu = mcu.VASP()    # or mymcu = mcu.VASP(path='path-to-vasprun', vaspruns='vasprun')             
+    mymcu.plot_band()
 
-To customize the band, one can modify some of these attributes:
+To customize the band, one can modify some of these attributes. For mcu/exampple/MoS2, you can run:
 
 .. code-block:: python
-   :linenos:
+    :linenos:
    
-   import mcu           
-   mymcu = mcu.VASP()               
-   mymcu.plot_band(spin=0, save=True, figsize=(6,6), dpi=600, format='png')
+    import mcu           
+    mymcu = mcu.VASP()   
+    mymcu.plot_band(spin=0, save=True, label='Y-G-R-X-G', ylim=(-3,3), figsize=(6,6), dpi=300, format='png')
+    
+You should get:
+
+.. image:: ../image/plot_band_MoS2_a.png
+    :scale: 80 %
+    :align: center
     
 All parameters and their defaults of **plot_band** function are given below. Most of the parameters are passed to matplotlib functions.
 So more information can be found in matplotlib docs.
@@ -48,7 +54,7 @@ figsize : tuple or list
     * Size of image in inch
 figname : str
     * Default: 'BAND'
-    * Name of the image if save = True
+    * Name of the image
 ylim : list
     * Default: [-6,6]
     * Limit range for energy axis in eV
