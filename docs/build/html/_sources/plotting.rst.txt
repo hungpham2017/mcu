@@ -273,7 +273,7 @@ efermi : float
 spin : int
     * Default: 0
     * If ISPIN = 1: spin = 0
-    * If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin)
+    * If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin). spin = 'updown' means plotting both alpha and beta electrons
     * For LSORBIT = True: spin = 0 (total m) or spin = 1 (mx) or spin = 2 (my) or spin = 3 (mz)
 lm : str or a list of str
     * Default: DOS is projected on each atom.
