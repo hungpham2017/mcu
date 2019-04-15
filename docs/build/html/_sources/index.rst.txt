@@ -15,7 +15,7 @@ A projected band structure can be plotted simply by:
     mymcu.plot_pband(save=True)
 
 .. image:: ../image/MoS2.png
-    :scale: 80 %
+    :scale: 60 %
     :align: center
 
 Content:
