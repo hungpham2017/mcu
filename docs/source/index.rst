@@ -1,6 +1,7 @@
 Welcome to mcu's documentation!
 ===============================
-A package for post periodic wave function and crystallography analysis.
+A package for periodic wavefunction and crystallography analysis. 
+**mcu** is designed to support large scale analysis and topological descriptions for periodic wavefunction.
 
 A quick look
 ------------
