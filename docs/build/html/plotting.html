@@ -194,19 +194,43 @@
 </pre></div>
 </td></tr></table></div>
 <p>All the attributes and their defaults are given below.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">efermi</span>      <span class="o">=</span> None
-<span class="nv">spin</span>        <span class="o">=</span> <span class="m">0</span>
-<span class="nv">label</span>       <span class="o">=</span> None
-<span class="nv">save</span>        <span class="o">=</span> False
-<span class="nv">band_color</span>  <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;#007acc&#39;</span>,<span class="s1">&#39;#808080&#39;</span>,<span class="s1">&#39;#808080&#39;</span><span class="o">]</span>
-<span class="nv">figsize</span>     <span class="o">=</span> <span class="o">(</span><span class="m">6</span>,6<span class="o">)</span>
-<span class="nv">figname</span>     <span class="o">=</span> <span class="s1">&#39;BAND&#39;</span>
-<span class="nv">ylim</span>        <span class="o">=</span> <span class="o">[</span>-6,6<span class="o">]</span>
-<span class="nv">fontsize</span>    <span class="o">=</span> <span class="m">18</span>
-<span class="nv">dpi</span>         <span class="o">=</span> <span class="m">600</span>
-<span class="nv">format</span>      <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>def plot_band(efermi=None, spin=0, label=None, save=False, band_color=[‘#007acc’,’#808080’,’#808080’],</dt>
+<dd><blockquote class="first">
+<div>figsize=(6,6), figname=’BAND’, ylim=[-6,6], fontsize=18, dpi=600, format=’png’):</div></blockquote>
+<p>“”“Plot band structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param efermi:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param spin:</th><td class="field-body">0</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param label:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param save:</th><td class="field-body">False</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">param band_color:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">[‘#007acc’,’#808080’,’#808080’]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param figsize:</th><td class="field-body">(6,6)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param figname:</th><td class="field-body">‘BAND’</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param ylim:</th><td class="field-body">[-6,6]</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param fontsize:</th><td class="field-body">18</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param dpi:</th><td class="field-body">600</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param format:</th><td class="field-body">‘png’</td>
+</tr>
+</tbody>
+</table>
+<p class="last">“”“</p>
+</dd>
+</dl>
 </div>
 <div class="section" id="plotting-projected-band-structure">
 <h1>Plotting projected band structure<a class="headerlink" href="#plotting-projected-band-structure" title="Permalink to this headline">¶</a></h1>
