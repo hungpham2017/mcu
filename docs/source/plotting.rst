@@ -16,14 +16,14 @@ To customize the band, one can modify some of these attributes. For mcu/exampple
 .. code-block:: python
     :linenos:
    
-    import mcu           
-    mymcu = mcu.VASP()   
-    mymcu.plot_band(spin=0, save=True, label='Y-G-R-X-G', ylim=(-3,3), figsize=(6,6), dpi=300, format='png')
+import mcu           
+mymcu = mcu.VASP()   
+mymcu.plot_band(spin=0, save=True, label='Y-G-R-X-G', ylim=(-3,3), figsize=(3,3), dpi=300, format='png')
     
 You should get:
 
 .. image:: ../image/plot_band_MoS2_a.png
-    :scale: 60 %
+    :scale: 80 %
     :align: center
     
 All parameters and their defaults of **plot_band** function are given below. Most of the parameters are passed to matplotlib functions.

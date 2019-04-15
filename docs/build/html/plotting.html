@@ -189,15 +189,14 @@
 </pre></div>
 </td></tr></table></div>
 <p>To customize the band, one can modify some of these attributes. For mcu/exampple/MoS2, you can run:</p>
-<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
-<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
-<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Y-G-R-X-G&#39;</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>
 </pre></div>
 </td></tr></table></div>
+<p>import mcu
+mymcu = mcu.VASP()
+mymcu.plot_band(spin=0, save=True, label=’Y-G-R-X-G’, ylim=(-3,3), figsize=(3,3), dpi=300, format=’png’)</p>
 <p>You should get:</p>
-<a class="reference internal image-reference" href="_images/plot_band_MoS2_a.png"><img alt="_images/plot_band_MoS2_a.png" class="align-center" src="_images/plot_band_MoS2_a.png" style="width: 1080.0px; height: 1080.0px;" /></a>
+<a class="reference internal image-reference" href="_images/plot_band_MoS2_a.png"><img alt="_images/plot_band_MoS2_a.png" class="align-center" src="_images/plot_band_MoS2_a.png" style="width: 1440.0px; height: 1440.0px;" /></a>
 <p>All parameters and their defaults of <strong>plot_band</strong> function are given below. Most of the parameters are passed to matplotlib functions.
 So more information can be found in matplotlib docs.</p>
 <div class="section" id="parameters">
