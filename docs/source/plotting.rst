@@ -20,12 +20,10 @@ To customize the band, one can modify some of these attributes:
    mymcu = mcu.VASP()               
    mymcu.plot_band(spin=0, save=True, figsize=(6,6), dpi=600, format='png')
     
-All the attributes and their defaults of **plot_band** function are given below.
+All parameters and their defaults of **plot_band** function are given below.
 
-
-    
 Parameters
-----------
+~~~~~~~~~~
 efermi : float
          Fermi level.
 
