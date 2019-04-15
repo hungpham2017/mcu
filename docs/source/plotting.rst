@@ -20,17 +20,17 @@ To customize the band, one can modify some of these attributes:
    mymcu = mcu.VASP()               
    mymcu.plot_band(spin=0, save=True, figsize=(6,6), dpi=600, format='png')
     
-All the attributes and their defaults are given below.
+All the attributes and their defaults of **plot_band** function are given below.
 
 def plot_band(efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'], figsize=(6,6), figname='BAND', ylim=[-6,6], fontsize=18, dpi=600, format='png'):
     """Plot band structure
     
-    :param efermi: None
-    :param spin: 0
-    :param label: None
-    :param save: False
-    :param band_color: ['#007acc','#808080','#808080']
-    :param figsize: (6,6)
+    : efermi: None
+    : spin: 0
+    : label: None
+    : save: False
+    : band_color: ['#007acc','#808080','#808080']
+    : figsize: (6,6)
     :param figname: 'BAND'
     :param ylim: [-6,6]
     :param fontsize: 18
