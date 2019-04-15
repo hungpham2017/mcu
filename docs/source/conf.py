@@ -24,9 +24,10 @@ copyright = '2019, Hung Q. Pham'
 author = 'Hung Q. Pham'
 
 # The short X.Y version
-version = ''
+version = '0.1'
+
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = '0.1.beta'
 
 
 # -- General configuration ---------------------------------------------------
@@ -78,6 +79,27 @@ pygments_style = None
 #
 html_theme = "sphinx_rtd_theme"
 
+html_theme_options = {
+    'canonical_url': '',
+    'analytics_id': 'UA-XXXXXXX-1',  #  Provided by Google in your dashboard
+    'logo_only': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'bottom',
+    'style_external_links': False,
+    'vcs_pageview_mode': '',
+    'style_nav_header_background': 'white',
+    # Toc options
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+    'includehidden': True,
+    'titles_only': False
+}
+
+# Addung javascripts:
+def setup(app):
+    app.add_javascript('js/footer.js')
+    
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
