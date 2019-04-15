@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to mcu’s documentation! &mdash; mcu 0.0.1 documentation</title>
+  <title>Installation &mdash; mcu 0.0.1 documentation</title>
   
 
   
@@ -35,7 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="install.html" /> 
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="Welcome to mcu’s documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -49,7 +50,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> mcu
+            <a href="index.html" class="icon icon-home"> mcu
           
 
           
@@ -80,8 +81,15 @@
             
             
               <p class="caption"><span class="caption-text">Basic tutorials:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#downloading-mcu">Downloading mcu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-environment">Python environment</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">Contact:</a></li>
 </ul>
@@ -98,7 +106,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">mcu</a>
+          <a href="index.html">mcu</a>
         
       </nav>
 
@@ -127,15 +135,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Welcome to mcu’s documentation!</li>
+      <li>Installation</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -148,37 +156,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-mcu-s-documentation">
-<h1>Welcome to mcu’s documentation!<a class="headerlink" href="#welcome-to-mcu-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>A package for post periodic wave function and crystallography analysis.</p>
-<div class="section" id="a-quick-look">
-<h2>A quick look<a class="headerlink" href="#a-quick-look" title="Permalink to this headline">¶</a></h2>
-<p>A projected band structure can be plotted simply by:</p>
-<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
-<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
-<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_pband</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="https://www.python.org/">Link Python</a></li>
+<li><a class="reference external" href="http://www.numpy.org/">Link Numpy</a></li>
+<li><a class="reference external" href="https://www.scipy.org/">Link Scipy</a></li>
+<li><a class="reference external" href="https://matplotlib.org/">Link matplotlib</a></li>
+</ul>
+</div>
+<div class="section" id="downloading-mcu">
+<h2>Downloading mcu<a class="headerlink" href="#downloading-mcu" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/hungpham2017/mcu
 </pre></div>
-</td></tr></table></div>
-<a class="reference internal image-reference" href="_images/MoS2.png"><img alt="_images/MoS2.png" class="align-center" src="_images/MoS2.png" style="width: 612.8000000000001px; height: 464.0px;" /></a>
+</div>
+</div>
+<div class="section" id="python-environment">
+<h2>Python environment<a class="headerlink" href="#python-environment" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;path-to-mcu-package&gt;:<span class="nv">$PYTHONPATH</span>
+</pre></div>
+</div>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Basic tutorials:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#downloading-mcu">Downloading mcu</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#python-environment">Python environment</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
-<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting band structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="plotting.html#plotting-density-of-states">Plotting density of states</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact:</a></li>
-</ul>
 </div>
 </div>
 </div>
@@ -191,8 +191,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to mcu’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
