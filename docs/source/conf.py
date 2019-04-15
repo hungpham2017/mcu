@@ -91,14 +91,14 @@ html_theme_options = {
     # Toc options
     'collapse_navigation': True,
     'sticky_navigation': True,
-    'navigation_depth': 4,
+    'navigation_depth': 2,
     'includehidden': True,
     'titles_only': False
 }
 
 # Addung javascripts:
 def setup(app):
-    app.add_javascript('js/footer.js')
+    app.add_javascript('../js/footer.js')
     
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
