@@ -11,7 +11,7 @@ In python environment, band structure can be plotted by calling the **mcu.plot_b
     mymcu = mcu.VASP()    # or mymcu = mcu.VASP(path='path-to-vasprun', vaspruns='vasprun')             
     mymcu.plot_band()
 
-To customize the band, one can modify some of these attributes. For mcu/exampple/MoS2, you can run:
+To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run:
 .. code-block:: python
     :linenos:
    
@@ -78,7 +78,7 @@ In python environment, band structure can be plotted by calling the **mcu.plot_b
    mymcu = mcu.VASP()               
    mymcu.plot_pband()
    
-To customize the band, one can modify some of these attributes. For mcu/exampple/MoS2, you can run:
+To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run:
 
 .. code-block:: python
     :linenos:
@@ -89,6 +89,7 @@ To customize the band, one can modify some of these attributes. For mcu/exampple
     mymcu.plot_pband(style=2, lm=['Mo:d','S:p'], color=['#00ccff','#ff0000'], alpha=0.4, label=label, fontsize= 9, ylim=(-1.5,1.5),figsize=(4,3),legend=['Mo:d','S:p'],legend_size=1.2, save=True, figname='MoS2_style2', dpi=300)
 
 You should get:
+
 .. image:: ../image/MoS2_style2.png
     :scale: 50 %
     :align: center
