@@ -237,7 +237,7 @@ For DOS, the total DOS is always shown together with projected DOS (if computed)
     mymcu.plot_dos()
     
 .. image:: ../image/Ni_horizontal.png
-    :scale: 50 %
+    :scale: 30 %
     :align: center
     
 To customize the band, one can modify some of these attributes.
@@ -254,7 +254,7 @@ To customize the band, one can modify some of these attributes.
 You should get:
     
 .. image:: ../image/Ni_updown.png
-    :scale: 50 %
+    :scale: 30 %
     :align: center
     
 All parameters and their defaults of **plot_dos** function are given below.
