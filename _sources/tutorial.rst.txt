@@ -1,4 +1,11 @@
-mcu's Tutorial!
-===============================
-Step-by-step guidance how to use mcu
+.. _tutorial:
 
+Tutorial
+========
+
+.. toctree::
+    :glob:
+    :maxdepth: 2
+
+    basic
+    plotting
