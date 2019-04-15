@@ -102,6 +102,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorial</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting band structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plotting-projected-band-structure">Plotting projected band structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plotting-density-of-states">Plotting density of states</a><ul class="simple">
 </ul>
@@ -194,40 +195,12 @@
 </pre></div>
 </td></tr></table></div>
 <p>All the attributes and their defaults of <strong>plot_band</strong> function are given below.</p>
+</div>
+<div class="section" id="parameters">
+<h1>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h1>
 <dl class="docutils">
-<dt>def plot_band(efermi=None, spin=0, label=None, save=False, band_color=[‘#007acc’,’#808080’,’#808080’], figsize=(6,6), figname=’BAND’, ylim=[-6,6], fontsize=18, dpi=600, format=’png’):</dt>
-<dd><p class="first">“”“Plot band structure</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">param efermi:</th><td class="field-body">None</td>
-</tr>
-<tr class="field-even field"><th class="field-name">param spin:</th><td class="field-body">0</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">param label:</th><td class="field-body">None</td>
-</tr>
-<tr class="field-even field"><th class="field-name">param save:</th><td class="field-body">False</td>
-</tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">param band_color:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body">[‘#007acc’,’#808080’,’#808080’]</td>
-</tr>
-<tr class="field-even field"><th class="field-name">param figsize:</th><td class="field-body">(6,6)</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">param figname:</th><td class="field-body">‘BAND’</td>
-</tr>
-<tr class="field-even field"><th class="field-name">param ylim:</th><td class="field-body">[-6,6]</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">param fontsize:</th><td class="field-body">18</td>
-</tr>
-<tr class="field-even field"><th class="field-name">param dpi:</th><td class="field-body">600</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">param format:</th><td class="field-body">‘png’</td>
-</tr>
-</tbody>
-</table>
-<p class="last">“”“</p>
-</dd>
+<dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Fermi level.</dd>
 </dl>
 </div>
 <div class="section" id="plotting-projected-band-structure">
