@@ -5,10 +5,10 @@ Installation
 
 Prerequisites
 -------------
-* `Python <https://www.python.org/>`_
-* `Numpy <http://www.numpy.org/>`_ 
-* `Scipy <https://www.scipy.org/>`_ 
-* `matplotlib <https://matplotlib.org/>`_ 
+* `Python <https://www.python.org/>`_ 3.5 or higher
+* `Numpy <http://www.numpy.org/>`_ 1.15.4 or higher
+* `Scipy <https://www.scipy.org/>`_ 1.1.0 or higher
+* `matplotlib <https://matplotlib.org/>`_ 3.0.1 or higher
 
 
 Downloading mcu
@@ -20,6 +20,8 @@ Downloading mcu
 
 Python environment
 ------------------
+
+Adding python path for **mcu** to the .bashrc or .cshrc file
 
 .. code-block:: bash
 
