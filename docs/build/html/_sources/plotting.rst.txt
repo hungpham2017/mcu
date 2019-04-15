@@ -25,9 +25,19 @@ All parameters and their defaults of **plot_band** function are given below.
 Parameters
 ~~~~~~~~~~
 efermi : float
-    Default: fermi level from vasprun.xml or OUTCAR
-    User can shift the Fermi level to a value. 
-
+    * Default: fermi level from vasprun.xml or OUTCAR. User can shift the Fermi level to a value. 
+spin : int
+    * Default: 0. If ISPIN = 1, spin = 0. If ISPIN = 2, spin = 0 (Up spin), 1 (Down spin). If
+    * Default: 0. If ISPIN = 1, spin = 0. If ISPIN = 2, spin = 0 (Up spin), 1 (Down spin). If
+label=None
+save=False
+band_color ['#007acc','#808080','#808080']
+figsize=(6,6)
+figname='BAND'
+ylim=[-6,6]
+fontsize=18
+dpi=600
+format='png'
     
     
 Plotting projected band structure
