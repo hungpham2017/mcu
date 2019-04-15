@@ -196,31 +196,81 @@
 <span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
 </pre></div>
 </td></tr></table></div>
-<p>All parameters and their defaults of <strong>plot_band</strong> function are given below.</p>
+<p>All parameters and their defaults of <strong>plot_band</strong> function are given below. Most of the parameters are passed to matplotlib functions.
+So more information can be found in matplotlib docs.</p>
 <div class="section" id="parameters">
 <h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd><ul class="first last simple">
-<li>Default: fermi level from vasprun.xml or OUTCAR. User can shift the Fermi level to a value.</li>
+<li>Default: fermi level from vasprun.xml or OUTCAR</li>
+<li>User can shift the Fermi level to a value</li>
 </ul>
 </dd>
 <dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
 <dd><ul class="first last simple">
-<li>Default: 0. If ISPIN = 1, spin = 0. If ISPIN = 2, spin = 0 (Up spin), 1 (Down spin). If</li>
-<li>Default: 0. If ISPIN = 1, spin = 0. If ISPIN = 2, spin = 0 (Up spin), 1 (Down spin). If</li>
+<li>Default: 0</li>
+<li>If ISPIN = 1: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin)</li>
+</ul>
+</dd>
+<dt>label <span class="classifier-delimiter">:</span> <span class="classifier">str or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>For conventional band structure, e.g. label = ‘X-G-Y-L-G’</li>
+<li>For hydrib functional band structure, e.g. label = [[‘L’,0.50,0.50,0.50],[‘G’,0.0,0.0,0.00],[‘X’,0.5,0.0,0.50],[‘W’,0.50,0.25,0.75]]</li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>band_color: list</dt>
+<dd><ul class="first last simple">
+<li>Default: [‘#007acc’,’#808080’,’#808080’]</li>
+<li>Three color codes indice color of band curve, kpoint grid, Fermi level, respectively.</li>
+<li>Exp: [‘k’,’#808080’,’r’]</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: De(6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘BAND’</li>
+<li>Name of the image if save = True</li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [-6,6]</li>
+<li>Limit range for energy axis in eV</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
 </ul>
 </dd>
 </dl>
-<p>label=None
-save=False
-band_color [‘#007acc’,’#808080’,’#808080’]
-figsize=(6,6)
-figname=’BAND’
-ylim=[-6,6]
-fontsize=18
-dpi=600
-format=’png’</p>
 </div>
 </div>
 <div class="section" id="plotting-projected-band-structure">
