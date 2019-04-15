@@ -80,16 +80,17 @@
               
             
             
-              <p class="caption"><span class="caption-text">Basic tutorials:</span></p>
-<ul class="current">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="feature.html">Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorial</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Basic functions in mcu</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting band structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html#plotting-projected-band-structure">Plotting projected band structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plotting.html#plotting-density-of-states">Plotting density of states</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
 </ul>
 
             
@@ -162,7 +163,7 @@
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3
-4</pre></div></td><td class="code"><div class="highlight"><pre><span></span> <span class="kn">import</span> <span class="nn">mcu</span>
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
 <span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>    <span class="c1"># Define an mcu object</span>
 <span class="n">mymcu</span><span class="o">.</span><span class="n">get_bandgap</span><span class="p">()</span>   <span class="c1"># Get the bandgap</span>
 <span class="n">mymcu</span><span class="o">.</span><span class="n">efermi</span>          <span class="c1"># Get Fermi level</span>

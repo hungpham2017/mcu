@@ -22,9 +22,8 @@ To customize the band, one can modify some of these attributes:
     
 All the attributes and their defaults are given below.
 
-.. code-block:: python
-   :linenos:
-   
+.. code-block:: bash
+  
     efermi      = None
     spin        = 0
     label       = None
@@ -37,7 +36,9 @@ All the attributes and their defaults are given below.
     dpi         = 600
     format      = 'png'
     
-For projected band structure:
+Plotting projected band structure
+---------------------------------
+In python environment, band structure can be plotted by calling the **mcu.plot_band()** function
 
 .. code-block:: python
    :linenos:
