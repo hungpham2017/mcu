@@ -23,6 +23,7 @@ Content:
 .. toctree::
     :maxdepth: 2
 
+    feature
     install
     tutorial
     contact
