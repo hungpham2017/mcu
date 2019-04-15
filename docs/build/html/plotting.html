@@ -201,9 +201,26 @@
 <h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Default: fermi level from vasprun.xml or OUTCAR
-User can shift the Fermi level to a value.</dd>
+<dd><ul class="first last simple">
+<li>Default: fermi level from vasprun.xml or OUTCAR. User can shift the Fermi level to a value.</li>
+</ul>
+</dd>
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0. If ISPIN = 1, spin = 0. If ISPIN = 2, spin = 0 (Up spin), 1 (Down spin). If</li>
+<li>Default: 0. If ISPIN = 1, spin = 0. If ISPIN = 2, spin = 0 (Up spin), 1 (Down spin). If</li>
+</ul>
+</dd>
 </dl>
+<p>label=None
+save=False
+band_color [‘#007acc’,’#808080’,’#808080’]
+figsize=(6,6)
+figname=’BAND’
+ylim=[-6,6]
+fontsize=18
+dpi=600
+format=’png’</p>
 </div>
 </div>
 <div class="section" id="plotting-projected-band-structure">
