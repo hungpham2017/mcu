@@ -313,7 +313,7 @@ class VASP:
             for kpt in range(nkpts):   
                 point = label[kpt]
                 if point == 'G': point = r'$\Gamma$'
-                ax.text(sym_kpoint_coor[kpt]/path.max()+0.02, -0.05, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
+                ax.text(sym_kpoint_coor[kpt]/path.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
                         color='black', fontsize=fontsize)     
             
         # Plot bands            
