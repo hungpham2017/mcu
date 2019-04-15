@@ -93,7 +93,7 @@ To customize the band, one can modify some of these attributes. For mcu/example/
 You should get:
 
 .. image:: ../image/MoS2_style2.png
-    :scale: 50 %
+    :scale: 40 %
     :align: center
     
 Or for style = 3:
