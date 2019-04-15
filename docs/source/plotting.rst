@@ -22,8 +22,7 @@ To customize the band, one can modify some of these attributes:
     
 All the attributes and their defaults are given below.
 
-def plot_band(efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
-                    figsize=(6,6), figname='BAND', ylim=[-6,6], fontsize=18, dpi=600, format='png'):
+def plot_band(efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'], figsize=(6,6), figname='BAND', ylim=[-6,6], fontsize=18, dpi=600, format='png'):
     """Plot band structure
     
     :param efermi: None
