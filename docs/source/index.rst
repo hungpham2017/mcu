@@ -21,16 +21,8 @@ A projected band structure can be plotted simply by:
     :maxdepth: 2
     :caption: Basic tutorials:
    
-    basic
-    plotting
+    install
+    tutorial
+    contact
     
-Bugs and Function suggestions:
-------------------------------
-Bugs and more functions suggestion are appreciated
-
-
-Contact
--------
-* Hung Q. Pham
-* Email: pqh3.14@gmail.com
-   
+    
