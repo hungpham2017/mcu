@@ -24,8 +24,8 @@ All parameters and their defaults of **plot_band** function are given below.
 
 Parameters
 ~~~~~~~~~~
-efermi : float
-    Default: from vasprun.xml or OUTCAR. User can shift the Fermi level to a value. 
+efermi : float. Default: fermi level from vasprun.xml or OUTCAR
+    User can shift the Fermi level to a value. 
 
     
     
