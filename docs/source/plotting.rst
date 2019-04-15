@@ -23,9 +23,9 @@ To customize the band, one can modify some of these attributes:
 All parameters and their defaults of **plot_band** function are given below.
 
 Parameters
-++++++++++
+~~~~~~~~~~
 efermi : float
-         Fermi level.
+    Default: from vasprun.xml or OUTCAR. User can shift the Fermi level to a value. 
 
     
     
