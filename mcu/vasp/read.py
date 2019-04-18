@@ -572,4 +572,14 @@ class OUTCAR:
     def get_efermi(self):    
         '''Extract E_fermi'''
         pass
-       
+        
+class POSCAR:
+    def __init__(self, file="POSCAR"):
+        '''Read POSCAR'''
+        if not utils.check_exist(file):
+            print('Cannot find the POSCAR file. Check the path:', file)
+        else: 
+            self.poscar = open(file, "r").readlines()  
+    
+        
+
