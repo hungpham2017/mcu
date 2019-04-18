@@ -565,8 +565,7 @@ class OUTCAR:
         '''Read additional infomation that cannot be extracted from vasprun.xml'''
         if not utils.check_exist(file):
             print('Cannot find the OUTCAR file. Check the path:', file)
-        else:
-            #self.outcar = open(file, "r").readlines()  
+        else: 
             rungrep = subprocess.run(['grep', 'E-fermi', file], stdout=subprocess.PIPE) 
             self.efermi = np.float64(str(rungrep.stdout).split()[3])
         
