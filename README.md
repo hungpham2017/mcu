@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/hungpham2017/mcu.svg?branch=master)](https://travis-ci.com/hungpham2017/mcu)
 # Modeling and Crystallographic Utilities (mcu)
 A package for periodic wavefunction and crystallography analysis. **mcu** is designed to support large scale analysis and topological descriptions for periodic wavefunction.
 
