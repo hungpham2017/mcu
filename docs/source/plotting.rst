@@ -139,8 +139,8 @@ band_color: list
 style : int
     * Default: 1
     * If style = 1: the most flexible style, all atoms are considered. A few examples of **lm** are:
-        - Only one certain orbital: lm = 's' or  lm = 'p' or lm = 'dxz' or lm = 'dx2-y2'
-        - Shortcut: lm = 'sp' for 's', 'p' or lm  = 'spd' for s, p, d or  lm  = 'dsp' for d, s, p (where orbital appears later will on top of other orbitals before in plotting) 
+        - Choose one specific orbital: lm = 's' or  lm = 'p' or lm = 'dxz' or lm = 'dx2-y2'
+        - Shortcut: lm = 'sp' for 's', 'p' or lm  = 'spd' for s, p, d or  lm  = 'dsp' for d, s, p (where orbital appears later will be on top of other orbitals before in plotting) 
         - lm = [['s', 'py', 'pz'],['dxy', 'dyz', 'dz2']]
         - Each color is used for each **lm** or each **lm** group
         - The marker's radius is proportional to the % of lm
