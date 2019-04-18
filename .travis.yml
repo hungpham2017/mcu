@@ -7,10 +7,8 @@ sudo: false
 
 matrix:
   include:
+    - python: 3.5
     - python: 3.6
-    - numpy: 1.15.4
-    - scipy: 1.1.0
-    - matplotlib: 3.0.1
 before_install:
   - uname -a
   - free -m
@@ -20,6 +18,8 @@ before_install:
   - pip install --upgrade pip setuptools
   - pip install pytest pytest-cov
   - pip install numpy
+  - pip install scipy
+  - pip install matplotlib  
   - pip install codecov
   - pip install -e .
 
