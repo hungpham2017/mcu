@@ -16,21 +16,21 @@ before_install:
   - ulimit -a
   - python -V
   - pip install --upgrade pip setuptools
-  - pip install pytest
+  - pip install pytest pytest-cov
   - pip install numpy
   - pip install scipy
   - pip install matplotlib  
-# - pip install codecov
+  - pip install codecov
   - pip install -e .
 
 script:
-  - py.test -v
-#  - py.test -v #--cov=./
+  - py.test -v --cov=./
+
 # after_success:
 #   - ./tools/travis-upload-wheel.sh
 
 notifications:
     email: false
 
-#after_success:
-#  - codecov
+after_success:
+  - codecov
