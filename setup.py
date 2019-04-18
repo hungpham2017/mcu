@@ -13,7 +13,8 @@ if __name__ == "__main__":
         install_requires=[
             'numpy>=1.15.2',
             'scipy>=1.1.0',
-            'pybind11>=2.2.3',            
+            'pytest>=3.6',
+            'matplotlib>=3.0.1', 
         ],
         extras_require={
             'docs': [
