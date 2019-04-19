@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
         
 class VASP:
-    def __init__(self, path='./', vaspruns='vasprun', outcars=None):
+    def __init__(self, path='./', vaspruns='vasprun', outcars='OUTCAR'):
         '''
             path        : the project directory
             vaspruns    : a str or a list of string as names for *.xml files
@@ -18,11 +18,11 @@ class VASP:
         # Create vasprun object(s)
         if isinstance(vaspruns, str):                   # For one vasprun.xml file    
             self.vasprun = read.vasprun(path + '/' + vaspruns + '.xml')
-            self.get_info(self.vasprun)
             self.useOUTCAR = False
-            if outcars != None: 
-                self.outcar = read.OUTCAR(outcars)
-                self.useOUTCAR = True
+            self.outcar = read.OUTCAR(path + '/' + outcars)
+            if self.outcar.success == True: self.useOUTCAR = True
+                
+            self.get_info(self.vasprun)
         elif isinstance(vaspruns, list):                # For multiple vasprun.xml file
             self.vasprun = []
             for xml in vaspruns:
@@ -31,11 +31,9 @@ class VASP:
                     print('Cannot find:', xml_file)
                     break
                 self.vasprun.append(read.vasprun(xml_file))
-                
-            self.get_info(self.vasprun[0])      # Only get info for the first vasprun.xml
-            
-            if outcars != None: 
-                assert isinstance(outcars, list)               
+
+            self.useOUTCAR = False
+            if isinstance(outcars, list):               
                 assert len(outcars) == len(vaspruns)
                 self.outcar = []
                 for outcar in outcars:
@@ -45,6 +43,7 @@ class VASP:
                         break
                     self.outcar.append(read.OUTCAR(outcar_file))  
                     self.useOUTCAR = True                    
+            self.get_info(self.vasprun[0])      # Only get info for the first vasprun.xml
         else:
             print('Provide a string or a list of names for *.xml file')
     
@@ -250,8 +249,8 @@ class VASP:
                 vasprun = vasprun[0]
                 
             # Find absolute kpts
-            b = vasprun.cell_final[1]          # Get the reciprocal lattice
-            abs_kpts = kpts.dot(b)                  # From fractional to absolute
+            b = vasprun.cell_final[1]               # Get the reciprocal lattice
+            abs_kpts = kpts.dot(b)                  # From fractional to absolute in 2pi.A^-1 unit
             temp_kpts = np.empty_like(abs_kpts)
             temp_kpts[0] = abs_kpts[0]
             temp_kpts[1:] = abs_kpts[:-1] 
@@ -804,6 +803,7 @@ class VASP:
         '''Plot projected band structure
             For multiple vasprun.xml, user can choose one of them to plot the DOS. Default: the first vasprun.xml
 
+            Attribute:
             style           : 1 (standard plot) or 2 (vertital plot)
             
             spin            : spin of DOS.
@@ -844,7 +844,6 @@ class VASP:
         ##----------------------------------------------------------
         ##Plotting:        
         ##----------------------------------------------------------
-        border = 1.08
         color_list = ['k','r','g','b','y','m','c']
         if color == None: color = color_list
         
@@ -912,7 +911,8 @@ class VASP:
         # Legend
         lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
                 
-        # Graph adjustments             
+        # Graph adjustments 
+        border = 1.08        
         ax.tick_params(labelsize=fontsize, width=border)
         ax.spines['top'].set_linewidth(border)
         ax.spines['right'].set_linewidth(border)
@@ -924,9 +924,60 @@ class VASP:
         else:
             plt.show() 
                 
-                
-                
-                
-                
-                
-                
+class LOCPOT:
+    def __init__(self, locpot='LOCPOT'):
+        '''Get LOCPOT file and return a LOCPOT object '''
+        self.locpot = read.LOCPOT(locpot)
+        
+    def get_2D_average(self, direction='z'):
+        return self.locpot.get_2D_average(direction)
+        
+    def get_vacumm(self, pot=None, direction='z', error=0.02):
+        '''Get the electrostatic potential at vacuum
+        '''
+        
+        if not isinstance(pot,np.ndarray): 
+            pot = self.get_2D_average(direction)
+        lower_bound = pot[1].max()-error
+        idx = pot[1] > lower_bound
+        pot_in_window = pot[1,idx]
+        e_vacuum = np.average(pot[1,idx])
+    
+        return e_vacuum
+        
+    def plot(self, direction='z', error=0.02, color=['r', '#737373'], ylim=None, save=False, figname='elecpot', figsize=(8,4), fontsize=16, dpi=600, format='png'):
+        '''Function to plot the inplane average potential to check the convegence
+        '''
+        
+        pot = self.get_2D_average(direction)
+        e_vacuum = self.get_vacumm(pot, error=error)
+        
+        ##----------------------------------------------------------
+        ##Plotting:        
+        ##----------------------------------------------------------
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        ax.plot(pot[0], pot[1], color=color[0],linewidth=1.1,label='TDOS')
+        ax.plot([pot[0].min(), pot[0].max()], [e_vacuum,e_vacuum], color=color[1], linewidth=1.1, dashes=[6,3])
+        if ylim == None: ylim = (pot[1].min() - 5.0,pot[1].max() + 5.0)
+        y_evacuum = (e_vacuum-ylim[0])/(ylim[1]-ylim[0]) 
+        label = 'Vacuum = ' + str(round(e_vacuum,2)) + r' $\pm$ ' + str(round(error,2)) + ' eV' 
+        ax.text(0.02, y_evacuum, label  , verticalalignment='bottom', horizontalalignment='left',transform=ax.transAxes, color='black', fontsize=fontsize)  
+ 
+        # Graph adjustments
+        border = 1.08
+        ax.tick_params(labelsize=fontsize, width=border)
+        ax.spines['top'].set_linewidth(border)
+        ax.spines['right'].set_linewidth(border)
+        ax.spines['bottom'].set_linewidth(border)
+        ax.spines['left'].set_linewidth(border)
+        plt.xlabel(direction + r' ($\AA$)', size=fontsize+4)
+        ax.xaxis.set_label_coords(0.5, -0.08) 
+        plt.ylabel('Electrostatic potential (V)', size=fontsize+4)        
+        plt.ylim(ylim) 
+        plt.xlim([0,pot[0].max()])
+        plt.tight_layout()
+        if save == True: 
+            fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
+        else:
+            plt.show() 
