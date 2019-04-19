@@ -244,11 +244,11 @@ class vasprun:
         volume = np.float64(utils.str_extract(structure[0][7],'>','<').strip())
         
 
-        lattice = self.extract_vec(basis)
-        recip_lattice = self.extract_vec(rec_basis)   
+        lattice = self.extract_vec(basis)               # row vector format, Unit: A
+        recip_lattice = self.extract_vec(rec_basis)     # column vector format, Unit: 2pi A^-1  
         positions = self.extract_vec(positions) 
 
-        return lattice, recip_lattice, positions, volume
+        return lattice.T, recip_lattice, positions, volume
 
             
     def get_structure(self): 
@@ -257,7 +257,7 @@ class vasprun:
         initialpos = self.copy_block(self.vasprun,'structure', 'initialpos', level=1)           
         finalpos = self.copy_block(self.vasprun,'structure', 'finalpos', level=1)  
         
-        self.cell_init = self.get_cell(initialpos,level=1)  
+        self.cell_init = self.get_cell(initialpos,level=1)       
         self.cell_final = self.get_cell(finalpos,level=1)  
 
     def get_sc(self, calculation): 
@@ -564,22 +564,122 @@ class OUTCAR:
     def __init__(self, file="OUTCAR"):
         '''Read additional infomation that cannot be extracted from vasprun.xml'''
         if not utils.check_exist(file):
-            print('Cannot find the OUTCAR file. Check the path:', file)
+            print('Cannot find the OUTCAR file (optional). Check the path:', file)
+            self.success = False
         else: 
             rungrep = subprocess.run(['grep', 'E-fermi', file], stdout=subprocess.PIPE) 
             self.efermi = np.float64(str(rungrep.stdout).split()[3])
-        
+            self.success = True
+            
     def get_efermi(self):    
         '''Extract E_fermi'''
         pass
+  
+def get_atominfo(poscar):
+    '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
+    lattice = []
+    for i in range(2,5):
+        lattice.append(np.float64(poscar[i].split()))
+    lattice = np.asarray(lattice).T             # Unit: A
+    recip_lattice = np.linalg.inv(lattice)      # Unit: 2pi A^-1
+    
+    atom_type = poscar[5].split()
+    natom = np.int64(poscar[6].split())
+    atom = []
+    for i in range(len(atom_type)):
+        atom += [atom_type[i]]*natom[i]
+    
+    natom = natom.sum()
+    is_frac_coor = False
+    if poscar[7][0] in ['D', 'd']: is_frac_coor = True
+    
+    positions = []
+    for atm in range(8,8+natom):
+        positions.append(np.float64(poscar[atm].split()))
+    positions = np.asarray(positions)
+    if is_frac_coor == False:
+        positions = positions.dot(np.linalg.inv(lattice))
         
+    volume = abs(np.linalg.det(lattice))   
+    
+    return atom, lattice, recip_lattice, positions, volume
+  
 class POSCAR:
     def __init__(self, file="POSCAR"):
-        '''Read POSCAR'''
+        '''Read POSCAR
+           TODO: extend it to Selective dynamics
+        '''
         if not utils.check_exist(file):
-            print('Cannot find the POSCAR file. Check the path:', file)
+            print('Cannot find the POSCAR file (optional). Check the path:', file)
+            self.success = False
         else: 
             self.poscar = open(file, "r").readlines()  
-    
+            self.cell = self.get_atominfo(self.poscar)
+            self.success = True
+            
+    def get_atominfo(self, poscar):
+        '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
+        self.atom, lattice, recip_lattice, positions, volume = get_atominfo(poscar)
+        return lattice, recip_lattice, positions, volume
         
-
+class LOCPOT:
+    def __init__(self, file="LOCPOT"):
+        '''Read LOCPOT
+           TODO: extend it to Selective dynamics
+        '''
+        if not utils.check_exist(file):
+            print('Cannot find the LOCPOT file. Check the path:', file)
+            self.success = False
+        else: 
+            self.locpot = open(file, "r").readlines()  
+            self.success = True
+            self.cell = self.get_atominfo(self.locpot)
+            self.natom = self.cell[2].shape[0]
+            self.skip_poscar = self.natom + 9           #skip the POSCAR block in LOCPOT
+            self.ngxyz, self.locpot_data = self.read_locpot(self.locpot)
+    
+    def get_atominfo(self, locpot):
+        '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
+        self.atom, lattice, recip_lattice, positions, volume = get_atominfo(locpot)
+        return lattice, recip_lattice, positions, volume
+        
+    def read_locpot(self, locpot):
+        '''Read the LOCPOT block in LOCPOT file'''
+        
+        ngxyz = np.int64(locpot[self.skip_poscar].split()) 
+        locpot_block = locpot[self.skip_poscar+1:]
+        locpot_data = []
+        for line in locpot_block:
+            locpot_data += line.split()
+        locpot_data = np.float64(locpot_data).reshape(ngxyz, order='F')
+        
+        return ngxyz, locpot_data
+        
+    def get_2D_average(self, direction='z'):
+        '''Compute the average potential over a plan perpendicular to an axis
+        Note: the unit cell is assumed to orthogonal cell. Other type of cell needs a bit thinking
+        Attribute:
+            direction  : x, y, or z 
+            
+        Return:
+            coor        : the z or y or z axis
+            avg_pot     : Inplace average potential 
+        '''
+        
+        if direction == 'x': 
+            coor = np.arange(self.ngxyz[0]) * self.cell[0][0,0] / self.ngxyz[0]
+            avg_pot = self.locpot_data.sum(axis=1).sum(axis=1)/self.ngxyz[1]/self.ngxyz[2]
+        elif direction == 'y':
+            coor = np.arange(self.ngxyz[1]) * self.cell[0][1,1] / self.ngxyz[1]
+            avg_pot = self.locpot_data.sum(axis=0).sum(axis=1)/self.ngxyz[0]/self.ngxyz[2]
+        elif direction == 'z':
+            coor = np.arange(self.ngxyz[2]) * self.cell[0][2,2] / self.ngxyz[2]
+            avg_pot = self.locpot_data.sum(axis=0).sum(axis=0)/self.ngxyz[0]/self.ngxyz[1]
+        else:
+            print('Axis', direction, 'is not recognized')
+            
+        return np.vstack([coor, avg_pot])
+        
+        
+        
+        

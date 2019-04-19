@@ -53,6 +53,7 @@ band_color: list
     * Default: ['#007acc','#808080','#808080']
     * Three color codes indice color of band curve, kpoint grid, Fermi level, respectively. 
     * Exp: ['k','#808080','r']
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 figsize : tuple or list
     * Default: De(6,6)
     * Size of image in inch
@@ -136,6 +137,7 @@ band_color: list
     * Default: ['#007acc','#808080','#808080']
     * Three color codes indice color of band curve, kpoint grid, Fermi level, respectively. 
     * Exp: ['k','#808080','r']
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 style : int
     * Default: 1
     * If style = 1: the most flexible style, all atoms are considered. A few examples of **lm** are:
@@ -166,6 +168,7 @@ color : list
     * User can provide a list of color they wish to use. For example, ['r','#ffffff,'k']. 
       Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
       For example, lm ='spd' then there should be a list of three color codes. 
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 scale : float
     * Default: 1.0
     * Used to adjust the size of the marker
@@ -284,6 +287,7 @@ color : list
     * User can provide a list of color they wish to use. For example, ['r','#ffffff,'k']. 
       Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
       For example, lm ='spd' then there should be a list of three color codes. 
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 legend : list of str
     * Defaul: None
     * A list of labels for different group of orbitals. For example, ['Mo_s','S_p']
