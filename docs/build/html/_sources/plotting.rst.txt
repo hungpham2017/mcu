@@ -338,9 +338,9 @@ The :math:`E_{Vacuum}` can be computed by simply constructing a slab model and a
 LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
 The average over a plane perpendicular to an crystal axis can be computed and plotted via **mcu**. 
 
-You can the below command in the mcu/example/InCuCl directory
+You can run the below commands in the mcu/example/InCuCl directory
 
-.. code-block:: python
+.. code-block:: python 
     :linenos:
    
     import mcu           
