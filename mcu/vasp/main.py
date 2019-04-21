@@ -972,7 +972,7 @@ class LOCPOT:
         ax.spines['bottom'].set_linewidth(border)
         ax.spines['left'].set_linewidth(border)
         plt.xlabel(direction + r' ($\AA$)', size=fontsize+4)
-        ax.xaxis.set_label_coords(0.5, -0.08) 
+        ax.xaxis.set_label_coords(0.5, -0.09) 
         plt.ylabel('Electrostatic potential (V)', size=fontsize+4)        
         plt.ylim(ylim) 
         plt.xlim([0,pot[0].max()])
