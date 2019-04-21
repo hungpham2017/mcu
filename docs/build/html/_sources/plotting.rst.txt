@@ -53,6 +53,7 @@ band_color: list
     * Default: ['#007acc','#808080','#808080']
     * Three color codes indice color of band curve, kpoint grid, Fermi level, respectively. 
     * Exp: ['k','#808080','r']
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 figsize : tuple or list
     * Default: De(6,6)
     * Size of image in inch
@@ -136,11 +137,12 @@ band_color: list
     * Default: ['#007acc','#808080','#808080']
     * Three color codes indice color of band curve, kpoint grid, Fermi level, respectively. 
     * Exp: ['k','#808080','r']
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 style : int
     * Default: 1
     * If style = 1: the most flexible style, all atoms are considered. A few examples of **lm** are:
-        - Only one certain orbital: lm = 's' or  lm = 'p' or lm = 'dxz' or lm = 'dx2-y2'
-        - Shortcut: lm = 'sp' for 's', 'p' or lm  = 'spd' for s, p, d or  lm  = 'dsp' for d, s, p (where orbital appears later will on top of other orbitals before in plotting) 
+        - Choose one specific orbital: lm = 's' or  lm = 'p' or lm = 'dxz' or lm = 'dx2-y2'
+        - Shortcut: lm = 'sp' for 's', 'p' or lm  = 'spd' for s, p, d or  lm  = 'dsp' for d, s, p (where orbital appears later will be on top of other orbitals before in plotting) 
         - lm = [['s', 'py', 'pz'],['dxy', 'dyz', 'dz2']]
         - Each color is used for each **lm** or each **lm** group
         - The marker's radius is proportional to the % of lm
@@ -166,6 +168,7 @@ color : list
     * User can provide a list of color they wish to use. For example, ['r','#ffffff,'k']. 
       Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
       For example, lm ='spd' then there should be a list of three color codes. 
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 scale : float
     * Default: 1.0
     * Used to adjust the size of the marker
@@ -240,7 +243,7 @@ For DOS, the total DOS is always shown together with projected DOS (if computed)
     :scale: 30 %
     :align: center
     
-To customize the band, one can modify some of these attributes.
+To customize the dos figure, one can modify some of these attributes.
    
 .. code-block:: python
    :linenos:
@@ -284,6 +287,7 @@ color : list
     * User can provide a list of color they wish to use. For example, ['r','#ffffff,'k']. 
       Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
       For example, lm ='spd' then there should be a list of three color codes. 
+    * Hex color code can be found here `here <https://www.w3schools.com/colors/colors_picker.asp>`_
 legend : list of str
     * Defaul: None
     * A list of labels for different group of orbitals. For example, ['Mo_s','S_p']
@@ -301,7 +305,7 @@ save : bool
     * Default: False
     * True to save to an image    
 figsize : tuple or list
-    * Default: De(6,6)
+    * Default: (6,6)
     * Size of image in inch
 figname : str
     * Default: 'DOS'
@@ -322,3 +326,57 @@ format : str
     * Default: 'png'
     * Extension of the image
     
+Work function and the electrostatic potential over a plane 
+----------------------------------------------------------
+The work function :math:`\Phi` is defined as:
+
+.. math::
+    \Phi = - E_{VBM} = \epsilon_F - E_{Vacuum}
+
+where :math:`\epsilon_F` and :math:`\E_{Vacuum}` is the Fermi level and the electrostatic potential of vacuum.
+The :math:`\E_{Vacuum}` can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR. 
+LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
+The average over a plane perpendicular to an axis can be computed and plotted via **mcu**. 
+
+.. code-block:: python
+    :linenos:
+   
+    import mcu           
+    mymcu = mcu.LOCPOT()    # or mymcu = mcu.VASP(path='path-to-vasprun', vaspruns='vasprun')             
+    mymcu.plot(direction='z', error=0.01)
+     
+YOu should get:
+
+.. image:: ../image/elecpot.png
+    :scale: 30 %
+    :align: center
+    
+Parameters
+~~~~~~~~~~
+direction : str
+    * Default: 'z' 
+    * The average of electrostatic potential is computed over a plane that is perpendicular to this axis 
+error : float
+    * Default: 0.01 
+    * The electrostatic potential (pot) at the vacuum is computed by taking the average of all the pot in the window (pot - 2*error, max(pot)) 
+color : list 
+    * Default: ['r', '#737373']
+    * The color codes for the electrostatic potential and the vacuum
+ylim : list
+    * Default: None, automatic estimated
+    * Limit range for energy axis in eV
+figsize : tuple or list
+    * Default: (6,6)
+    * Size of image in inch
+figname : str
+    * Default: 'elecpot'
+    * Name of the image
+fontsize : int
+    * Default: 18
+    * Font size
+dpi : int
+    * Default: 600
+    * Resolution of the image 
+format : str
+    * Default: 'png'
+    * Extension of the image
