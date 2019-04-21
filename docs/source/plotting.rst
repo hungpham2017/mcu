@@ -243,7 +243,7 @@ For DOS, the total DOS is always shown together with projected DOS (if computed)
     :scale: 30 %
     :align: center
     
-To customize the band, one can modify some of these attributes.
+To customize the dos figure, one can modify some of these attributes.
    
 .. code-block:: python
    :linenos:
@@ -305,7 +305,7 @@ save : bool
     * Default: False
     * True to save to an image    
 figsize : tuple or list
-    * Default: De(6,6)
+    * Default: (6,6)
     * Size of image in inch
 figname : str
     * Default: 'DOS'
@@ -326,3 +326,57 @@ format : str
     * Default: 'png'
     * Extension of the image
     
+Work function and the electrostatic potential over a plane 
+----------------------------------------------------------
+The work function :math:`\Phi` is defined as:
+
+.. math::
+    \Phi = - E_{VBM} = \epsilon_F - E_{Vacuum}
+
+where :math:`\epsilon_F` and :math:`\E_{Vacuum}` is the Fermi level and the electrostatic potential of vacuum.
+The :math:`\E_{Vacuum}` can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR. 
+LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
+The average over a plane perpendicular to an axis can be computed and plotted via **mcu**. 
+
+.. code-block:: python
+    :linenos:
+   
+    import mcu           
+    mymcu = mcu.LOCPOT()    # or mymcu = mcu.VASP(path='path-to-vasprun', vaspruns='vasprun')             
+    mymcu.plot(direction='z', error=0.01)
+     
+YOu should get:
+
+.. image:: ../image/elecpot.png
+    :scale: 30 %
+    :align: center
+    
+Parameters
+~~~~~~~~~~
+direction : str
+    * Default: 'z' 
+    * The average of electrostatic potential is computed over a plane that is perpendicular to this axis 
+error : float
+    * Default: 0.01 
+    * The electrostatic potential (pot) at the vacuum is computed by taking the average of all the pot in the window (pot - 2*error, max(pot)) 
+color : list 
+    * Default: ['r', '#737373']
+    * The color codes for the electrostatic potential and the vacuum
+ylim : list
+    * Default: None, automatic estimated
+    * Limit range for energy axis in eV
+figsize : tuple or list
+    * Default: (6,6)
+    * Size of image in inch
+figname : str
+    * Default: 'elecpot'
+    * Name of the image
+fontsize : int
+    * Default: 18
+    * Font size
+dpi : int
+    * Default: 600
+    * Resolution of the image 
+format : str
+    * Default: 'png'
+    * Extension of the image
