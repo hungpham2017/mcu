@@ -25,6 +25,7 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -110,7 +111,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#plotting-density-of-states">Plotting density of states</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#work-function-and-the-electrostatic-potential-over-a-plane">Work function and the electrostatic potential over a plane</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10">Parameters</a></li>
 </ul>
 </li>
 </ul>
@@ -238,6 +243,7 @@ So more information can be found in matplotlib docs.</p>
 <li>Default: [‘#007acc’,’#808080’,’#808080’]</li>
 <li>Three color codes indice color of band curve, kpoint grid, Fermi level, respectively.</li>
 <li>Exp: [‘k’,’#808080’,’r’]</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
 </ul>
 </dd>
 <dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
@@ -342,6 +348,7 @@ Some of additional parameters for projected band structure. Most important param
 <li>Default: [‘#007acc’,’#808080’,’#808080’]</li>
 <li>Three color codes indice color of band curve, kpoint grid, Fermi level, respectively.</li>
 <li>Exp: [‘k’,’#808080’,’r’]</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
 </ul>
 </dd>
 <dt>style <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
@@ -350,8 +357,8 @@ Some of additional parameters for projected band structure. Most important param
 <li><dl class="first docutils">
 <dt>If style = 1: the most flexible style, all atoms are considered. A few examples of <strong>lm</strong> are:</dt>
 <dd><ul class="first last">
-<li>Only one certain orbital: lm = ‘s’ or  lm = ‘p’ or lm = ‘dxz’ or lm = ‘dx2-y2’</li>
-<li>Shortcut: lm = ‘sp’ for ‘s’, ‘p’ or lm  = ‘spd’ for s, p, d or  lm  = ‘dsp’ for d, s, p (where orbital appears later will on top of other orbitals before in plotting)</li>
+<li>Choose one specific orbital: lm = ‘s’ or  lm = ‘p’ or lm = ‘dxz’ or lm = ‘dx2-y2’</li>
+<li>Shortcut: lm = ‘sp’ for ‘s’, ‘p’ or lm  = ‘spd’ for s, p, d or  lm  = ‘dsp’ for d, s, p (where orbital appears later will be on top of other orbitals before in plotting)</li>
 <li>lm = [[‘s’, ‘py’, ‘pz’],[‘dxy’, ‘dyz’, ‘dz2’]]</li>
 <li>Each color is used for each <strong>lm</strong> or each <strong>lm</strong> group</li>
 <li>The marker’s radius is proportional to the % of lm</li>
@@ -402,6 +409,7 @@ For the whole band, band_idx = [0,100000] or  band_idx = [0,1000] as long as the
 <li>User can provide a list of color they wish to use. For example, [‘r’,’#ffffff,’k’].
 Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
 For example, lm =’spd’ then there should be a list of three color codes.</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
 </ul>
 </dd>
 <dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
@@ -520,7 +528,7 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 </pre></div>
 </td></tr></table></div>
 <a class="reference internal image-reference" href="_images/Ni_horizontal.png"><img alt="_images/Ni_horizontal.png" class="align-center" src="_images/Ni_horizontal.png" style="width: 540.0px; height: 270.0px;" /></a>
-<p>To customize the band, one can modify some of these attributes.</p>
+<p>To customize the dos figure, one can modify some of these attributes.</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3
@@ -535,8 +543,8 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 <p>You should get:</p>
 <a class="reference internal image-reference" href="_images/Ni_updown.png"><img alt="_images/Ni_updown.png" class="align-center" src="_images/Ni_updown.png" style="width: 450.0px; height: 540.0px;" /></a>
 <p>All parameters and their defaults of <strong>plot_dos</strong> function are given below.</p>
-<div class="section" id="id4">
-<h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h2>Parameters<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt>vasprun <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
 <dd><ul class="first last simple">
@@ -577,6 +585,7 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 <li>User can provide a list of color they wish to use. For example, [‘r’,’#ffffff,’k’].
 Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
 For example, lm =’spd’ then there should be a list of three color codes.</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
 </ul>
 </dd>
 <dt>legend <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
@@ -612,7 +621,7 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 </dd>
 <dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
 <dd><ul class="first last simple">
-<li>Default: De(6,6)</li>
+<li>Default: (6,6)</li>
 <li>Size of image in inch</li>
 </ul>
 </dd>
@@ -632,6 +641,84 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 <dd><ul class="first last simple">
 <li>Default: 1.1</li>
 <li>Used to zoom in and out the horizontal or DOS axis</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="work-function-and-the-electrostatic-potential-over-a-plane">
+<h1>Work function and the electrostatic potential over a plane<a class="headerlink" href="#work-function-and-the-electrostatic-potential-over-a-plane" title="Permalink to this headline">¶</a></h1>
+<p>The work function <span class="math notranslate nohighlight">\(\Phi\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[\Phi = - E_{VBM} = \epsilon_F - E_{Vacuum}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\epsilon_F\)</span> and <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> is the Fermi level and the electrostatic potential of vacuum.
+The <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR in VASP calculation.
+LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
+The average over a plane perpendicular to an crystal axis can be computed and plotted via <strong>mcu</strong>.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">LOCPOT</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>You should get:</p>
+<a class="reference internal image-reference" href="_images/elecpot.png"><img alt="_images/elecpot.png" class="align-center" src="_images/elecpot.png" style="width: 600.0px; height: 300.0px;" /></a>
+<div class="section" id="id10">
+<h2>Parameters<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>direction <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘z’</li>
+<li>The average of electrostatic potential is computed over a plane that is perpendicular to this axis</li>
+</ul>
+</dd>
+<dt>error <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0.01</li>
+<li>The electrostatic potential (pot) at the vacuum is computed by taking the average of all the pot in the window (pot - 2*error, maximum of pot)</li>
+</ul>
+</dd>
+<dt>color <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [‘r’, ‘#737373’]</li>
+<li>The color codes for the electrostatic potential and the vacuum marker</li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None, automatic estimated</li>
+<li>Limit range for energy axis in eV</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: (6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘elecpot’</li>
+<li>Name of the image</li>
 </ul>
 </dd>
 <dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
