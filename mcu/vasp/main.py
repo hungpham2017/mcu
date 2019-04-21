@@ -932,20 +932,20 @@ class LOCPOT:
     def get_2D_average(self, direction='z'):
         return self.locpot.get_2D_average(direction)
         
-    def get_vacumm(self, pot=None, direction='z', error=0.02):
+    def get_vacumm(self, pot=None, direction='z', error=0.01):
         '''Get the electrostatic potential at vacuum
         '''
         
         if not isinstance(pot,np.ndarray): 
             pot = self.get_2D_average(direction)
-        lower_bound = pot[1].max()-error
+        lower_bound = pot[1].max()- 2*error
         idx = pot[1] > lower_bound
         pot_in_window = pot[1,idx]
         e_vacuum = np.average(pot[1,idx])
     
         return e_vacuum
         
-    def plot(self, direction='z', error=0.02, color=['r', '#737373'], ylim=None, save=False, figname='elecpot', figsize=(8,4), fontsize=16, dpi=600, format='png'):
+    def plot(self, direction='z', error=0.01, color=['r', '#737373'], ylim=None, save=False, figname='elecpot', figsize=(8,4), fontsize=16, dpi=600, format='png'):
         '''Function to plot the inplane average potential to check the convegence
         '''
         
@@ -959,7 +959,7 @@ class LOCPOT:
         ax = fig.add_subplot(111)
         ax.plot(pot[0], pot[1], color=color[0],linewidth=1.1,label='TDOS')
         ax.plot([pot[0].min(), pot[0].max()], [e_vacuum,e_vacuum], color=color[1], linewidth=1.1, dashes=[6,3])
-        if ylim == None: ylim = (pot[1].min() - 5.0,pot[1].max() + 5.0)
+        if ylim == None: ylim = (round(pot[1].min()) - 10.0,round(pot[1].max()) + 10.0)
         y_evacuum = (e_vacuum-ylim[0])/(ylim[1]-ylim[0]) 
         label = 'Vacuum = ' + str(round(e_vacuum,2)) + r' $\pm$ ' + str(round(error,2)) + ' eV' 
         ax.text(0.02, y_evacuum, label  , verticalalignment='bottom', horizontalalignment='left',transform=ax.transAxes, color='black', fontsize=fontsize)  
