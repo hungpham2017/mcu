@@ -345,12 +345,12 @@ You can run the below commands in the mcu/example/InCuCl directory
    
     import mcu           
     mymcu = mcu.LOCPOT()          
-    mymcu.plot(direction='z', error=0.01)
+    mymcu.plot(axis='z', error=0.01)
      
 You should get:
 
 .. image:: ../image/elecpot.png
-    :scale: 25 %
+    :scale: 20 %
     :align: center
     
 In case you want to get the electrostatic potential data and plot it yourself
@@ -360,14 +360,14 @@ In case you want to get the electrostatic potential data and plot it yourself
    
     import mcu           
     mymcu = mcu.LOCPOT()          
-    pot = mymcu.get_2D_average(direction='z')                       # an 2 dimensional array [x,y] with x is the coordinates and y is the potential
-    e_vacuum = mymcu.get_2D_average(direction='z', error=0.01)      # to get E_vacuum    
+    pot = mymcu.get_2D_average(axis='z')                       # an 2 dimensional array [x,y] with x is the coordinates and y is the potential
+    e_vacuum = mymcu.get_2D_average(axis='z', error=0.01)      # to get E_vacuum    
     
 All parameters and their defaults of **plot** function are given below.
     
 Parameters
 ~~~~~~~~~~
-direction : str
+axis : str
     * Default: 'z' 
     * The average of electrostatic potential is computed over a plane that is perpendicular to this axis 
 error : float
