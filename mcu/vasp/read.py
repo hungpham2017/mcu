@@ -655,28 +655,28 @@ class LOCPOT:
         
         return ngxyz, locpot_data
         
-    def get_2D_average(self, direction='z'):
+    def get_2D_average(self, axis='z'):
         '''Compute the average potential over a plan perpendicular to an axis
         Note: the unit cell is assumed to orthogonal cell. Other type of cell needs a bit thinking
         Attribute:
-            direction  : x, y, or z 
+            axis  : x, y, or z 
             
         Return:
             coor        : the z or y or z axis
             avg_pot     : Inplace average potential 
         '''
         
-        if direction == 'x': 
+        if axis == 'x': 
             coor = np.arange(self.ngxyz[0]) * self.cell[0][0,0] / self.ngxyz[0]
             avg_pot = self.locpot_data.sum(axis=1).sum(axis=1)/self.ngxyz[1]/self.ngxyz[2]
-        elif direction == 'y':
+        elif axis == 'y':
             coor = np.arange(self.ngxyz[1]) * self.cell[0][1,1] / self.ngxyz[1]
             avg_pot = self.locpot_data.sum(axis=0).sum(axis=1)/self.ngxyz[0]/self.ngxyz[2]
-        elif direction == 'z':
+        elif axis == 'z':
             coor = np.arange(self.ngxyz[2]) * self.cell[0][2,2] / self.ngxyz[2]
             avg_pot = self.locpot_data.sum(axis=0).sum(axis=0)/self.ngxyz[0]/self.ngxyz[1]
         else:
-            print('Axis', direction, 'is not recognized')
+            print('Axis', axis, 'is not recognized')
             
         return np.vstack([coor, avg_pot])
         
