@@ -378,7 +378,7 @@ ylim : list
     * Default: None, automatic estimated
     * Limit range for energy axis in eV
 figsize : tuple or list
-    * Default: (6,6)
+    * Default: (8,6)
     * Size of image in inch
 figname : str
     * Default: 'elecpot'
