@@ -333,22 +333,22 @@ The work function :math:`\Phi` is defined as:
 .. math::
     \Phi = - E_{VBM} = \epsilon_F - E_{Vacuum}
 
-where :math:`\epsilon_F` and :math:`\E_{Vacuum}` is the Fermi level and the electrostatic potential of vacuum.
-The :math:`\E_{Vacuum}` can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR. 
+where :math:`\epsilon_F` and :math:`E_{Vacuum}` is the Fermi level and the electrostatic potential of vacuum.
+The :math:`E_{Vacuum}` can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR in VASP calculation. 
 LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
-The average over a plane perpendicular to an axis can be computed and plotted via **mcu**. 
+The average over a plane perpendicular to an crystal axis can be computed and plotted via **mcu**. 
 
 .. code-block:: python
     :linenos:
    
     import mcu           
-    mymcu = mcu.LOCPOT()    # or mymcu = mcu.VASP(path='path-to-vasprun', vaspruns='vasprun')             
+    mymcu = mcu.LOCPOT()          
     mymcu.plot(direction='z', error=0.01)
      
-YOu should get:
+You should get:
 
 .. image:: ../image/elecpot.png
-    :scale: 30 %
+    :scale: 25 %
     :align: center
     
 Parameters
@@ -358,10 +358,10 @@ direction : str
     * The average of electrostatic potential is computed over a plane that is perpendicular to this axis 
 error : float
     * Default: 0.01 
-    * The electrostatic potential (pot) at the vacuum is computed by taking the average of all the pot in the window (pot - 2*error, max(pot)) 
+    * The electrostatic potential (pot) at the vacuum is computed by taking the average of all the pot in the window (pot - 2*error, maximum of pot) 
 color : list 
     * Default: ['r', '#737373']
-    * The color codes for the electrostatic potential and the vacuum
+    * The color codes for the electrostatic potential and the vacuum marker
 ylim : list
     * Default: None, automatic estimated
     * Limit range for energy axis in eV
