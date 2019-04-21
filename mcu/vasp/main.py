@@ -929,15 +929,15 @@ class LOCPOT:
         '''Get LOCPOT file and return a LOCPOT object '''
         self.locpot = read.LOCPOT(locpot)
         
-    def get_2D_average(self, direction='z'):
-        return self.locpot.get_2D_average(direction)
+    def get_2D_average(self, axis='z'):
+        return self.locpot.get_2D_average(axis)
         
-    def get_vacumm(self, pot=None, direction='z', error=0.01):
+    def get_vacumm(self, pot=None, axis='z', error=0.01):
         '''Get the electrostatic potential at vacuum
         '''
         
         if not isinstance(pot,np.ndarray): 
-            pot = self.get_2D_average(direction)
+            pot = self.get_2D_average(axis)
         lower_bound = pot[1].max()- 2*error
         idx = pot[1] > lower_bound
         pot_in_window = pot[1,idx]
@@ -945,11 +945,11 @@ class LOCPOT:
     
         return e_vacuum
         
-    def plot(self, direction='z', error=0.01, color=['r', '#737373'], ylim=None, save=False, figname='elecpot', figsize=(8,6), fontsize=18, dpi=600, format='png'):
+    def plot(self, axis='z', error=0.01, color=['r', '#737373'], ylim=None, save=False, figname='elecpot', figsize=(8,6), fontsize=18, dpi=600, format='png'):
         '''Function to plot the inplane average potential to check the convegence
         '''
         
-        pot = self.get_2D_average(direction)
+        pot = self.get_2D_average(axis)
         e_vacuum = self.get_vacumm(pot, error=error)
         
         ##----------------------------------------------------------
@@ -971,7 +971,7 @@ class LOCPOT:
         ax.spines['right'].set_linewidth(border)
         ax.spines['bottom'].set_linewidth(border)
         ax.spines['left'].set_linewidth(border)
-        plt.xlabel(direction + r' ($\AA$)', size=fontsize+4)
+        plt.xlabel(axis + r' ($\AA$)', size=fontsize+4)
         ax.xaxis.set_label_coords(0.5, -0.09) 
         plt.ylabel('Electrostatic potential (V)', size=fontsize+4)        
         plt.ylim(ylim) 
