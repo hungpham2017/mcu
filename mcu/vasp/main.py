@@ -945,7 +945,7 @@ class LOCPOT:
     
         return e_vacuum
         
-    def plot(self, direction='z', error=0.01, color=['r', '#737373'], ylim=None, save=False, figname='elecpot', figsize=(8,4), fontsize=16, dpi=600, format='png'):
+    def plot(self, direction='z', error=0.01, color=['r', '#737373'], ylim=None, save=False, figname='elecpot', figsize=(8,6), fontsize=18, dpi=600, format='png'):
         '''Function to plot the inplane average potential to check the convegence
         '''
         
@@ -962,7 +962,7 @@ class LOCPOT:
         if ylim == None: ylim = (round(pot[1].min()) - 10.0,round(pot[1].max()) + 10.0)
         y_evacuum = (e_vacuum-ylim[0])/(ylim[1]-ylim[0]) 
         label = 'Vacuum = ' + str(round(e_vacuum,2)) + r' $\pm$ ' + str(round(error,2)) + ' eV' 
-        ax.text(0.02, y_evacuum, label  , verticalalignment='bottom', horizontalalignment='left',transform=ax.transAxes, color='black', fontsize=fontsize)  
+        ax.text(0.02, y_evacuum, label  , verticalalignment='bottom', horizontalalignment='left',transform=ax.transAxes, color='black', fontsize=fontsize+4)  
  
         # Graph adjustments
         border = 1.08
