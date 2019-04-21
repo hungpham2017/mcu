@@ -331,7 +331,7 @@ Work function and the electrostatic potential over a plane
 The work function :math:`\Phi` is defined as:
 
 .. math::
-    \Phi = - E_{VBM} = \epsilon_F - E_{Vacuum}
+    \Phi = - E_{VBM} = E_{Vacuum} - \epsilon_F
 
 where :math:`\epsilon_F` and :math:`E_{Vacuum}` is the Fermi level and the electrostatic potential of vacuum.
 The :math:`E_{Vacuum}` can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR in VASP calculation. 
@@ -350,6 +350,18 @@ You should get:
 .. image:: ../image/elecpot.png
     :scale: 25 %
     :align: center
+    
+In case you want to get the electrostatic potential data and plot it yourself
+
+.. code-block:: python
+    :linenos:
+   
+    import mcu           
+    mymcu = mcu.LOCPOT()          
+    pot = mymcu.get_2D_average(direction='z')                       # an 2 dimensional array [x,y] with x is the coordinates and y is the potential
+    e_vacuum = mymcu.get_2D_average(direction='z', error=0.01)      # to get E_vacuum    
+    
+All parameters and their defaults of **plot** function are given below.
     
 Parameters
 ~~~~~~~~~~
