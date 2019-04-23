@@ -92,6 +92,53 @@ def rm_redundant_band(kpts, band):
     
     return np.delete(kpts,redundant_idx,axis=0), np.delete(band,redundant_idx,axis=0) 
         
+def convert_kpath(kpath):
+    '''Provide a kpath string, return a list
+    '''
+
+    kpath = kpath.split()
+    assert np.mod(len(kpath)-1,4) == 0
+    path = kpath[-1].split('-')
+    #nkpoint = len(path)
+    coor = kpath[:-1]
+    ncoor = len(coor)//4
+    highk_data = [[coor[i*4], np.float64(coor[i*4+1:i*4+4])] for i in range(ncoor)]
+    k_list = []    
+    for k in path:
+        find = False
+        for highk in highk_data:
+            if k == highk[0]: 
+                k_list.append([k, highk[1]])
+                find = True
+        if find == False: raise Exception("Cannot find", k, "in the high symmetric kpoint provided")
+                
+    return k_list
+   
+def get_1Dkpath(kpath, npoint=20):
+    '''Provide high symmetric kpoint coordinates and labels and a path, this function returns a KPOINT file for band structure computation'''
+    
+    k_list = convert_kpath(kpath)
+    
+    temp = np.arange(npoint+1).reshape(-1,1)
+    kpts = []
+    npath = len(k_list) - 1
+    for path in range(1, len(k_list)):
+        line = k_list[path][1] - k_list[path-1][1]
+        kpts.append(k_list[path-1][1] + temp*line/npath)
+    kpts = np.asarray(kpts).reshape(npath*(npoint+1),-1)
+    kpts = utils.rm_redundant_band(kpts,kpts)[0]
+    
+    with open('KPOINTS', 'w') as f:
+        f.write('Generated mesh by mcu\n')	
+        f.write('   %4d + # of k-points from IBZKPT\n' % (kpts.shape[0]))	    
+        f.write('Reciprocal lattice\n')
+        f.write('   #This is where you add the k-mesh copied from IBZKPT file, this k-mesh is used to run SCF\n')
+        for k in range(kpts.shape[0]):
+            f.write('%10.7f  %10.7f  %10.7f %2d\n' % (kpts[k,0], kpts[k,1], kpts[k,2], 0))
+    
+    return kpts
+    
+    
     
     
     

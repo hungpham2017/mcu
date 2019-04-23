@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Plotting band structure &mdash; mcu 0.1.beta documentation</title>
+  <title>Plot band structure &mdash; mcu 0.1.beta documentation</title>
   
 
   
@@ -102,11 +102,11 @@
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorial</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting band structure</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plot band structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#parameters">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#plotting-projected-band-structure">Plotting projected band structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#plot-projected-band-structure">Plot projected band structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1">Parameters</a></li>
 </ul>
 </li>
@@ -118,6 +118,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#id10">Parameters</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-and-plot-2d-band-structure">Setup and plot 2D band structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id11">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-and-plot-spin-texture">Setup and plot spin texture</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
@@ -168,7 +174,7 @@
         
           <li><a href="tutorial.html">Tutorial</a> &raquo;</li>
         
-      <li>Plotting band structure</li>
+      <li>Plot band structure</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -187,8 +193,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <span class="target" id="plotting"></span><div class="section" id="plotting-band-structure">
-<h1>Plotting band structure<a class="headerlink" href="#plotting-band-structure" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="plotting"></span><div class="section" id="plot-band-structure">
+<h1>Plot band structure<a class="headerlink" href="#plot-band-structure" title="Permalink to this headline">¶</a></h1>
 <p>In python environment, band structure can be plotted by calling the <strong>mcu.plot_band()</strong> function</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
@@ -258,7 +264,13 @@ So more information can be found in matplotlib docs.</p>
 <li>Name of the image</li>
 </ul>
 </dd>
-<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>Limit range for momentum (k) axis. Used when to zoom in a specific range of k with the unit <span class="math notranslate nohighlight">\(\AA^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
 <dd><ul class="first last simple">
 <li>Default: [-6,6]</li>
 <li>Limit range for energy axis in eV</li>
@@ -285,8 +297,8 @@ So more information can be found in matplotlib docs.</p>
 </dl>
 </div>
 </div>
-<div class="section" id="plotting-projected-band-structure">
-<h1>Plotting projected band structure<a class="headerlink" href="#plotting-projected-band-structure" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="plot-projected-band-structure">
+<h1>Plot projected band structure<a class="headerlink" href="#plot-projected-band-structure" title="Permalink to this headline">¶</a></h1>
 <p>In python environment, band structure can be plotted by calling the <strong>mcu.plot_band()</strong> function</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
@@ -394,12 +406,12 @@ Some of additional parameters for projected band structure. Most important param
 <li>Depend onf the <em>style</em>, corresponding lm values can be specified.</li>
 </ul>
 </dd>
-<dt>band_idx <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dt>band <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
 <dd><ul class="first last simple">
 <li>Default: None</li>
-<li>If band_idx = None, roughly five conduction bands and five valence bands are chosen to plot</li>
+<li>If band = None, roughly five conduction bands and five valence bands are chosen to plot</li>
 <li>User can provide a list of of two index numbers for bands. For example, [3,10] means that there are eight bands from the 3rd band to the 10th band.
-For the whole band, band_idx = [0,100000] or  band_idx = [0,1000] as long as the second number is larger than the available bands (&gt; NBANDS)</li>
+For the whole band, band = [0,100000] or  band = [0,1000] as long as the second number is larger than the available bands (&gt; NBANDS)</li>
 </ul>
 </dd>
 <dt>color <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
@@ -488,6 +500,12 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 <dd><ul class="first last simple">
 <li>Default: ‘BAND’</li>
 <li>Name of the image</li>
+</ul>
+</dd>
+<dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>Limit range for momentum (k) axis in eV. Used when to zoom in a specific range of k with the unit <span class="math notranslate nohighlight">\(\AA^{-1}\)</span></li>
 </ul>
 </dd>
 <dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
@@ -669,7 +687,7 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 <p>The work function <span class="math notranslate nohighlight">\(\Phi\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
 \[\Phi = - E_{VBM} = E_{Vacuum} - \epsilon_F\]</div>
-<p>where <span class="math notranslate nohighlight">\(\epsilon_F\)</span> and <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> is the Fermi level and the electrostatic potential of vacuum.
+<p>where <span class="math notranslate nohighlight">\(\epsilon_F\)</span> and <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> are the Fermi level and the electrostatic potential of vacuum, respectively.
 The <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR in VASP calculation.
 LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
 The average over a plane perpendicular to an crystal axis can be computed and plotted via <strong>mcu</strong>.</p>
@@ -721,6 +739,12 @@ The average over a plane perpendicular to an crystal axis can be computed and pl
 <li>Limit range for energy axis in eV</li>
 </ul>
 </dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
 <dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
 <dd><ul class="first last simple">
 <li>Default: (8,6)</li>
@@ -753,6 +777,161 @@ The average over a plane perpendicular to an crystal axis can be computed and pl
 </dd>
 </dl>
 </div>
+</div>
+<div class="section" id="setup-and-plot-2d-band-structure">
+<h1>Setup and plot 2D band structure<a class="headerlink" href="#setup-and-plot-2d-band-structure" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt>2D band structure can be generated by following this procedure:</dt>
+<dd><ul class="first last simple">
+<li>Run a conventional SCF calculation to get WAVECAR</li>
+<li>Generate KPOINTS file for a 2D k-mesh using mcu</li>
+<li>Run band structure calculation using the new KPOINTS file</li>
+</ul>
+</dd>
+</dl>
+<p><strong>Generate a 2D k-mesh</strong></p>
+<p>POSCAR is needed to to get the lattice information.
+the following command generates a k-mesh (-0.2 &lt;= x &lt;= 0.2 and -0.2 &lt;= y &lt;= 0.2) on the xy plan and around the <span class="math notranslate nohighlight">\(\Gamma\)</span> point with 21 points along each dimension.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">POSCAR</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">get_2D_kmesh</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">krange</span><span class="o">=</span><span class="p">[</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">],</span> <span class="n">plane</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">npoint</span><span class="o">=</span><span class="p">[</span><span class="mi">21</span><span class="p">,</span><span class="mi">21</span><span class="p">])</span>
+</pre></div>
+</td></tr></table></div>
+<p>You should get the KPOINTS file generated. This is not done yet.
+Copy the k-mesh block in IBZKPT file to the KPOINTS file and do a simple math to figure out how many k-points in total.
+This new KPOINTS file should be ready for band structure calculation step.</p>
+<div class="section" id="id11">
+<h2>Parameters<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>origin <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [0,0,0] or <span class="math notranslate nohighlight">\(\Gamma\)</span> point</li>
+</ul>
+</dd>
+<dt>krange <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [0.1,0.1]</li>
+<li>The first indicates -0.2 &lt;= x &lt;= 0.2, similarly for the second dimension.</li>
+</ul>
+</dd>
+<dt>plane <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘xy’</li>
+<li>Options: ‘xy’, ‘xz’, ‘yz’</li>
+</ul>
+</dd>
+<dt>npoint <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [11,11]</li>
+<li>Number of k-points along each dimension</li>
+</ul>
+</dd>
+</dl>
+<p><strong>Plot 2D band structure</strong>
+After finishing the band structure calculation, you should be able to plot it simly by:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcy</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band2D</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<p>You can run the following example in the /mcu/example/Graphene_2D directory. You should get:</p>
+<a class="reference internal image-reference" href="_images/gra_band2D.png"><img alt="_images/gra_band2D.png" class="align-center" src="_images/gra_band2D.png" style="width: 200.0px; height: 160.0px;" /></a>
+<p>All parameters and their defaults of <strong>plot_band</strong> function are given below. Most of the parameters are passed to matplotlib functions.
+So more information can be found in matplotlib docs.</p>
+</div>
+<div class="section" id="id12">
+<h2>Parameters<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: fermi level from vasprun.xml or OUTCAR</li>
+<li>User can shift the Fermi level to a value</li>
+</ul>
+</dd>
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0</li>
+<li>If ISPIN = 1: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin)</li>
+</ul>
+</dd>
+<dt>band <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: VBM and CBM</li>
+<li>Which bands to plot</li>
+</ul>
+</dd>
+<dt>cmap <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘bwr’</li>
+<li>Colormap used in style = 3. Other colormap type can be found <a class="reference external" href="https://matplotlib.org/tutorials/colors/colormaps.html">here</a></li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: De(6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘BAND2D’</li>
+<li>Name of the image</li>
+</ul>
+</dd>
+<dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from k-mesh</li>
+<li>Plotting range for 1st momentum (k). Unit <span class="math notranslate nohighlight">\(\AA^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from k-mesh</li>
+<li>Plotting range for 2nd momentum (k). Unit <span class="math notranslate nohighlight">\(\AA^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>zlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from band values</li>
+<li>Plotting range for energy (eV)</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="setup-and-plot-spin-texture">
+<h1>Setup and plot spin texture<a class="headerlink" href="#setup-and-plot-spin-texture" title="Permalink to this headline">¶</a></h1>
+<p><strong>Generate a rectangular k-mesh</strong></p>
+<p><strong>Plot spin texture</strong></p>
 </div>
 
 
