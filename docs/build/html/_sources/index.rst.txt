@@ -18,7 +18,7 @@ A projected band structure can be plotted simply by:
     :scale: 60 %
     :align: center
     
-**mcu** faciliate the setup and plotting 2D band structure. 
+**mcu** faciliates the setup and plotting for 2D band structure. 
 For example, one can visualize the Dirac cones of graphene:
 
 .. code-block:: python
