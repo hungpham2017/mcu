@@ -244,8 +244,8 @@ class vasprun:
         volume = np.float64(utils.str_extract(structure[0][7],'>','<').strip())
         
 
-        lattice = self.extract_vec(basis)               # row vector format, Unit: A
-        recip_lattice = self.extract_vec(rec_basis)     # column vector format, Unit: 2pi A^-1  
+        lattice = self.extract_vec(basis)                       # row vector format, Unit: A
+        recip_lattice = 2*np.pi*self.extract_vec(rec_basis)     # column vector format, Unit: A^-1, vaspxml uses 2pi.A^-1 unit
         positions = self.extract_vec(positions) 
 
         return lattice.T, recip_lattice, positions, volume
@@ -580,8 +580,8 @@ def get_atominfo(poscar):
     lattice = []
     for i in range(2,5):
         lattice.append(np.float64(poscar[i].split()))
-    lattice = np.asarray(lattice).T             # Unit: A
-    recip_lattice = np.linalg.inv(lattice)      # Unit: 2pi A^-1
+    lattice = np.asarray(lattice).T                     # Unit: A
+    recip_lattice = 2*np.pi*np.linalg.inv(lattice)      # Unit: A^-1
     
     atom_type = poscar[5].split()
     natom = np.int64(poscar[6].split())
@@ -680,6 +680,24 @@ class LOCPOT:
             
         return np.vstack([coor, avg_pot])
         
+class KPOINTS:   
+    def __init__(self, file="KPOINTS"):
+        '''Read KPOINTS
+           TODO: extend it to Selective dynamics
+        '''
+        if not utils.check_exist(file):
+            print('Cannot find the KPOINTS file. Check the path:', file)
+            self.success = False
+        else: 
+            self.kpoints = open(file, "r").readlines()  
+            self.success = True
+            
+    def get_spin_kmesh(self): 
+        '''Read the kmesh header'''
+        plane = self.kpoints[0].split()[-5]
+        krange = np.float64(self.kpoints[0].split()[-4:-2])
+        npoint = np.int64(self.kpoints[0].split()[-2:])
         
-        
+        return plane, krange, npoint  
+
         
