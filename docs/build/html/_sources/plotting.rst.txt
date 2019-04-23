@@ -495,10 +495,10 @@ figname : str
     * Name of the image
 xlim : list or tuple 
     * Default: from k-mesh
-    * Plotting range for 1st momentum (k). Unit :math:`\AA^{-1}` 
+    * Plotting range for 1st momentum (k). Unit :math:`Amstrongs^{-1}` 
 ylim : list or tuple 
     * Default: from k-mesh
-    * Plotting range for 2nd momentum (k). Unit :math:`\AA^{-1}` 
+    * Plotting range for 2nd momentum (k). Unit :math:`Amstrongs^{-1}` 
 zlim : list or tuple
     * Default: from band values
     * Plotting range for energy (eV)     
@@ -516,8 +516,10 @@ format : str
     ///////////////Spintexture///////////////   
     
 Setup and plot spin texture
----------------------------
+===========================
     
-**Generate a rectangular k-mesh**
-    
-**Plot spin texture**
+Generate a rectangular k-mesh
+-----------------------------
+
+Plot spin texture
+-----------------
