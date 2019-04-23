@@ -204,10 +204,20 @@
 2
 3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
 <span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
-<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_pband</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_pband</span><span class="p">()</span>
 </pre></div>
 </td></tr></table></div>
 <a class="reference internal image-reference" href="_images/MoS2.png"><img alt="_images/MoS2.png" class="align-center" src="_images/MoS2.png" style="width: 459.59999999999997px; height: 348.0px;" /></a>
+<p><strong>mcu</strong> faciliate the setup and plotting 2D band structure.
+For example, one can visualize the Dirac cones of graphene:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band2D</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<a class="reference internal image-reference" href="_images/gra_band2D.png"><img alt="_images/gra_band2D.png" class="align-center" src="_images/gra_band2D.png" style="width: 600.0px; height: 480.0px;" /></a>
 </div>
 <div class="section" id="content">
 <h2>Content:<a class="headerlink" href="#content" title="Permalink to this headline">¶</a></h2>
