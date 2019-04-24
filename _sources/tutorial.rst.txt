@@ -8,4 +8,5 @@ Tutorial
     :maxdepth: 2
 
     basic
-    plotting
+    plotting1D
+    plotting2D
