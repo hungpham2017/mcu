@@ -62,7 +62,7 @@ figname : str
     * Name of the image
 xlim : list or tuple 
     * Default: None
-    * Limit range for momentum (k) axis. Used when to zoom in a specific range of k with the unit :math:`\AA^{-1}` 
+    * Limit range for momentum (k) axis. Used when to zoom in a specific range of k with the unit :math:`Angstrom^{-1}` 
 ylim : list or tuple 
     * Default: [-6,6]
     * Limit range for energy axis in eV
@@ -429,6 +429,7 @@ Parameters
 ~~~~~~~~~~    
 origin : list
     * Default: [0,0,0] or :math:`\Gamma` point
+    * Fractional coordinates of the origin of the mesh
 krange : list
     * Default: [0.1,0.1]
     * The first indicates -0.2 <= x <= 0.2, similarly for the second dimension.

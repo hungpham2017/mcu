@@ -35,9 +35,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Contact" href="contact.html" />
-    <link rel="prev" title="Basic functions in mcu" href="basic.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +83,7 @@
               
             
             
-              <ul class="current">
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="feature.html">Features</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="feature.html#current-functions">Current functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="feature.html#soon-to-be-released-functions">Soon-to-be-released functions</a></li>
@@ -100,33 +98,33 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorial</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Plot band structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html">Plot band structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#parameters">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#plot-projected-band-structure">Plot projected band structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#plot-projected-band-structure">Plot projected band structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#id1">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#plotting-density-of-states">Plotting density of states</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id7">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#plotting-density-of-states">Plotting density of states</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#id7">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#work-function-and-the-electrostatic-potential-over-a-plane">Work function and the electrostatic potential over a plane</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id10">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#work-function-and-the-electrostatic-potential-over-a-plane">Work function and the electrostatic potential over a plane</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#id10">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#generate-2d-k-mesh">Generate 2D k-mesh</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id11">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting2D.html">Generate 2D k-mesh</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting2D.html#parameters">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#plot-2d-band-structure">Plot 2D band structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id12">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#plot-2d-band-structure">Plot 2D band structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting2D.html#id1">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#setup-and-plot-spin-texture">Setup and plot spin texture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#setup-and-plot-spin-texture">Setup and plot spin texture</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
@@ -174,8 +172,6 @@
   <ul class="wy-breadcrumbs">
     
       <li><a href="index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="tutorial.html">Tutorial</a> &raquo;</li>
         
       <li>Plot band structure</li>
     
@@ -270,7 +266,7 @@ So more information can be found in matplotlib docs.</p>
 <dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
 <dd><ul class="first last simple">
 <li>Default: None</li>
-<li>Limit range for momentum (k) axis. Used when to zoom in a specific range of k with the unit <span class="math notranslate nohighlight">\(\AA^{-1}\)</span></li>
+<li>Limit range for momentum (k) axis. Used when to zoom in a specific range of k with the unit <span class="math notranslate nohighlight">\(Angstrom^{-1}\)</span></li>
 </ul>
 </dd>
 <dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
@@ -801,6 +797,7 @@ This new KPOINTS file should be ready for band structure calculation step.</p>
 <dt>origin <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
 <dd><ul class="first last simple">
 <li>Default: [0,0,0] or <span class="math notranslate nohighlight">\(\Gamma\)</span> point</li>
+<li>Fractional coordinates of the origin of the mesh</li>
 </ul>
 </dd>
 <dt>krange <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
@@ -940,15 +937,6 @@ So more information can be found in matplotlib docs.</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="contact.html" class="btn btn-neutral float-right" title="Contact" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="basic.html" class="btn btn-neutral float-left" title="Basic functions in mcu" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
