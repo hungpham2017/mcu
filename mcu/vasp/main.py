@@ -1238,7 +1238,7 @@ class LOCPOT:
         ax.plot([pot[0].min(), pot[0].max()], [e_vacuum,e_vacuum], color=color[1], linewidth=1.1, dashes=[6,3])
         if ylim == None: ylim = (round(pot[1].min()) - 10.0,round(pot[1].max()) + 10.0)
         y_evacuum = (e_vacuum-ylim[0])/(ylim[1]-ylim[0]) 
-        label = 'Vacuum = ' + str(round(e_vacuum,2)) + r' $\pm$ ' + str(round(error,2)) + ' eV' 
+        label = r'$E_{Vacuum}$ = ' + str(round(e_vacuum,2)) + r' $\pm$ ' + str(round(error,2)) + ' eV' 
         ax.text(0.02, y_evacuum, label  , verticalalignment='bottom', horizontalalignment='left',transform=ax.transAxes, color='black', fontsize=fontsize+4)  
  
         # Graph adjustments
