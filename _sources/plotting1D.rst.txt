@@ -15,7 +15,7 @@ In python environment, band structure can be plotted by calling the **mcu.plot_b
     mymcu = mcu.VASP()    # or mymcu = mcu.VASP(path='path-to-vasprun', vaspruns='vasprun')             
     mymcu.plot_band()
 
-To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run: 
+To customize the band, one can modify some of these attributes. For /mcu/example/MoS2, you can run: 
 
 .. code-block:: python
     :linenos:
@@ -90,7 +90,7 @@ In python environment, band structure can be plotted by calling the **mcu.plot_b
    mymcu = mcu.VASP()               
    mymcu.plot_pband()
    
-To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run:
+To customize the band, one can modify some of these attributes. For /mcu/example/MoS2, you can run:
 
 .. code-block:: python
     :linenos:
@@ -236,7 +236,7 @@ format : str
     
 Plotting density of states
 ==========================
-For DOS, the total DOS is always shown together with projected DOS (if computed). For mcu/example/Ni, you can run
+For DOS, the total DOS is always shown together with projected DOS (if computed). For /mcu/example/Ni, you can run
 
 .. code-block:: python
    :linenos:
@@ -345,7 +345,7 @@ The :math:`E_{Vacuum}` can be computed by simply constructing a slab model and a
 LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
 The average over a plane perpendicular to an crystal axis can be computed and plotted via **mcu**. 
 
-You can run the below commands in the mcu/example/InCuCl directory
+You can run the below commands in the /mcu/example/InCuCl directory
 
 .. code-block:: python 
     :linenos:

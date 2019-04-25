@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Contact" href="contact.html" />
+    <link rel="next" title="Gallery" href="gallery.html" />
     <link rel="prev" title="Plot band structure" href="plotting1D.html" /> 
 </head>
 
@@ -126,9 +126,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#id1">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#setup-and-plot-spin-texture">Setup and plot spin texture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-spin-texture">Plot spin texture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Parameters</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
 </ul>
 
@@ -250,7 +254,7 @@ This new KPOINTS file should be ready for band structure calculation step.</p>
 <li>Run band structure calculation using the new KPOINTS file</li>
 </ul>
 </div></blockquote>
-<p>After finishing the band structure calculation, you should be able to plot it simly by:</p>
+<p>After finishing the calculation, you should be able to plot it simly by:</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
@@ -264,6 +268,118 @@ This new KPOINTS file should be ready for band structure calculation step.</p>
 So more information can be found in matplotlib docs.</p>
 <div class="section" id="id1">
 <h2>Parameters<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>style <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1</li>
+<li>Style = 1: the colormap for the third dimension is in the background</li>
+<li>Style = 2: the colormap for the third dimension is in the arrows themselves</li>
+</ul>
+</dd>
+<dt>lm <span class="classifier-delimiter">:</span> <span class="classifier">str or list of str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: all the atoms and lm</li>
+<li>Use can specify an orbital or a list of them, <em>e.g.</em> ‘Ni:s’ or [‘Ni:s’,’C:pz’]</li>
+</ul>
+</dd>
+<dt>band <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: VBM</li>
+<li>spin texture is plot for this band</li>
+</ul>
+</dd>
+<dt>cmap <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘bwr’</li>
+<li>Colormap used in style = 3. Other colormap type can be found <a class="reference external" href="https://matplotlib.org/tutorials/colors/colormaps.html">here</a></li>
+</ul>
+</dd>
+<dt>color <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘k’</li>
+<li>The color of the arrows used in the style = 1. No effect if style = 2</li>
+</ul>
+</dd>
+<dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 15</li>
+<li>Used to adjust the length of the arrow. The smaller the scale, the longer the arrows.</li>
+</ul>
+</dd>
+<dt>scale_units <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>Used together with <strong>scale</strong> to play with the arrow’s length. Check <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.quiver.html">here</a> for more details</li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: De(6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘spin_texture’</li>
+<li>Name of the image</li>
+</ul>
+</dd>
+<dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from k-mesh</li>
+<li>Plotting range for 1st momentum (k). Unit <span class="math notranslate nohighlight">\(Angstrom^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from k-mesh</li>
+<li>Plotting range for 2nd momentum (k). Unit <span class="math notranslate nohighlight">\(Angstrom^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="plot-spin-texture">
+<h1>Plot spin texture<a class="headerlink" href="#plot-spin-texture" title="Permalink to this headline">¶</a></h1>
+<p>Spin texture can be generated by following the same procedure as 2D band structure except that one should add the key word LSORBIT = .TRUE. for SOC in INCAR file.
+After finishing the calculation, you should be able to plot it simly by:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcy</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_spin</span><span class="p">(</span><span class="n">band</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>You can run the following example in the /mcu/example/MoS2_spintexture directory. You should get:</p>
+<a class="reference internal image-reference" href="_images/spin_texture.png"><img alt="_images/spin_texture.png" class="align-center" src="_images/spin_texture.png" style="width: 420.0px; height: 360.0px;" /></a>
+<p>All parameters and their defaults of <strong>plot_spin</strong> function are given below. Most of the parameters are passed to matplotlib functions.
+So more information can be found in matplotlib docs.</p>
+<div class="section" id="id3">
+<h2>Parameters<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd><ul class="first last simple">
@@ -347,9 +463,6 @@ So more information can be found in matplotlib docs.</p>
 </dl>
 </div>
 </div>
-<div class="section" id="setup-and-plot-spin-texture">
-<h1>Setup and plot spin texture<a class="headerlink" href="#setup-and-plot-spin-texture" title="Permalink to this headline">¶</a></h1>
-</div>
 
 
            </div>
@@ -359,7 +472,7 @@ So more information can be found in matplotlib docs.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="contact.html" class="btn btn-neutral float-right" title="Contact" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="gallery.html" class="btn btn-neutral float-right" title="Gallery" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="plotting1D.html" class="btn btn-neutral float-left" title="Plot band structure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

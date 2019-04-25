@@ -126,9 +126,13 @@
 <li class="toctree-l3"><a class="reference internal" href="plotting2D.html#id1">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#setup-and-plot-spin-texture">Setup and plot spin texture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#plot-spin-texture">Plot spin texture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting2D.html#id3">Parameters</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
 </ul>
 
@@ -206,7 +210,7 @@
 <span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band</span><span class="p">()</span>
 </pre></div>
 </td></tr></table></div>
-<p>To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run:</p>
+<p>To customize the band, one can modify some of these attributes. For /mcu/example/MoS2, you can run:</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
@@ -310,7 +314,7 @@ So more information can be found in matplotlib docs.</p>
 <span class="n">mymcu</span><span class="o">.</span><span class="n">plot_pband</span><span class="p">()</span>
 </pre></div>
 </td></tr></table></div>
-<p>To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run:</p>
+<p>To customize the band, one can modify some of these attributes. For /mcu/example/MoS2, you can run:</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3
@@ -540,7 +544,7 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 </div>
 <div class="section" id="plotting-density-of-states">
 <h1>Plotting density of states<a class="headerlink" href="#plotting-density-of-states" title="Permalink to this headline">¶</a></h1>
-<p>For DOS, the total DOS is always shown together with projected DOS (if computed). For mcu/example/Ni, you can run</p>
+<p>For DOS, the total DOS is always shown together with projected DOS (if computed). For /mcu/example/Ni, you can run</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3</pre></div></td><td class="code"><div class="highlight"><pre><span></span> <span class="kn">import</span> <span class="nn">mcu</span>
@@ -694,7 +698,7 @@ For example, lm =’spd’ then there should be a list of three color codes.</li
 The <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR in VASP calculation.
 LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
 The average over a plane perpendicular to an crystal axis can be computed and plotted via <strong>mcu</strong>.</p>
-<p>You can run the below commands in the mcu/example/InCuCl directory</p>
+<p>You can run the below commands in the /mcu/example/InCuCl directory</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
