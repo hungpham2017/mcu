@@ -18,14 +18,15 @@ Current functions
 
 Soon-to-be-released functions
 -----------------------------
+* Connecting to Bilbao Crystallographic Server
+* Topological analysis
 * Optical adsorption coefficient
-* Set up a EOS calculation 
  
 
 Future functions
 ----------------
 * Phonon calculation
 * Band structure unfolding
-* Topological analysis
-* Connecting to Bilbao Crystallographic Server
+* Set up a EOS calculation 
+
 
