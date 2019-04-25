@@ -4,10 +4,9 @@
 import numpy as np
 import mcu
 from mcu.vasp import utils, read
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
         
 class VASP:
     def __init__(self, path='./', vaspruns='vasprun', outcars='OUTCAR'):
@@ -336,7 +335,7 @@ class VASP:
         plt.ylim(ylim)
         plt.tight_layout()
         if save == True: 
-            fig.savefig('Band.'+format,dpi=dpi,format=format)      
+            fig.savefig(figname+'.'+format,dpi=dpi,format=format)      
         else:
             plt.show()            
             
@@ -559,7 +558,7 @@ class VASP:
                                  each color is used for each lm
                                  the marker's radius is proportional to the % of lm 
                 style = 2   : considering only a list of orbitals
-                             e.g. orb = ['Ni_s','C_pz']
+                             e.g. orb = ['Ni:s','C:pz']
                 style = 3   : gradient map to show the character transition
                              lm = 'sp', 'pd', 'sd'
                 #########################################################################
@@ -1016,8 +1015,8 @@ class VASP:
         
         return np.asarray(spin_text)
 
-    def plot_spin(self, style=1, lm=None, band=None, cmap='bwr',
-                    save=False, figname='spin_texture', figsize=(6,6), xlim=None, ylim=None, fontsize=18, dpi=600, format='png'):
+    def plot_spin(self, style=1, lm=None, band=None, cmap='bwr', color='k', scale=15, scale_units=None,
+                    save=False, figname='spin_texture', figsize=(7,6), xlim=None, ylim=None, fontsize=18, dpi=600, format='png'):
         '''Plot spin texture
            
             Attribute:
@@ -1025,8 +1024,7 @@ class VASP:
                 lm          : 'Ni:s' or ['Ni:s','C:pz']
                 
                 band        : index of the band
-                
-                color       : a list of strings indicating the color, following matplotlib
+                color       : color of the arrow for style 1
                 scale       : the size of the marker
                 alpha       : the transparency level of curves
                 cmap        : color map in the style 3, following the matplotlib
@@ -1076,28 +1074,33 @@ class VASP:
         ##----------------------------------------------------------
         ##Plotting:        
         ##----------------------------------------------------------
-   
-        fig = plt.figure(figsize=figsize)
-        ax = fig.add_subplot(111)
-        
-        if style == 2:
-            my_cm = plt.cm.bwr
-            # colors = ['#0080ff', '#ffffff', '#ff0066']
-            # my_cm = LinearSegmentedColormap.from_list('my_list', colors, N=100)
-            plt.contour(X, Y, C, linewidths=0.01)
-            plt.contourf(X, Y, C, vmin=-1.0, vmax=1.0, cmap='bwr')
-            cbar = plt.colorbar(ticks=[-1.0,0.0,1.0])
-            cbar.ax.tick_params(labelsize=fontsize) 
-            ax.quiver(X, Y, U, V, color='k')
-        elif style == 1:
-            ax.quiver(X, Y, U, V, C, angles='xy')
-        
-        # Graph adjustments             
-        ax.tick_params(labelsize=fontsize)
         if xlim == None: xlim = [X.min(),X.max()]
         if ylim == None: ylim = [Y.min(),Y.max()]
+        yx_ratio = (ylim[1]-ylim[0]) /(xlim[1]-xlim[0])         
+            
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        if style == 1:
+            plt.contour(X, Y, C, linewidths=0.01)
+            plt.contourf(X, Y, C, vmin=-1.0, vmax=1.0, cmap=cmap, levels=np.linspace(-1.0,1.0,1000))
+            cbar = plt.colorbar(ticks=[-1.0,0.0,1.0], fraction=0.047*yx_ratio, pad=0.04*yx_ratio)  # Magic number that adjust the colorbar size        
+            plt.quiver(X, Y, U, V, color=color, scale=scale, scale_units=scale_units)
+        elif style == 2:
+            plt.quiver(X, Y, U, V, C, cmap=cmap, scale=scale, scale_units=scale_units)
+            cbar = plt.colorbar(ticks=[-1.0,0.0,1.0], fraction=0.047*yx_ratio, pad=0.04*yx_ratio)   # Magic number that adjust the colorbar size
+           
+        # Graph adjustments  
+        border = 1.08
+        ax.tick_params(labelsize=fontsize, width=border)
+        ax.spines['top'].set_linewidth(border)
+        ax.spines['right'].set_linewidth(border)
+        ax.spines['bottom'].set_linewidth(border)
+        ax.spines['left'].set_linewidth(border)
+        ax.tick_params(labelsize=fontsize)
+        cbar.ax.tick_params(labelsize=fontsize)
         plt.xlim(xlim)
         plt.ylim(ylim)
+        plt.clim(-1,1)        
         if plane == 'xy': 
             x_label = r'$k_x$'
             y_label = r'$k_y$'   
@@ -1111,9 +1114,10 @@ class VASP:
         ax.set_ylabel(y_label + r' ($\AA^{-1}$)', size=fontsize+4)      
         ax.set_xticks([xlim[0],0,xlim[1]])
         ax.set_yticks([ylim[0],0,ylim[1]])
+        plt.gca().set_aspect('equal', adjustable='box')
         plt.tight_layout()
         if save == True: 
-            fig.savefig('Band.'+format,dpi=dpi,format=format)      
+            fig.savefig(figname+'.'+format,dpi=dpi,format=format)      
         else:
             plt.show()   
                 
@@ -1132,9 +1136,6 @@ class VASP:
                                   
         '''
         
-        assert isinstance(band_color,list)
-        assert len(band_color) == 3
-
         band_idx = band
         if band_idx == None:
             idx_vbm = int(self.nelec)
@@ -1145,7 +1146,7 @@ class VASP:
             if band_idx[0] < 1: band_idx[0] = 1     # index used in OUTCAR, will be shifted to start at zero
             if band_idx[1] > self.nbands: band_idx[1] = self.nbands              # Cannot larger than the number of bands
             band_idx[0] = band_idx[0] -1
-            band_idx[1] = band_idx[1] -1   
+            band_idx[1] = band_idx[1] -1            
             
         band, path, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label=None)  
         

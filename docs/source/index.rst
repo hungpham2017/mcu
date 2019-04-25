@@ -42,6 +42,8 @@ Content:
     feature
     install
     tutorial
+    gallery
     contact
+
     
     
