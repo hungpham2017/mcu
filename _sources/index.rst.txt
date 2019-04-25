@@ -34,9 +34,9 @@ For example, one can visualize the Dirac cones of graphene:
     
 or the spin texture:
 
-.. image:: ../image/elecpot.png
-    :scale: 20 %
-    :align: center
+.. image:: ../image/spin_texture.png
+    :scale: 60 %
+    :align: center 
 
     
 Content:
