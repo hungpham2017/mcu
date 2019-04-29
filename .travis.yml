@@ -25,7 +25,7 @@ before_install:
   - pip install spglib
 
 script:
-  - py.test -v --cov=./
+  - pytest
 
 # after_success:
 #   - ./tools/travis-upload-wheel.sh
