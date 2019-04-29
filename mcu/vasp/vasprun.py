@@ -18,6 +18,7 @@ limitations under the License.
 Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
+import os
 import numpy as np
 import mcu
 from mcu.vasp import utils, io
@@ -26,7 +27,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
         
 class main:
-    def __init__(self, path='./', vaspruns='vasprun', outcars='OUTCAR'):
+    def __init__(self, path=None, vaspruns='vasprun', outcars='OUTCAR'):
         '''
             path        : the project directory
             vaspruns    : a str or a list of string as names for *.xml files
@@ -34,6 +35,7 @@ class main:
         '''
         
         # Create vasprun object(s)
+        if path == None: path = os.getcwd()
         if isinstance(vaspruns, str):                   # For one vasprun.xml file    
             self.vasprun = io.vasprun(path + '/' + vaspruns + '.xml')
             self.useOUTCAR = False
@@ -67,7 +69,7 @@ class main:
     
     def get_info(self, vasprun):    
         '''Extract basis information from the vasprun.xml'''
-        
+
         electronic = vasprun.parameters['electronic']
         self.nelec = electronic.general['NELECT']    
         self.nbands = electronic.general['NBANDS']
