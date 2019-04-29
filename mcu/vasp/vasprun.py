@@ -734,8 +734,7 @@ class main:
         if save == True: 
             fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
         else:
-            plt.show() 
-            
+            plt.show()
 
     def _generate_dos(self, vasprun, efermi=None, spin=0, lm=None):
         '''Processing/collecting the DOS data before the plotting function
