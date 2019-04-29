@@ -24,7 +24,7 @@ Utilities
 
 import os, datetime
 import numpy as np
-            
+from mcu.vasp import parameters            
             
 def check_exist(file):
     '''Check if a file exists in the running directory '''        
@@ -155,7 +155,17 @@ def get_1Dkpath(kpath, npoint=20):
     
     return kpts
     
+def cell_to_spgcell(cell, atoms):
+    '''Providing the cell attribute from vasprun.xml, return the cell for spglib'''
     
+    lattice = np.ndarray.tolist(cell[0].T)         # row vectors
+    positions = np.ndarray.tolist(cell[2])
+    
+    numbers = []
+    for atom in atoms:
+        numbers.append(parameters.ELEMENTS[atom][0])
+    
+    return (lattice, positions, numbers)
     
     
     
