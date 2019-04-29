@@ -1,4 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from . import utils, read, main
+#!/usr/bin/env python
+from . import utils, io, vasprun, poscar, locpot
 
