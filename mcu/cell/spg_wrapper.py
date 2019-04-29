@@ -65,7 +65,7 @@ class SPG:
     def standardize_cell(self, cell=None, to_primitive=False, no_idealize=False, symprec=None):    
         if cell == None: cell = self.cell
         if symprec == None: symprec = self.symprec = 1e-5
-        cell = standardize_cell(cell, to_primitive, no_idealize, symprec)
+        cell = spglib.standardize_cell(cell, to_primitive, no_idealize, symprec)
         if cell != None:
             return cell
         else:

@@ -22,6 +22,7 @@ import os
 import numpy as np
 import mcu
 from mcu.vasp import utils, io
+from mcu.cell import spg_wrapper
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -41,8 +42,9 @@ class main:
             self.useOUTCAR = False
             self.outcar = io.OUTCAR(path + '/' + outcars)
             if self.outcar.success == True: self.useOUTCAR = True
-                
             self.get_info(self.vasprun)
+            self.spg = spg_wrapper.SPG(self.cell)
+            
         elif isinstance(vaspruns, list):                # For multiple vasprun.xml file
             self.vasprun = []
             for xml in vaspruns:
@@ -64,9 +66,15 @@ class main:
                     self.outcar.append(io.OUTCAR(outcar_file))  
                     self.useOUTCAR = True                    
             self.get_info(self.vasprun[0])      # Only get info for the first vasprun.xml
+            self.spg = spg_wrapper.SPG(self.cell)
         else:
             print('Provide a string or a list of names for *.xml file')
-    
+            
+    def get_cell(self, vasprun):
+        '''Get the cell info from vasprun and return the cell in spglib format'''
+        self.cell_init  =  utils.cell_to_spgcell(vasprun.cell_init, self.atom)
+        self.cell  = utils.cell_to_spgcell(vasprun.cell_final, self.atom)
+
     def get_info(self, vasprun):    
         '''Extract basis information from the vasprun.xml'''
 
@@ -76,11 +84,12 @@ class main:
         self.lsorbit = electronic.spin['LSORBIT']
         self.ispin = electronic.spin['ISPIN']    
         self.kpts = vasprun.kpoints['kpointlist']
-        self.nkpts = self.kpts.shape[0]        
+        self.nkpts = self.kpts.shape[0] 
         self.natom  = vasprun.natom 
         self.atom  = vasprun.atom     
         self.atm  = vasprun.atm 
         self.atype = [atom[1] for atom in vasprun.types]
+        self.get_cell(vasprun)
         self.get_efermi()
         
     def get_efermi(self):
@@ -1218,4 +1227,7 @@ class main:
         if save == True: 
             fig.savefig('Band.'+format,dpi=dpi,format=format)      
         else:
-            plt.show()     
+            plt.show() 
+            
+    def get_sym(self):
+        ''' A shortcut for analyzing the space group symmetry of the crystal'''
