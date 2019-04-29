@@ -4,7 +4,7 @@ A package for periodic wavefunction and crystallography analysis. **mcu** is des
 
 ## A quick look
 
-<img src="https://github.com/hungpham2017/mcu/blob/master/docs/image/quicklook.png" width="500" align="middle">
+<img src="https://github.com/hungpham2017/mcu/blob/master/docs/image/quicklook.png" width="800" align="middle">
 
 ## Documentation:
 -  Installation and tutorials can be found [here](https://hungpham2017.github.io/mcu)
