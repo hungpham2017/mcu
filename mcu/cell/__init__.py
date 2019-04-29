@@ -1,3 +1,3 @@
 #!/usr/bin/env python
-from . import *
+from . import main, spg_wrapper
 
