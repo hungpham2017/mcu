@@ -13,4 +13,4 @@ make_KPOINTS = vasp.utils.get_1Dkpath
 read_WAVEDER = vasp.utils.read_WAVEDER
 read_WAVEDERF = vasp.utils.read_WAVEDERF
 
-#CELL = cell.main.CELL
+CELL = cell.main.CELL

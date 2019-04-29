@@ -23,9 +23,11 @@ before_install:
   - pip install codecov
   - pip install -e .
   - pip install spglib
+  
+before_script: cd tests
 
 script:
-  - pytest
+  - py.test -v --cov=./
 
 # after_success:
 #   - ./tools/travis-upload-wheel.sh
