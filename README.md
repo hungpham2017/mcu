@@ -2,6 +2,7 @@
 ![Codecov](https://img.shields.io/codecov/c/github/hungpham2017/mcu.svg?color=crimson)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![GitHub last commit](https://img.shields.io/github/last-commit/hungpham2017/mcu.svg?color=gold)
+![GitHub issues](https://img.shields.io/github/issues-raw/hungpham2017/mcu.svg?color=purple)
 
 # Modeling and Crystallographic Utilities (mcu)
 A package for periodic wavefunction and crystallography analysis. **mcu** is designed to support large scale analysis and topological descriptions for periodic wavefunction.
