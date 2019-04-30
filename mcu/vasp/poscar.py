@@ -30,7 +30,8 @@ class main:
         '''Get POSCAR file and return a POSCAR object '''
         self.poscar = io.POSCAR(poscar)
         self.cell_recip = self.poscar.cell[1]
-        
+        self.cell  = utils.cell_to_spgcell(self.poscar.cell, self.poscar.atom)
+
     def get_2D_kmesh(self, origin=[0,0,0], krange=[0.1,0.1], plane='xy', npoint=[11,11]):
         '''Get a rectangular k-mesh around a k-point on a plane
         Attribute:

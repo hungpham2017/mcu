@@ -103,14 +103,7 @@ class SPG:
         else: 
             return None
 
-def get_sym(cell, symprec=1e-5, angle_tolerance=-1.0, hall_number=0):
-    sf_symbol = spglib.get_spacegroup(cell, symprec, symbol_type=1).split()[0] # Schonflied symbol
-    dataset = spglib.get_symmetry_dataset(cell, symprec, angle_tolerance, hall_number)
-    inter_symbol = dataset['international']
-    inter_number = dataset['number'] 
-    hall_symbol = dataset['hall']
-    hall_number = dataset['hall_number'] 
-            
+        
 def get_symmetry_from_database(hall_number):    
     dataset = spglib.get_symmetry_from_database(hall_number)
     if dataset != None:

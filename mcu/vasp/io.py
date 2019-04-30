@@ -631,10 +631,10 @@ class POSCAR:
             self.success = False
         else: 
             self.poscar = open(file, "r").readlines()  
-            self.cell = self.get_atominfo(self.poscar)
+            self.cell = self.get_cell(self.poscar)
             self.success = True
             
-    def get_atominfo(self, poscar):
+    def get_cell(self, poscar):
         '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
         self.atom, lattice, recip_lattice, positions, volume = get_atominfo(poscar)
         return lattice, recip_lattice, positions, volume
@@ -650,12 +650,12 @@ class LOCPOT:
         else: 
             self.locpot = open(file, "r").readlines()  
             self.success = True
-            self.cell = self.get_atominfo(self.locpot)
+            self.cell = self.get_cell(self.locpot)
             self.natom = self.cell[2].shape[0]
             self.skip_poscar = self.natom + 9           #skip the POSCAR block in LOCPOT
             self.ngxyz, self.locpot_data = self.read_locpot(self.locpot)
     
-    def get_atominfo(self, locpot):
+    def get_cell(self, locpot):
         '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
         self.atom, lattice, recip_lattice, positions, volume = get_atominfo(locpot)
         return lattice, recip_lattice, positions, volume
