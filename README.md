@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/hungpham2017/mcu.svg?branch=master)](https://travis-ci.com/hungpham2017/mcu)
+![Codecov](https://img.shields.io/codecov/c/github/hungpham2017/mcu.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![GitHub last commit](https://img.shields.io/github/last-commit/hungpham2017/mcu.svg)
 
