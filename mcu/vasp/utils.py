@@ -24,7 +24,7 @@ Utilities
 
 import os, datetime
 import numpy as np
-from mcu.vasp import parameters            
+from mcu.cell import parameters            
             
 def check_exist(file):
     '''Check if a file exists in the running directory '''        
