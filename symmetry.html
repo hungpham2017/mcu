@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tutorial &mdash; mcu 0.2.beta documentation</title>
+  <title>Spacegroup analysis &mdash; mcu 0.2.beta documentation</title>
   
 
   
@@ -36,8 +36,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Basic functions in mcu" href="basic.html" />
-    <link rel="prev" title="Installation" href="install.html" /> 
+    <link rel="next" title="Plot band structure" href="plotting1D.html" />
+    <link rel="prev" title="Basic functions in mcu" href="basic.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -100,9 +100,9 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorial</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
-<li class="toctree-l2"><a class="reference internal" href="symmetry.html">Spacegroup analysis</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Spacegroup analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plotting1D.html">Plot band structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="plotting1D.html#parameters">Parameters</a></li>
 </ul>
@@ -180,13 +180,15 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Tutorial</li>
+          <li><a href="tutorial.html">Tutorial</a> &raquo;</li>
+        
+      <li>Spacegroup analysis</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/symmetry.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -199,42 +201,94 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tutorial">
-<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
-<li class="toctree-l1"><a class="reference internal" href="symmetry.html">Spacegroup analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html">Plot band structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#parameters">Parameters</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html#plot-projected-band-structure">Plot projected band structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#id1">Parameters</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html#plotting-density-of-states">Plotting density of states</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#id7">Parameters</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html#work-function-and-the-electrostatic-potential-over-a-plane">Work function and the electrostatic potential over a plane</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#id10">Parameters</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting2D.html">Generate 2D k-mesh</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#parameters">Parameters</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting2D.html#plot-2d-band-structure">Plot 2D band structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#id1">Parameters</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting2D.html#plot-spin-texture">Plot spin texture</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#id3">Parameters</a></li>
-</ul>
-</li>
-</ul>
-</div>
+  <div class="section" id="spacegroup-analysis">
+<span id="symmetry"></span><h1>Spacegroup analysis<a class="headerlink" href="#spacegroup-analysis" title="Permalink to this headline">¶</a></h1>
+<p><strong>mcu</strong> can analyze spacegroup symmetry of the crystal.
+You can analysze whether the crystal is a standard unit cell or a primitive unit cell, then transform it between them.
+<strong>mcu</strong> can export variety of crystal structure formats, such as cif, POSCAR, xsf. For cif format, you can either
+get the structure in its spacegroup or in P1 symmetry. These analyses can be started with a <strong>mcu.VASP</strong> or <strong>mcu.POSCAR</strong> object.
+Here is an example:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+
+<span class="c1"># Define a POSCAR object with POSCAR/CONTCAR file</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">POSCAR</span><span class="p">()</span>
+
+<span class="c1"># Analyze spacegroup</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">get_symmetry</span><span class="p">()</span>
+
+<span class="c1"># Transformto a primitive unit cell</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">to_primcell</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">get_symmetry</span><span class="p">()</span>
+
+<span class="c1"># Transformto a standard unit cell</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">to_stdcell</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">get_symmetry</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">write_poscar</span><span class="p">()</span>
+
+<span class="c1"># Export to cif. The current symmetry if analyzed will be included in cif file.</span>
+<span class="c1"># if get_symmetry() is not executed yet, then a P1 structure will be returned.</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">write_cif</span><span class="p">()</span>
+
+<span class="c1"># Export a P1 structure even though the spacegroup was analyzed</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">write_cif</span><span class="p">(</span><span class="n">symmetry</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>By default, the <strong>mymcu.cell</strong> (read from POSCAR/CONTCAR or vasprun.xml) is used for the above analyses.
+The <strong>mymcu.cell</strong> is in <strong>spglib</strong> format so you actually can pass it the <strong>spglib</strong> module to do other analyses.
+Moreover, you can analyze symmtry for any structure of interest.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+
+<span class="c1"># Define a POSCAR object with POSCAR/CONTCAR file</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">POSCAR</span><span class="p">()</span>
+
+<span class="n">cell</span> <span class="o">=</span> <span class="n">mymcu</span><span class="o">.</span><span class="n">cell</span>       <span class="c1"># in general, any cell type</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">get_symmetry</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+
+<span class="c1"># mymcu.cell is transformaed to a primitive cell</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">to_primcell</span><span class="p">()</span>
+<span class="n">prim_cell</span> <span class="o">=</span> <span class="n">mymcu</span><span class="o">.</span><span class="n">cell</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">get_symmetry</span><span class="p">(</span><span class="n">prim_cell</span><span class="p">)</span>
+
+<span class="c1"># export a cif file for a cell</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">write_cif</span><span class="p">(</span><span class="n">prim_cell</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
 </div>
 
 
@@ -245,10 +299,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="basic.html" class="btn btn-neutral float-right" title="Basic functions in mcu" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="plotting1D.html" class="btn btn-neutral float-right" title="Plot band structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="basic.html" class="btn btn-neutral float-left" title="Basic functions in mcu" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
