@@ -257,8 +257,12 @@ class main:
                 gap1 = bandedge[spin,cbm_idx,1,0] - bandedge[spin,cbm_idx,0,0]
                 gap2 = bandedge[spin,vbm_idx,1,0] - bandedge[spin,vbm_idx,0,0]  
                 direct_gap = gap1
-                if gap1 > gap2: direct_gap = gap2
-                print('  Direct bandgap   : %7.4f' % (direct_gap))                   
+                direct_k = self.kpts[cbm_idx]
+                if gap1 > gap2: 
+                    direct_gap = gap2
+                    direct_k = self.kpts[vbm_idx]
+                    
+                print('  Direct bandgap   : %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (direct_gap, direct_k[0], direct_k[1], direct_k[2]))                   
                 
                 
     def _generate_band(self, vasprun, efermi=None, spin=0, label=None):
