@@ -36,7 +36,6 @@ class main:
     def get_vacumm(self, pot=None, axis='z', error=0.01):
         '''Get the electrostatic potential at vacuum
         '''
-        
         if not isinstance(pot,np.ndarray): 
             pot = self.get_2D_average(axis)
         lower_bound = pot[1].max()- 2*error

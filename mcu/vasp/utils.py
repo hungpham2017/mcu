@@ -19,10 +19,10 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 '''
-Utilities
+Utilities for vasp module
 '''
 
-import os, datetime
+import os
 import numpy as np
 from mcu.cell import parameters            
             
@@ -160,17 +160,5 @@ def cell_to_spgcell(cell, atoms):
     
     lattice = np.ndarray.tolist(cell[0].T)         # row vectors
     positions = np.ndarray.tolist(cell[2])
-    
-    numbers = []
-    for atom in atoms:
-        numbers.append(parameters.ELEMENTS[atom][0])
-    
+    numbers = [parameters.ELEMENTS[atom][0] for atom in atoms]
     return (lattice, positions, numbers)
-    
-    
-    
-        
-    
-    
-
-

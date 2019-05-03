@@ -21,6 +21,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import numpy as np
 import mcu
 from mcu.vasp import utils, io
+from mcu.cell import spg_wrapper, write_crystal
+from mcu.cell import utils as cell_utils
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -31,7 +33,8 @@ class main:
         self.poscar = io.POSCAR(poscar)
         self.cell_recip = self.poscar.cell[1]
         self.cell  = utils.cell_to_spgcell(self.poscar.cell, self.poscar.atom)
-
+        self.cell_type = [None, None]
+        
     def get_2D_kmesh(self, origin=[0,0,0], krange=[0.1,0.1], plane='xy', npoint=[11,11]):
         '''Get a rectangular k-mesh around a k-point on a plane
         Attribute:
@@ -71,6 +74,60 @@ class main:
             for k in range(frac_coor.shape[0]):
                 f.write('%14.10f  %14.10f  %14.10f     %2d\n' % (frac_coor[k,0], frac_coor[k,1], frac_coor[k,2], 0))
                 
-
+############ Symmetry #################      
+    def get_symmetry(self, cell=None, symprec=1e-6):
+        '''Get space group information'''
+        if cell == None: 
+            cell = self.cell
+            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
+            self.cell_type = [is_std, is_prim]
+        else:
+            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
         
+    def to_stdcell(self, cell=None, symprec=1e-6):
+        '''Transform the unit cell to the standard cell'''
+        if cell == None: 
+            cell = self.cell
+            self.cell = spg_wrapper.cell_to_std(cell, symprec)
+        else:
+            return spg_wrapper.cell_to_std(cell, symprec)
+            
+    def to_primcell(self, cell=None, symprec=1e-6):
+        '''Transform the unit cell to the primitive cell'''
+        if cell == None: 
+            cell = self.cell
+            self.cell = spg_wrapper.cell_to_prim(cell, symprec)
+        else:
+            return spg_wrapper.cell_to_prim(cell, symprec)      
+
+    def write_poscar(self, cell=None, filename=None):
+        if cell == None: cell = self.cell
+        write_crystal.write_poscar(cell, filename)
+        
+    def write_cif(self, cell=None, symprec=1e-6, filename=None):
+        if cell == None: 
+            cell = self.cell
+            is_std, is_prim = self.cell_type 
+            if is_std: 
+                cell = self.to_stdcell(cell, symprec) 
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
+            elif is_prim:
+                cell = self.to_primcell(cell, symprec)
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
+            else:
+                spacegroup = ['1','P1']
+                equi_atoms = np.arange(len(cell[2]))
+                symopt = spg_wrapper.get_symmetry_from_database(1)
+                rotations, translations = symopt['rotations'], symopt['translations']
+        else:
+            spacegroup = ['1','P1']
+            equi_atoms = np.arange(len(cell[2]))
+            symopt = spg_wrapper.get_symmetry_from_database(1)
+            rotations, translations = symopt['rotations'], symopt['translations']
+        symopt = cell_utils.symop_mat2xyz(rotations, translations)
+        write_crystal.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
+
+    def write_xsf(self, cell=None, filename=None):
+        if cell == None: cell = self.cell
+        write_crystal.write_xsf(cell, filename) 
     

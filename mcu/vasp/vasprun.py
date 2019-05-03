@@ -22,7 +22,8 @@ import os
 import numpy as np
 import mcu
 from mcu.vasp import utils, io
-from mcu.cell import spg_wrapper
+from mcu.cell import spg_wrapper, write_crystal
+from mcu.cell import utils as cell_utils
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -43,7 +44,6 @@ class main:
             self.outcar = io.OUTCAR(path + '/' + outcars)
             if self.outcar.success == True: self.useOUTCAR = True
             self.get_info(self.vasprun)
-            self.spg = spg_wrapper.SPG(self.cell)
             
         elif isinstance(vaspruns, list):                # For multiple vasprun.xml file
             self.vasprun = []
@@ -66,7 +66,6 @@ class main:
                     self.outcar.append(io.OUTCAR(outcar_file))  
                     self.useOUTCAR = True                    
             self.get_info(self.vasprun[0])      # Only get info for the first vasprun.xml
-            self.spg = spg_wrapper.SPG(self.cell)
         else:
             print('Provide a string or a list of names for *.xml file')
             
@@ -74,7 +73,9 @@ class main:
         '''Get the cell info from vasprun and return the cell in spglib format'''
         self.cell_init  =  utils.cell_to_spgcell(vasprun.cell_init, self.atom)
         self.cell  = utils.cell_to_spgcell(vasprun.cell_final, self.atom)
+        self.cell_type = [None, None]
 
+############ General #################
     def get_info(self, vasprun):    
         '''Extract basis information from the vasprun.xml'''
 
@@ -91,7 +92,66 @@ class main:
         self.atype = [atom[1] for atom in vasprun.types]
         self.get_cell(vasprun)
         self.get_efermi()
+      
+############ Symmetry #################      
+    def get_symmetry(self, cell=None, symprec=1e-6):
+        '''Get space group information'''
+        if cell == None: 
+            cell = self.cell
+            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
+            self.cell_type = [is_std, is_prim]
+        else:
+            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
         
+    def to_stdcell(self, cell=None, symprec=1e-6):
+        '''Transform the unit cell to the standard cell'''
+        if cell == None: 
+            cell = self.cell
+            self.cell = spg_wrapper.cell_to_std(cell, symprec)
+        else:
+            return spg_wrapper.cell_to_std(cell, symprec)
+            
+    def to_primcell(self, cell=None, symprec=1e-6):
+        '''Transform the unit cell to the primitive cell'''
+        if cell == None: 
+            cell = self.cell
+            self.cell = spg_wrapper.cell_to_prim(cell, symprec)
+        else:
+            return spg_wrapper.cell_to_prim(cell, symprec)      
+
+    def write_poscar(self, cell=None, filename=None):
+        if cell == None: cell = self.cell
+        write_crystal.write_poscar(cell, filename)
+        
+    def write_cif(self, cell=None, symprec=1e-6, filename=None):
+        if cell == None: 
+            cell = self.cell
+            is_std, is_prim = self.cell_type 
+            if is_std: 
+                cell = self.to_stdcell(cell, symprec) 
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
+            elif is_prim:
+                cell = self.to_primcell(cell, symprec)
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
+            else:
+                spacegroup = ['1','P1']
+                equi_atoms = np.arange(len(cell[2]))
+                symopt = spg_wrapper.get_symmetry_from_database(1)
+                rotations, translations = symopt['rotations'], symopt['translations']
+        else:
+            spacegroup = ['1','P1']
+            equi_atoms = np.arange(len(cell[2]))
+            symopt = spg_wrapper.get_symmetry_from_database(1)
+            rotations, translations = symopt['rotations'], symopt['translations']
+        symopt = cell_utils.symop_mat2xyz(rotations, translations)
+        write_crystal.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
+
+    def write_xsf(self, cell=None, filename=None):
+        if cell == None: cell = self.cell
+        write_crystal.write_xsf(cell, filename) 
+
+        
+############ Plotting #################
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
         if isinstance(self.vasprun, mcu.vasp.io.vasprun):
@@ -1229,5 +1289,3 @@ class main:
         else:
             plt.show() 
             
-    def get_sym(self):
-        ''' A shortcut for analyzing the space group symmetry of the crystal'''

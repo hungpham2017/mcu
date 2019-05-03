@@ -20,6 +20,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import numpy as np
 from mcu.vasp import utils
+from mcu.utils import misc
+from mcu.cell import utils as cell_utils
 import subprocess
 
 class vasprun:
@@ -577,6 +579,7 @@ class vasprun:
             
         return np.asarray(array)                        
        
+########## OUTCAR ###############
 class OUTCAR:
     def __init__(self, file="OUTCAR"):
         '''Read additional infomation that cannot be extracted from vasprun.xml'''
@@ -621,6 +624,8 @@ def get_atominfo(poscar):
     
     return atom, lattice, recip_lattice, positions, volume
   
+  
+########## POSCAR ###############
 class POSCAR:
     def __init__(self, file="POSCAR"):
         '''Read POSCAR
@@ -639,6 +644,7 @@ class POSCAR:
         self.atom, lattice, recip_lattice, positions, volume = get_atominfo(poscar)
         return lattice, recip_lattice, positions, volume
         
+########## LOCPOT ###############
 class LOCPOT:
     def __init__(self, file="LOCPOT"):
         '''Read LOCPOT
