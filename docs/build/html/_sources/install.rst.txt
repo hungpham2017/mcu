@@ -9,6 +9,7 @@ Prerequisites
 * `Numpy <http://www.numpy.org/>`_ 1.15.4 or higher
 * `Scipy <https://www.scipy.org/>`_ 1.1.0 or higher
 * `matplotlib <https://matplotlib.org/>`_ 3.0.1 or higher
+* `spglib <https://atztogo.github.io/spglib/python-spglib.html>`_ 1.12.1 or higher
 
 
 Downloading mcu

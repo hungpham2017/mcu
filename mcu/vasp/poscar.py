@@ -104,14 +104,14 @@ class main:
         if cell == None: cell = self.cell
         write_crystal.write_poscar(cell, filename)
         
-    def write_cif(self, cell=None, symprec=1e-6, filename=None):
+    def write_cif(self, cell=None, symprec=1e-6, filename=None, symmetry=True):
         if cell == None: 
             cell = self.cell
             is_std, is_prim = self.cell_type 
-            if is_std: 
+            if is_std and symmetry==True: 
                 cell = self.to_stdcell(cell, symprec) 
                 spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
-            elif is_prim:
+            elif is_prim and symmetry==True:
                 cell = self.to_primcell(cell, symprec)
                 spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
             else:
