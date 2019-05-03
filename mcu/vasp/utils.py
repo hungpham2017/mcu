@@ -158,7 +158,7 @@ def get_1Dkpath(kpath, npoint=20):
 def cell_to_spgcell(cell, atoms):
     '''Providing the cell attribute from vasprun.xml, return the cell for spglib'''
     
-    lattice = np.ndarray.tolist(cell[0].T)         # row vectors
+    lattice = np.ndarray.tolist(cell[0])      
     positions = np.ndarray.tolist(cell[2])
     numbers = [parameters.ELEMENTS[atom][0] for atom in atoms]
     return (lattice, positions, numbers)

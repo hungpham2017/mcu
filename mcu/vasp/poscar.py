@@ -89,6 +89,7 @@ class main:
         if cell == None: 
             cell = self.cell
             self.cell = spg_wrapper.cell_to_std(cell, symprec)
+            self.cell_type[0] = True
         else:
             return spg_wrapper.cell_to_std(cell, symprec)
             
@@ -97,6 +98,7 @@ class main:
         if cell == None: 
             cell = self.cell
             self.cell = spg_wrapper.cell_to_prim(cell, symprec)
+            self.cell_type[1] = True
         else:
             return spg_wrapper.cell_to_prim(cell, symprec)      
 
