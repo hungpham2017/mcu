@@ -3,6 +3,18 @@
 Basic functions in mcu 
 ======================
 
+You can use the code by either writing a simple python script.
+
+.. code-block:: bash
+
+    $ python mymcu.py
+    
+or work interactively in python environment (I prefer this way):
+
+.. code-block:: bash
+
+    $ python 
+
 **Compute bandgap and Fermi level:**
 
 **mcu.VASP** works with vasprun.xml and OUTCAR (optional). 

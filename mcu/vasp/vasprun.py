@@ -289,7 +289,7 @@ class main:
             kpts, band = utils.rm_redundant_band(kpts, band) 
             
             # Find absolute kpts and shift the band
-            b = vasprun.cell_final[1]               # Get the reciprocal lattice
+            b = vasprun.cell_final[1]               # Get the reciprocal lattice in the row vector format
             abs_kpts = kpts.dot(b)                  # From fractional to absolute
             temp_kpts = np.empty_like(abs_kpts)
             temp_kpts[0] = abs_kpts[0]

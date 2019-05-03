@@ -150,3 +150,18 @@ def convert_lattice(lattice):
     gamma = np.arccos(cos_gamma)*180/np.pi
     
     return (a,b,c,alpha,beta,gamma)
+    
+def frac2cart(cell):
+    '''Convert fractional coordinates to cartesian
+        Attributes:
+            cell        : a celll object in spglib format
+        Return:
+            postions    : in cartesian coordinates
+    '''
+    
+    lattice = cell[0]    
+    frac_coordinates = cell[1]
+    lattice_length = np.sqrt((np.sum(lattice**2, axis = 1)))
+    cart_coordinates = frac_coordinates*lattice_length
+    return cart_coordinates
+    

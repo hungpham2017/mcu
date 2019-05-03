@@ -264,10 +264,10 @@ class vasprun:
         
 
         lattice = self.extract_vec(basis)                       # row vector format, Unit: A
-        recip_lattice = 2*np.pi*self.extract_vec(rec_basis)     # column vector format, Unit: A^-1, vaspxml uses 2pi.A^-1 unit
+        recip_lattice = 2*np.pi*self.extract_vec(rec_basis)     # row vector format, Unit: A^-1, vaspxml uses 2pi.A^-1 unit
         positions = self.extract_vec(positions) 
 
-        return lattice.T, recip_lattice, positions, volume
+        return lattice, recip_lattice, positions, volume
 
             
     def get_structure(self): 
@@ -595,13 +595,14 @@ class OUTCAR:
         '''Extract E_fermi'''
         pass
   
+  
 def get_atominfo(poscar):
     '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
     lattice = []
     for i in range(2,5):
         lattice.append(np.float64(poscar[i].split()))
-    lattice = np.asarray(lattice).T                     # Unit: A
-    recip_lattice = 2*np.pi*np.linalg.inv(lattice)      # Unit: A^-1
+    lattice = np.asarray(lattice)                       # Unit: A, row vector format
+    recip_lattice = 2*np.pi*np.linalg.inv(lattice.T)      # Unit: A^-1, row vector:   a^T.dot(b) = 2pi 
     
     atom_type = poscar[5].split()
     natom = np.int64(poscar[6].split())

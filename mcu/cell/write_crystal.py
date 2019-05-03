@@ -54,7 +54,7 @@ def write_xsf(cell, filename=None):
     comment = misc.date()
     lattice = np.asarray(cell[0])
     positions = np.asarray(cell[1])
-    abs_positions = positions.dot(lattice.T)
+    abs_positions = positions.dot(lattice)
     atoms = np.asarray(cell[2])
     natom = len(atoms)
     symbol = cell_utils.to_symbol(atoms)
@@ -71,7 +71,7 @@ def write_xsf(cell, filename=None):
         f.write('PRIMCOORD\n')
         f.write('%3d %3d\n' % (natom, 1))
         for atom in range(natom):
-            f.write('%s  %15.10f  %15.10f  %15.10f\n' % (symbol[atom], abs_positions[atom][0], abs_positions[atom][1], abs_positions[atom][2]))          
+            f.write(' %s  %15.10f  %15.10f  %15.10f\n' % (symbol[atom], abs_positions[atom][0], abs_positions[atom][1], abs_positions[atom][2]))          
       
 def write_cif(cell, spacegroup, equi_atoms, symopt, filename=None):
     if filename == None: filename = 'mcu'
