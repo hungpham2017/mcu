@@ -37,7 +37,7 @@ Here is an example:
     mymcu.write_cif(symmetry=False)    
 
 By default, the **mymcu.cell** (read from POSCAR/CONTCAR or vasprun.xml) is used for the above analyses.
-The **mymcu.cell** is in *spglib* format so you actually can pass it the *spglib* module to do other analyses.
+The **mymcu.cell** is in **spglib** format so you actually can pass it the **spglib** module to do other analyses.
 Moreover, you can analyze symmtry for any structure of interest.
 
 .. code-block:: python
