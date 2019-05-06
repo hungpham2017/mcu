@@ -20,8 +20,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import numpy as np
 import mcu
-from mcu.vasp import utils, io
-from mcu.cell import spg_wrapper, write_crystal
+from mcu.vasp import utils, vasp_io
+from mcu.cell import spg_wrapper, cell_io
 from mcu.cell import utils as cell_utils
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 class main:
     def __init__(self, poscar='POSCAR'):
         '''Get POSCAR file and return a POSCAR object '''
-        self.poscar = io.POSCAR(poscar)
+        self.poscar = vasp_io.POSCAR(poscar)
         self.cell_recip = self.poscar.cell[1]
         self.cell  = utils.cell_to_spgcell(self.poscar.cell, self.poscar.atom)
         self.cell_type = [None, None]
@@ -104,7 +104,7 @@ class main:
 
     def write_poscar(self, cell=None, filename=None):
         if cell == None: cell = self.cell
-        write_crystal.write_poscar(cell, filename)
+        cell_io.write_poscar(cell, filename)
         
     def write_cif(self, cell=None, symprec=1e-6, filename=None, symmetry=True):
         if cell == None: 
@@ -127,9 +127,9 @@ class main:
             symopt = spg_wrapper.get_symmetry_from_database(1)
             rotations, translations = symopt['rotations'], symopt['translations']
         symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        write_crystal.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
+        cell_io.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
 
     def write_xsf(self, cell=None, filename=None):
         if cell == None: cell = self.cell
-        write_crystal.write_xsf(cell, filename) 
+        cell_io.write_xsf(cell, filename) 
     

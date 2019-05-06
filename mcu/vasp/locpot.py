@@ -20,7 +20,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import numpy as np
 import mcu
-from mcu.vasp import utils, io
+from mcu.vasp import utils, vasp_io
 import matplotlib as mpl
 import matplotlib.pyplot as plt
     
@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 class main:
     def __init__(self, locpot='LOCPOT'):
         '''Get LOCPOT file and return a LOCPOT object '''
-        self.locpot = io.LOCPOT(locpot)
+        self.locpot = vasp_io.LOCPOT(locpot)
         
     def get_2D_average(self, axis='z'):
         return self.locpot.get_2D_average(axis)
