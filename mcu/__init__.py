@@ -7,8 +7,8 @@ from . import cell
 VASP = vasp.vasprun.main
 LOCPOT = vasp.locpot.main
 POSCAR = vasp.poscar.main
-vasprun = vasp.io.vasprun
-OUTCAR = vasp.io.OUTCAR
+vasprun = vasp.vasp_io.vasprun
+OUTCAR = vasp.vasp_io.OUTCAR
 make_KPOINTS = vasp.utils.get_1Dkpath
 read_WAVEDER = vasp.utils.read_WAVEDER
 read_WAVEDERF = vasp.utils.read_WAVEDERF

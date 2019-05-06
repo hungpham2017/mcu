@@ -24,7 +24,7 @@ Utilities for vasp module
 
 import os
 import numpy as np
-from mcu.cell import parameters            
+from mcu.cell import parameters, utils            
             
 def check_exist(file):
     '''Check if a file exists in the running directory '''        
@@ -160,5 +160,5 @@ def cell_to_spgcell(cell, atoms):
     
     lattice = np.ndarray.tolist(cell[0])      
     positions = np.ndarray.tolist(cell[2])
-    numbers = [parameters.ELEMENTS[atom][0] for atom in atoms]
+    numbers = utils.convert_atomtype(atoms)
     return (lattice, positions, numbers)

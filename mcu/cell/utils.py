@@ -27,17 +27,25 @@ import numpy as np
 from mcu.cell import parameters            
 
 
-def to_symbol(atoms_number):
-    '''Convert atom from Z to symbol, both are lists''' 
-
-    atom = []
-    for Z in atoms_number:
-        stop = False
-        for element in parameters.ELEMENTS.items():
-            if Z == element[1][0]:
-                atom.append(element[0])
-                break
-    return atom
+def convert_atomtype(Z_or_symbol):
+    '''Convert atom from Z to symbol and vice versa''' 
+    
+    # Z to symbol
+    if not isinstance(Z_or_symbol[0], str):
+        symbol = []
+        for Z in Z_or_symbol:
+            stop = False
+            for element in parameters.ELEMENTS.items():
+                if Z == element[1][0]:
+                    symbol.append(element[0])
+                    break
+        return symbol
+        
+    # symbol to Z
+    else:
+        Z = [parameters.ELEMENTS[atom][0] for atom in Z_or_symbol]
+        return Z
+    
     
 def convert_frac(frac, err=1.e-5):
     '''Convert a fraction (str) to float and vice versa'''
@@ -45,25 +53,22 @@ def convert_frac(frac, err=1.e-5):
     if isinstance(frac,str):
         frac = frac.split("/")
         if len(frac) == 1: 
-            frac = float(frac)
+            frac = float(frac[0])
         else:
             frac = float(frac[0]) / float(frac[1])
     else:
-        
-        if abs(frac - 1/2) < err: 
-            frac = '1/2'
-        elif abs(frac - 1/3) < err: 
-            frac = '1/3'
-        elif abs(frac - 2/3) < err: 
-            frac = '2/3'
-        elif abs(frac - 1/6) < err: 
-            frac = '1/6' 
-        elif abs(frac - 5/6) < err: 
-            frac = '5/6'
-        elif (abs(frac) < err) or abs(frac - 1) < err: 
-            frac = '0'
+        if abs(frac - 1/2) < err: frac = '1/2'
+        elif abs(frac - 1/3) < err: frac = '1/3'
+        elif abs(frac - 2/3) < err: frac = '2/3'
+        elif abs(frac - 1/4) < err: frac = '1/4'
+        elif abs(frac - 3/4) < err: frac = '3/4'
+        elif abs(frac - 5/4) < err: frac = '5/4'
+        elif abs(frac - 1/6) < err: frac = '1/6' 
+        elif abs(frac - 5/6) < err: frac = '5/6'
+        elif (abs(frac) < err) or abs(frac - 1) < err: frac = '0'
         
     return frac
+        
         
 def symop_xyz2mat(sym_operators):
     '''Convert string operator to the matrix form'''
@@ -77,7 +82,7 @@ def symop_xyz2mat(sym_operators):
         rotation = []
         translation = []
         for i in range(3):  # loop over rows of rotation mat
-            temp = opt[i]
+            temp = opt[i].strip()
             vec = []
             axes = ['x','y','z']
             for axis in axes: # loop over axis of row vector
@@ -104,6 +109,7 @@ def symop_xyz2mat(sym_operators):
         translations.append(translation) 
         
     return rotations, translations
+           
            
 def symop_mat2xyz(rotations, translations):
     '''Convert mat operator to the string form'''
@@ -134,34 +140,83 @@ def symop_mat2xyz(rotations, translations):
         syms.append(sym[:-1])
         
     return syms
-                    
+               
+               
+def genetate_atoms(irred_symbol, irred_frac, rotations, translations, prec=1.e-6):
+    '''Operate the R and T operators on irreducible atoms then remove redundant ones'''
+    full_symbol = []
+    full_frac = []
+    nsymopt = len(translations)
+    
+    # Operate R and T on the irreducible atoms
+    for i, atom in enumerate(irred_symbol):
+        new_atoms = np.einsum('iab,b->ia', rotations, irred_frac[i]) + translations
+        full_symbol.extend([atom]*nsymopt)
+        full_frac.extend(new_atoms)
+
+    # Remove redundant atoms 
+    def correct_coor(coor):
+        '''This function return an image of coor and make sure it is inside [0,1] range'''
+        coor = np.asarray(coor)
+        coor = coor - np.int64(coor)
+        for i in range(3):
+            if coor[i] < 0: coor[i] = coor[i] + 1
+        return coor
+        
+    natoms = len(full_frac)
+    redundant = []
+    atm1 = 0
+    while atm1 < natoms-1:
+        full_frac[atm1] = correct_coor(full_frac[atm1])
+        atm2 = atm1 + 1
+        check_disorder = False
+        while atm2 < natoms:
+            full_frac[atm2] = correct_coor(full_frac[atm2])
+            cond1 = np.linalg.norm(full_frac[atm1] - full_frac[atm2]) < prec
+            cond2 = full_symbol[atm1] == full_symbol[atm2]
+            if cond1 and not cond2 and check_disorder == False: 
+                print('Warning: Disordered structure!', full_symbol[atm1], 'and', full_symbol[atm2], 'have the same coordinates', full_frac[atm1])
+                check_disorder = True
+            if cond1 and cond2: 
+                full_symbol.pop(atm2)
+                full_frac.pop(atm2)
+                natoms = natoms - 1
+            else:
+                atm2 +=1
+        atm1 +=1
+
+    return full_symbol, np.asarray(full_frac)
+              
+              
 def rm_paren(string):
     return string.replace("(","").replace(")","")
     
+    
 def convert_lattice(lattice):
-    '''Convert a lattice matrix to cif file format cell'''    
+    '''Convert a lattice matrix to cif file format cell and vice versa'''
+    
     lattice = np.asarray(lattice)
-    a, b, c = np.linalg.norm(lattice, axis=1)
-    cos_alpha = lattice[1].dot(lattice[2])/np.linalg.norm(lattice[1])/np.linalg.norm(lattice[2])
-    alpha = np.arccos(cos_alpha)*180/np.pi
-    cos_beta = lattice[0].dot(lattice[2])/np.linalg.norm(lattice[0])/np.linalg.norm(lattice[2]) 
-    beta = np.arccos(cos_beta)*180/np.pi 
-    cos_gamma = lattice[0].dot(lattice[1])/np.linalg.norm(lattice[0])/np.linalg.norm(lattice[1])
-    gamma = np.arccos(cos_gamma)*180/np.pi
-    
-    return (a,b,c,alpha,beta,gamma)
-    
-def frac2cart(cell):
-    '''Convert fractional coordinates to cartesian
-        Attributes:
-            cell        : a celll object in spglib format
-        Return:
-            postions    : in cartesian coordinates
-    '''
-    
-    lattice = cell[0]    
-    frac_coordinates = cell[1]
-    lattice_length = np.sqrt((np.sum(lattice**2, axis = 1)))
-    cart_coordinates = frac_coordinates*lattice_length
-    return cart_coordinates
+    if lattice.shape[0] == 3:
+        a, b, c = np.linalg.norm(lattice, axis=1)
+        cos_alpha = lattice[1].dot(lattice[2])/np.linalg.norm(lattice[1])/np.linalg.norm(lattice[2])
+        alpha = np.arccos(cos_alpha)*180/np.pi
+        cos_beta = lattice[0].dot(lattice[2])/np.linalg.norm(lattice[0])/np.linalg.norm(lattice[2]) 
+        beta = np.arccos(cos_beta)*180/np.pi 
+        cos_gamma = lattice[0].dot(lattice[1])/np.linalg.norm(lattice[0])/np.linalg.norm(lattice[1])
+        gamma = np.arccos(cos_gamma)*180/np.pi
+        
+        return np.asarray([a,b,c,alpha,beta,gamma])
+        
+    elif lattice.shape[0] == 6:
+        a,b,c,alpha,beta,gamma = lattice
+        vec1 = [a, 0.0, 0.0]    # a aligns along x
+        vec2 = [b*np.cos(gamma*np.pi/180), b*np.sin(gamma*np.pi/180), 0.0]    # b is in the xy plane  
+        vec3 = [0.0, 0.0, 0.0]
+        vec3[0] = np.cos(beta*np.pi/180)*c
+        vec3[1] = (np.cos(alpha*np.pi/180)*b*c - vec2[0]*vec3[0])/vec2[1]
+        vec3[2] = np.sqrt(c**2 - vec3[0]**2 - vec3[1]**2)  
+
+        return np.asarray([vec1,vec2,vec3])
+        
+
     

@@ -21,8 +21,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import os
 import numpy as np
 import mcu
-from mcu.vasp import utils, io
-from mcu.cell import spg_wrapper, write_crystal
+from mcu.vasp import utils, vasp_io
+from mcu.cell import spg_wrapper, cell_io
 from mcu.cell import utils as cell_utils
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -39,9 +39,9 @@ class main:
         # Create vasprun object(s)
         if path == None: path = os.getcwd()
         if isinstance(vaspruns, str):                   # For one vasprun.xml file    
-            self.vasprun = io.vasprun(path + '/' + vaspruns + '.xml')
+            self.vasprun = vasp_io.vasprun(path + '/' + vaspruns + '.xml')
             self.useOUTCAR = False
-            self.outcar = io.OUTCAR(path + '/' + outcars)
+            self.outcar = vasp_io.OUTCAR(path + '/' + outcars)
             if self.outcar.success == True: self.useOUTCAR = True
             self.get_info(self.vasprun)
             
@@ -52,7 +52,7 @@ class main:
                 if not utils.check_exist(xml_file):
                     print('Cannot find:', xml_file)
                     break
-                self.vasprun.append(io.vasprun(xml_file))
+                self.vasprun.append(vasp_io.vasprun(xml_file))
 
             self.useOUTCAR = False
             if isinstance(outcars, list):               
@@ -63,7 +63,7 @@ class main:
                     if not utils.check_exist(outcar_file):
                         print('Cannot find:', outcar_file)
                         break
-                    self.outcar.append(io.OUTCAR(outcar_file))  
+                    self.outcar.append(vasp_io.OUTCAR(outcar_file))  
                     self.useOUTCAR = True                    
             self.get_info(self.vasprun[0])      # Only get info for the first vasprun.xml
         else:
@@ -108,6 +108,7 @@ class main:
         if cell == None: 
             cell = self.cell
             self.cell = spg_wrapper.cell_to_std(cell, symprec)
+            self.cell_type[0] = True
         else:
             return spg_wrapper.cell_to_std(cell, symprec)
             
@@ -116,21 +117,22 @@ class main:
         if cell == None: 
             cell = self.cell
             self.cell = spg_wrapper.cell_to_prim(cell, symprec)
+            self.cell_type[1] = True
         else:
             return spg_wrapper.cell_to_prim(cell, symprec)      
 
     def write_poscar(self, cell=None, filename=None):
         if cell == None: cell = self.cell
-        write_crystal.write_poscar(cell, filename)
+        cell_io.write_poscar(cell, filename)
         
-    def write_cif(self, cell=None, symprec=1e-6, filename=None):
+    def write_cif(self, cell=None, symprec=1e-6, filename=None, symmetry=True):
         if cell == None: 
             cell = self.cell
             is_std, is_prim = self.cell_type 
-            if is_std: 
+            if is_std and symmetry==True: 
                 cell = self.to_stdcell(cell, symprec) 
                 spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
-            elif is_prim:
+            elif is_prim and symmetry==True:
                 cell = self.to_primcell(cell, symprec)
                 spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
             else:
@@ -144,17 +146,17 @@ class main:
             symopt = spg_wrapper.get_symmetry_from_database(1)
             rotations, translations = symopt['rotations'], symopt['translations']
         symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        write_crystal.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
+        cell_io.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
 
     def write_xsf(self, cell=None, filename=None):
         if cell == None: cell = self.cell
-        write_crystal.write_xsf(cell, filename) 
+        cell_io.write_xsf(cell, filename) 
 
         
 ############ Plotting #################
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
-        if isinstance(self.vasprun, mcu.vasp.io.vasprun):
+        if isinstance(self.vasprun, mcu.vasp.vasp_io.vasprun):
             self.vasprun.get_dos()
             if hasattr(self.vasprun,'efermi'):
                 self.efermi = self.vasprun.efermi
@@ -181,7 +183,7 @@ class main:
         # Get the fermi level
         if efermi == None: efermi = self.efermi
             
-        if isinstance(self.vasprun,mcu.vasp.io.vasprun):              # For one vasprun.xml file
+        if isinstance(self.vasprun,mcu.vasp.vasp_io.vasprun):              # For one vasprun.xml file
             assert isinstance(efermi,float) 
             self.vasprun.get_band()
             self.band = self.vasprun.band[:,:,:,0]
@@ -277,7 +279,7 @@ class main:
         path = None
         conventional = False
             
-        if isinstance(vasprun,mcu.vasp.io.vasprun) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
+        if isinstance(vasprun,mcu.vasp.vasp_io.vasprun) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
             if label != None:
                 assert isinstance(label,str)     # label needs to be a string in the format,e.g. 'A-B-C-D'
                 label = label.split('-')
@@ -308,7 +310,7 @@ class main:
             sym_kpoint_coor = np.asarray(sym_kpoint_coor)
                      
         else:
-            if isinstance(vasprun,mcu.vasp.io.vasprun):                       # For one vasprun.xml file
+            if isinstance(vasprun,mcu.vasp.vasp_io.vasprun):                       # For one vasprun.xml file
                 assert isinstance(efermi,float)
                 vasprun.get_band()
                 band = vasprun.band[spin][:,:,0]
@@ -434,7 +436,7 @@ class main:
         
     def _generate_pband(self, vasprun, spin=0, style=1, lm='spd', lm_label=None):
         '''Processing/collecting the projected band data before the plotting function
-            proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.io.vasprun.get_projected for more details info
+            proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.vasp_io.vasprun.get_projected for more details info
             
             style = 1   : all atoms are considered
                          lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them
@@ -449,7 +451,7 @@ class main:
        
         
         # Collecting/combining the projected wfn from vasprun.xml
-        if isinstance(vasprun,mcu.vasp.io.vasprun):                       # For one vasprun.xml file
+        if isinstance(vasprun,mcu.vasp.vasp_io.vasprun):                       # For one vasprun.xml file
             vasprun.get_projected()
             proj_wf = vasprun.proj_wf[spin] 
             lm_list = vasprun.lm           
@@ -911,14 +913,14 @@ class main:
         '''
         
         if vasprun == None: 
-            if isinstance(self.vasprun,mcu.vasp.io.vasprun): 
+            if isinstance(self.vasprun,mcu.vasp.vasp_io.vasprun): 
                 vasprun = self.vasprun
                 if efermi == None: efermi = self.efermi
             if isinstance(self.vasprun,list): 
                 vasprun = self.vasprun[0]  
                 if efermi == None: efermi = self.efermi[0]
         else:
-            assert isinstance(vasprun,mcu.vasp.io.vasprun)
+            assert isinstance(vasprun,mcu.vasp.vasp_io.vasprun)
             
         if lm == None: 
             lm = [atom+':s,p,d' for atom in self.atype]  
@@ -1023,13 +1025,13 @@ class main:
             
     def _generate_spin(self, vasprun, lm=None):
         '''Processing/collecting the spin texture data before the plotting function
-            proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.io.vasprun.get_projected for more details info
+            proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.vasp_io.vasprun.get_projected for more details info
             
             lm          : ['Ni:s','C:pz']
         '''      
         
         # Collecting/combining the projected wfn from vasprun.xml
-        if isinstance(vasprun,mcu.vasp.io.vasprun):                       # For one vasprun.xml file
+        if isinstance(vasprun,mcu.vasp.vasp_io.vasprun):                       # For one vasprun.xml file
             vasprun.get_projected()
             lm_list = vasprun.lm 
             proj_wfs = []
@@ -1142,7 +1144,7 @@ class main:
         spin_text = self._generate_spin(self.vasprun, lm=lm)[:,:,band]
 
         # Get X, Y
-        kpoint = io.KPOINTS()
+        kpoint = vasp_io.KPOINTS()
         plane, krange, npoint = kpoint.get_spin_kmesh()
         deltax = 2*krange[0]/(npoint[0]-1)
         deltay = 2*krange[1]/(npoint[1]-1)
@@ -1242,7 +1244,7 @@ class main:
         band, path, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label=None)  
         
         # Get X, Y
-        kpoint = io.KPOINTS()
+        kpoint = vasp_io.KPOINTS()
         plane, krange, npoint = kpoint.get_spin_kmesh()
         deltax = 2*krange[0]/(npoint[0]-1)
         deltay = 2*krange[1]/(npoint[1]-1)

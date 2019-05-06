@@ -81,7 +81,7 @@ def get_sym(cell, symprec=1e-6, export_operator=False):
         misc.print_msg("Spacegroup  number           : %s" % (number))
         misc.print_msg("Short Internatmiscnal symbol : %s" % (intl_label))
         misc.print_msg("Schoenflies symbol           : %s" % (Schoenflies_label))
-        misc.print_msg("Atoms list                   :", utils.to_symbol(cell[2]))    
+        misc.print_msg("Atoms list                   :", utils.convert_atomtype(cell[2]))    
         misc.print_msg("Equivalent atoms             : %s" % (str(equi_atoms)))
         misc.print_msg("Number of irreducible atoms  : %d" % (np.unique(equi_atoms).shape[0]))
         misc.print_msg("Standard cell                : %r" % (is_std))
