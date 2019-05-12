@@ -141,53 +141,34 @@ def symop_mat2xyz(rotations, translations):
         
     return syms
                
-               
-def genetate_atoms(irred_symbol, irred_frac, rotations, translations, prec=1.e-6):
+
+def genetate_atoms(irred_symbol, irred_frac, rotations, translations, prec=5):
     '''Operate the R and T operators on irreducible atoms then remove redundant ones'''
-    full_symbol = []
+    full_Z = []
     full_frac = []
     nsymopt = len(translations)
     
+    irred_Z = convert_atomtype(irred_symbol)
     # Operate R and T on the irreducible atoms
-    for i, atom in enumerate(irred_symbol):
+    for i, Z in enumerate(irred_Z):
         new_atoms = np.einsum('iab,b->ia', rotations, irred_frac[i]) + translations
-        full_symbol.extend([atom]*nsymopt)
+        full_Z.extend([Z]*nsymopt)
         full_frac.extend(new_atoms)
 
-    # Remove redundant atoms 
-    def correct_coor(coor):
-        '''This function return an image of coor and make sure it is inside [0,1] range'''
-        coor = np.asarray(coor)
-        coor = coor - np.int64(coor)
-        for i in range(3):
-            if coor[i] < 0: coor[i] = coor[i] + 1
-        return coor
-        
     natoms = len(full_frac)
-    redundant = []
-    atm1 = 0
-    while atm1 < natoms-1:
-        full_frac[atm1] = correct_coor(full_frac[atm1])
-        atm2 = atm1 + 1
-        check_disorder = False
-        while atm2 < natoms:
-            full_frac[atm2] = correct_coor(full_frac[atm2])
-            cond1 = np.linalg.norm(full_frac[atm1] - full_frac[atm2]) < prec
-            cond2 = full_symbol[atm1] == full_symbol[atm2]
-            if cond1 and not cond2 and check_disorder == False: 
-                print('Warning: Disordered structure!', full_symbol[atm1], 'and', full_symbol[atm2], 'have the same coordinates', full_frac[atm1])
-                check_disorder = True
-            if cond1 and cond2: 
-                full_symbol.pop(atm2)
-                full_frac.pop(atm2)
-                natoms = natoms - 1
-            else:
-                atm2 +=1
-        atm1 +=1
+    full_frac = np.asarray(full_frac) - np.int64(full_frac)
+    full_frac = full_frac.flatten()
+    full_frac[np.where(full_frac<0)[0]] = full_frac[np.where(full_frac<0)[0]] + 1.0
+    full_frac = full_frac.reshape(natoms,3)
+    atoms = np.empty([natoms,4])
+    atoms[:,0] = np.asarray(full_Z)
+    atoms[:,1:] = full_frac
+    atoms = np.unique(atoms.round(prec), axis=0)
+    full_Z = np.ndarray.tolist(np.int64(atoms[:,0]))
+    full_frac = atoms[:,1:]
 
-    return full_symbol, np.asarray(full_frac)
-              
-              
+    return full_Z, full_frac
+    
 def rm_paren(string):
     return string.replace("(","").replace(")","")
     

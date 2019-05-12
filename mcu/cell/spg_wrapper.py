@@ -25,7 +25,7 @@ from mcu.cell import parameters, utils
 
 
 
-def compare_cells(cell1, cell2, prec=1e-6):
+def compare_cells(cell1, cell2, prec=1e-5):
     '''Compare two spglib cell if they are the same'''
     lattice_diff = np.linalg.norm(np.asarray(cell1[0]) - np.asarray(cell2[0]))
     
@@ -56,7 +56,7 @@ def compare_cells(cell1, cell2, prec=1e-6):
                                 
     return same
 
-def get_sym(cell, symprec=1e-6, export_operator=False):
+def get_sym(cell, symprec=1e-5, export_operator=False):
     
     #Space group info
     intl_label, number = spglib.get_spacegroup(cell, symprec).split(' ')
@@ -90,7 +90,7 @@ def get_sym(cell, symprec=1e-6, export_operator=False):
     else:
         return (number, intl_label), equi_atoms, rotations, translations
 
-def cell_to_std(cell, symprec=1e-6):
+def cell_to_std(cell, symprec=1e-5):
     std_cell = spglib.refine_cell(cell, symprec) 
     if compare_cells(cell, std_cell):
         print('Unit cell is already a standard cell. Nothing changes')
@@ -99,7 +99,7 @@ def cell_to_std(cell, symprec=1e-6):
         print('Unit cell was transformed to a standard cell')  
         return std_cell
 
-def cell_to_prim(cell, symprec=1e-6):
+def cell_to_prim(cell, symprec=1e-5):
     prim_cell = spglib.find_primitive(cell, symprec)   
     if compare_cells(cell, prim_cell):
         print('Unit cell is already a primitive cell. Nothing changes') 
