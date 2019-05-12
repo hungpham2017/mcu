@@ -75,7 +75,7 @@ class main:
                 f.write('%14.10f  %14.10f  %14.10f     %2d\n' % (frac_coor[k,0], frac_coor[k,1], frac_coor[k,2], 0))
                 
 ############ Symmetry #################      
-    def get_symmetry(self, cell=None, symprec=1e-6):
+    def get_symmetry(self, cell=None, symprec=1e-5):
         '''Get space group information'''
         if cell == None: 
             cell = self.cell
@@ -84,7 +84,7 @@ class main:
         else:
             is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
         
-    def to_stdcell(self, cell=None, symprec=1e-6):
+    def to_stdcell(self, cell=None, symprec=1e-5):
         '''Transform the unit cell to the standard cell'''
         if cell == None: 
             cell = self.cell
@@ -93,7 +93,7 @@ class main:
         else:
             return spg_wrapper.cell_to_std(cell, symprec)
             
-    def to_primcell(self, cell=None, symprec=1e-6):
+    def to_primcell(self, cell=None, symprec=1e-5):
         '''Transform the unit cell to the primitive cell'''
         if cell == None: 
             cell = self.cell
@@ -106,7 +106,7 @@ class main:
         if cell == None: cell = self.cell
         cell_io.write_poscar(cell, filename)
         
-    def write_cif(self, cell=None, symprec=1e-6, filename=None, symmetry=True):
+    def write_cif(self, cell=None, symprec=1e-5, filename=None, symmetry=True):
         if cell == None: 
             cell = self.cell
             is_std, is_prim = self.cell_type 

@@ -21,7 +21,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import numpy as np
 import subprocess
 from mcu.utils import misc
-from mcu.cell import utils as cell_utils
+from mcu.cell import utils as cell_utils, spg_wrapper
         
         
 ##################### EXPORT CIF, XSF, POSCAR ###########################          
@@ -139,13 +139,22 @@ class cif:
             if line.strip() == '': cif.pop(i)
         return cif
         
-    def write_poscar(self, filename=None):
+    def write_poscar(self, filename='POSCAR_mcu'):
         write_poscar(self.cell, filename)
         
-    def write_cif(self):
-        pass
-        #cell_io.write_cif(self.cell, spacegroup, equi_atoms, symopt, filename) 
-            
+    def write_xsf(self, filename='mcu'):
+        write_xsf(self.cell, filename) 
+        
+    def write_cif(self, filename='mcu'):
+        '''Write a P1 cif file'''
+        print("Exporting a P1 cif file, the original symmetry is discarded")
+        spacegroup = ['1','P1']
+        equi_atoms = np.arange(len(self.cell[2]))
+        symopt = spg_wrapper.get_symmetry_from_database(1)
+        rotations, translations = symopt['rotations'], symopt['translations']
+        symopt = cell_utils.symop_mat2xyz(rotations, translations)
+        write_cif(self.cell, spacegroup, equi_atoms, symopt, filename) 
+        
     def make_cell(self):
         '''Read cell information from cif file and return a cell spglib object'''
         
@@ -160,18 +169,14 @@ class cif:
         irred_symbol, irred_frac = self.extract_coordinate()
         symopt = self.extract_sym_operator()
         rotations, translations = cell_utils.symop_xyz2mat(symopt)
-        full_symbol, full_frac = cell_utils.genetate_atoms(irred_symbol, irred_frac, rotations, translations)
+        atom_type, full_frac = cell_utils.genetate_atoms(irred_symbol, irred_frac, rotations, translations)
         self.lattice = [a,b,c,alpha,beta,gamma]
         self.lattice = cell_utils.convert_lattice(self.lattice)
-        positions = full_frac
-        atom_type = cell_utils.convert_atomtype(full_symbol)
-        cell = (self.lattice, positions, atom_type)
-        
+        cell = (self.lattice, full_frac, atom_type)
         self.spg = [sg_sym, sg_num]
         self.irred_atoms = [irred_symbol, irred_frac]
         
         return cell
-        
         
     def extract_coordinate(self):
         '''Extract the (irreducible) coordinates block'''
@@ -232,7 +237,7 @@ class cif:
         sym_operators = []
         for i in range(start, len(self.cif)):
             line = self.cif[i].strip()
-            if line == '' or line.startswith("_"): 
+            if line == '' or line.startswith("_") or line.startswith("loop_"): 
                 break
                     
             if "'" in line:
@@ -255,21 +260,13 @@ class cif:
         out = None
         for line in self.cif:
             if line.strip().startswith(key):
-                temp = line.split()
-                if len(temp) == 2:
-                    out = cell_utils.rm_paren(temp[1].replace("'",""))
-                else:
-                    new_temp = ''
-                    for i in range(len(temp)-1):
-                        new_temp += temp[i+1] + ' '
-                    out = new_temp.replace("'","").strip()
+                temp = line.replace(key,'')
+                out = temp.replace("'","")
+                if data_type != 'str':
+                    out = cell_utils.rm_paren(''.join(out.split()))
+                if data_type == 'float': out = float(out)
+                elif data_type == 'int': out = int(out)
                 break
-                
-        if out != None:
-            if data_type == 'float':
-                out = float(out)
-            elif data_type == 'int':
-                out = int(out)
             
         return out
                  

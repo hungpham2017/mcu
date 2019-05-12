@@ -7,6 +7,7 @@ from . import cell
 VASP = vasp.vasprun.main
 LOCPOT = vasp.locpot.main
 POSCAR = vasp.poscar.main
+CIF = cell.cell_io.cif
 vasprun = vasp.vasp_io.vasprun
 OUTCAR = vasp.vasp_io.OUTCAR
 make_KPOINTS = vasp.utils.get_1Dkpath
