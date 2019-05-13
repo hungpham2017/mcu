@@ -59,5 +59,13 @@ Moreover, you can analyze symmtry for any structure of interest.
     # export a cif file for a cell
     mymcu.write_cif(prim_cell)      
 
-    
+You can read any cif (e.g. cif from XRD refinement) from mcu and export it to your desire format (POSCAR or xsf).
+One should be careful about the possible disosder (e.g. very small distance between atoms) from the XRD cif file.
+ 
+.. code-block:: python
+    :linenos:
+   
+    import mcu
+    mycif = mcu.CIF('yourcif.cif')      #if a file is not provided, then the first cif file (if you run command ls) will be processed 
+    mycif.write_poscar()
     
