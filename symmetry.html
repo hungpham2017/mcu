@@ -256,7 +256,7 @@ Here is an example:</p>
 </pre></div>
 </td></tr></table></div>
 <p>By default, the <strong>mymcu.cell</strong> (read from POSCAR/CONTCAR or vasprun.xml) is used for the above analyses.
-The <strong>mymcu.cell</strong> is in <strong>spglib</strong> format so you actually can pass it the <strong>spglib</strong> module to do other analyses.
+The <strong>mymcu.cell</strong> is in <strong>spglib</strong> format so you actually can pass it to the <strong>spglib</strong> module to do other analyses.
 Moreover, you can analyze symmtry for any structure of interest.</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
@@ -287,6 +287,15 @@ Moreover, you can analyze symmtry for any structure of interest.</p>
 
 <span class="c1"># export a cif file for a cell</span>
 <span class="n">mymcu</span><span class="o">.</span><span class="n">write_cif</span><span class="p">(</span><span class="n">prim_cell</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>You can read any cif (e.g. cif from XRD refinement) from mcu and export it to your desire format (POSCAR or xsf).
+One should be careful about the possible disosder (e.g. very small distance between atoms) from the XRD cif file.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mycif</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">CIF</span><span class="p">(</span><span class="s1">&#39;yourcif.cif&#39;</span><span class="p">)</span>      <span class="c1">#if a file is not provided, then the first cif file (if you run command ls) will be processed</span>
+<span class="n">mycif</span><span class="o">.</span><span class="n">write_poscar</span><span class="p">()</span>
 </pre></div>
 </td></tr></table></div>
 </div>
