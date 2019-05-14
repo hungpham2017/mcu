@@ -21,7 +21,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import numpy as np
 import subprocess
 from mcu.utils import misc
-from mcu.cell import utils as cell_utils, spg_wrapper
+from mcu.cell import utils as cell_utils
+from mcu.cell import cell_io, spg_wrapper
         
         
 ##################### EXPORT CIF, XSF, POSCAR ###########################          
@@ -131,29 +132,16 @@ class cif:
             cif_raw = open(file, "r").readlines()
             self.cif = self.refine_cif(cif_raw)
             self.cell = self.make_cell()
-            
-    def refine_cif(self, cif):
-        '''Remove blank lines from self.cif'''
-        
-        for i, line in enumerate(cif):
-            if line.strip() == '': cif.pop(i)
-        return cif
-        
-    def write_poscar(self, filename='POSCAR_mcu'):
-        write_poscar(self.cell, filename)
-        
-    def write_xsf(self, filename='mcu'):
-        write_xsf(self.cell, filename) 
-        
-    def write_cif(self, filename='mcu'):
-        '''Write a P1 cif file'''
-        print("Exporting a P1 cif file, the original symmetry is discarded")
-        spacegroup = ['1','P1']
-        equi_atoms = np.arange(len(self.cell[2]))
-        symopt = spg_wrapper.get_symmetry_from_database(1)
-        rotations, translations = symopt['rotations'], symopt['translations']
-        symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        write_cif(self.cell, spacegroup, equi_atoms, symopt, filename) 
+
+    # def write_cif(self, filename='mcu'):
+        # '''Write a P1 cif file'''
+        # print("Exporting a P1 cif file, the original symmetry is discarded")
+        # spacegroup = ['1','P1']
+        # equi_atoms = np.arange(len(self.cell[2]))
+        # symopt = spg_wrapper.get_symmetry_from_database(1)
+        # rotations, translations = symopt['rotations'], symopt['translations']
+        # symopt = cell_utils.symop_mat2xyz(rotations, translations)
+        # write_cif(self.cell, spacegroup, equi_atoms, symopt, filename) 
         
     def make_cell(self):
         '''Read cell information from cif file and return a cell spglib object'''
@@ -177,6 +165,13 @@ class cif:
         self.irred_atoms = [irred_symbol, irred_frac]
         
         return cell
+        
+    def refine_cif(self, cif):
+        '''Remove blank lines from self.cif'''
+        
+        for i, line in enumerate(cif):
+            if line.strip() == '': cif.pop(i)
+        return cif
         
     def extract_coordinate(self):
         '''Extract the (irreducible) coordinates block'''
@@ -269,4 +264,62 @@ class cif:
                 break
             
         return out
-                 
+        
+############ Symmetry #################      
+    def get_symmetry(self, cell=None, symprec=1e-5, print_atom=False):
+        '''Get space group information'''
+        if cell == None: 
+            cell = self.cell
+            is_std, is_prim = spg_wrapper.get_sym(cell, symprec, print_atom)
+            self.cell_type = [is_std, is_prim]
+        else:
+            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
+        
+    def to_convcell(self, cell=None, symprec=1e-5):
+        '''Transform the unit cell to the standard cell'''
+        if cell == None: 
+            cell = self.cell
+            self.cell = spg_wrapper.cell_to_std(cell, symprec)
+            self.cell_type[0] = True
+        else:
+            return spg_wrapper.cell_to_std(cell, symprec)
+            
+    def to_primcell(self, cell=None, symprec=1e-5):
+        '''Transform the unit cell to the primitive cell'''
+        if cell == None: 
+            cell = self.cell
+            self.cell = spg_wrapper.cell_to_prim(cell, symprec)
+            self.cell_type[1] = True
+        else:
+            return spg_wrapper.cell_to_prim(cell, symprec)      
+
+    def write_poscar(self, cell=None, filename=None):
+        if cell == None: cell = self.cell
+        cell_io.write_poscar(cell, filename)
+        
+    def write_cif(self, cell=None, symprec=1e-5, filename=None, symmetry=True):
+        if cell == None: 
+            cell = self.cell
+            is_std, is_prim = self.cell_type 
+            if is_std and symmetry==True: 
+                cell = self.to_stdcell(cell, symprec) 
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
+            elif is_prim and symmetry==True:
+                cell = self.to_primcell(cell, symprec)
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
+            else:
+                spacegroup = ['1','P1']
+                equi_atoms = np.arange(len(cell[2]))
+                symopt = spg_wrapper.get_symmetry_from_database(1)
+                rotations, translations = symopt['rotations'], symopt['translations']
+        else:
+            spacegroup = ['1','P1']
+            equi_atoms = np.arange(len(cell[2]))
+            symopt = spg_wrapper.get_symmetry_from_database(1)
+            rotations, translations = symopt['rotations'], symopt['translations']
+        symopt = cell_utils.symop_mat2xyz(rotations, translations)
+        cell_io.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
+
+    def write_xsf(self, cell=None, filename=None):
+        if cell == None: cell = self.cell
+        cell_io.write_xsf(cell, filename) 

@@ -56,7 +56,7 @@ def compare_cells(cell1, cell2, prec=1e-5):
                                 
     return same
 
-def get_sym(cell, symprec=1e-5, export_operator=False):
+def get_sym(cell, symprec=1e-5, print_atom=False, export_operator=False):
     
     #Space group info
     intl_label, number = spglib.get_spacegroup(cell, symprec).split(' ')
@@ -73,6 +73,7 @@ def get_sym(cell, symprec=1e-5, export_operator=False):
     if compare_cells(cell, std_cell): is_std = True
     if compare_cells(cell, prim_cell): is_prim = True
     
+    atoms = utils.convert_atomtype(cell[2])
     if export_operator == False:
         #Cell info
         std_cell = spglib.refine_cell(cell, symprec)
@@ -81,8 +82,13 @@ def get_sym(cell, symprec=1e-5, export_operator=False):
         misc.print_msg("Spacegroup  number           : %s" % (number))
         misc.print_msg("Short Internatmiscnal symbol : %s" % (intl_label))
         misc.print_msg("Schoenflies symbol           : %s" % (Schoenflies_label))
-        misc.print_msg("Atoms list                   :", utils.convert_atomtype(cell[2]))    
-        misc.print_msg("Equivalent atoms             : %s" % (str(equi_atoms)))
+        if print_atom == True:
+            misc.print_msg("Atoms list (No.   Sym   symbol):")
+            for i, atom in enumerate(atoms):
+                misc.print_msg("%3d   %3d   %s" %(i+1, equi_atoms[i]+1, atom))
+            misc.print_msg("Irreducible atoms:")
+            for i, index in enumerate(np.unique(equi_atoms)):
+                misc.print_msg("%3d  %3s    %7f5 %7f5 %7f5" %(i+1, atoms[index], cell[1][index][0], cell[1][index][1], cell[1][index][2]))
         misc.print_msg("Number of irreducible atoms  : %d" % (np.unique(equi_atoms).shape[0]))
         misc.print_msg("Standard cell                : %r" % (is_std))
         misc.print_msg("Primitive cell               : %r" % (is_prim)) 

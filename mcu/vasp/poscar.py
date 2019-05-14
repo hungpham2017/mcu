@@ -75,16 +75,16 @@ class main:
                 f.write('%14.10f  %14.10f  %14.10f     %2d\n' % (frac_coor[k,0], frac_coor[k,1], frac_coor[k,2], 0))
                 
 ############ Symmetry #################      
-    def get_symmetry(self, cell=None, symprec=1e-5):
+    def get_symmetry(self, cell=None, symprec=1e-5, print_atom=False):
         '''Get space group information'''
         if cell == None: 
             cell = self.cell
-            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
+            is_std, is_prim = spg_wrapper.get_sym(cell, symprec, print_atom)
             self.cell_type = [is_std, is_prim]
         else:
             is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
         
-    def to_stdcell(self, cell=None, symprec=1e-5):
+    def to_convcell(self, cell=None, symprec=1e-5):
         '''Transform the unit cell to the standard cell'''
         if cell == None: 
             cell = self.cell
@@ -112,10 +112,10 @@ class main:
             is_std, is_prim = self.cell_type 
             if is_std and symmetry==True: 
                 cell = self.to_stdcell(cell, symprec) 
-                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
             elif is_prim and symmetry==True:
                 cell = self.to_primcell(cell, symprec)
-                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, True)
+                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
             else:
                 spacegroup = ['1','P1']
                 equi_atoms = np.arange(len(cell[2]))
