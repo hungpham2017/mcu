@@ -602,7 +602,7 @@ def get_atominfo(poscar):
     for i in range(2,5):
         lattice.append(np.float64(poscar[i].split()))
     lattice = np.asarray(lattice)                       # Unit: A, row vector format
-    recip_lattice = 2*np.pi*np.linalg.inv(lattice.T)      # Unit: A^-1, row vector:   a^T.dot(b) = 2pi 
+    recip_lattice = 2*np.pi*np.linalg.inv(lattice).T      # Unit: A^-1, row vector:   a^T.dot(b) = 2pi 
     
     atom_type = poscar[5].split()
     natom = np.int64(poscar[6].split())
@@ -703,7 +703,8 @@ class LOCPOT:
             print('Axis', axis, 'is not recognized')
             
         return np.vstack([coor, avg_pot])
-        
+       
+########## KPOINTS ###############       
 class KPOINTS:   
     def __init__(self, file="KPOINTS"):
         '''Read KPOINTS
@@ -723,5 +724,79 @@ class KPOINTS:
         npoint = np.int64(self.kpoints[0].split()[-2:])
         
         return plane, krange, npoint  
+        
+########## WAVECAR ###############         
+class WAVECAR:
+    def __init__(self, file="WAVECAR"):
+        '''WAVECAR reading is modied the vaspwfc.py from QijingZheng's project
+            ref: https://github.com/QijingZheng/VaspBandUnfolding/blob/master/vaspwfc.py)
+        '''
+        if not utils.check_exist(file):
+            print('Cannot find the WAVECAR file. Check the path:', file)
+            self.success = False
+        else: 
+            self._wavecar = open(file, 'rb')
+            self.success = True
+            self.read_header()
+            self.get_band()
+            
+    def read_header(self):
+        '''Reading haeder + calc info'''
+        self._wavecar.seek(0)
+        self.recl, self.nspin, self.rtag = np.array(np.fromfile(self._wavecar, dtype=np.float, count=3),dtype=int)
+        if self.rtag == 45200:
+            self.prec = np.complex64
+        elif self.rtag == 45210:
+            self.prec = np.complex128
+        else:
+            raise ValueError("Invalid TAG values: {}".format(self.rtag))
+            
+        # Get kpts, bands, encut, cell info
+        self._wavecar.seek(self.recl)
+        dump = np.fromfile(self._wavecar, dtype=np.float, count=12)
+        self.nkpts  = int(dump[0])                     # No. of k-points
+        self.nbands = int(dump[1])                     # No. of bands
+        self.encut  = dump[2]                          # Energy cutoff
+        lattice  = dump[3:].reshape((3,3))             # real space supercell basis
+        volume  = np.linalg.det(lattice)               # real space supercell volume, unit: 2pi*(A-3)
+        recip_lattice  = np.linalg.inv(lattice).T                        # reciprocal space supercell volume
+        self.cell = (lattice, recip_lattice, None, volume)
+        
+    def get_band(self):
+        '''Extract band, occ'''
+        
+        self.nplws = np.zeros(self.nkpts, dtype=int)
+        self.kpts = np.zeros((self.nkpts, 3), dtype=float)
+        self.band = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=float)
+        self.co_occ  = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=float)           
+        for spin in range(self.nspin):
+            cg_spin = []
+            for kpt in range(self.nkpts):
+                # Read eigenvalues + occ
+                rec = 2 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1)
+                self._wavecar.seek(rec * self.recl)
+                dump = np.fromfile(self._wavecar, dtype=np.float, count=4+3*self.nbands)
+                if spin == 0:
+                    self.nplws[kpt] = int(dump[0])
+                    self.kpts[kpt] = dump[1:4]
+                dump = dump[4:].reshape((-1, 3))
+                self.band[spin,kpt,:] = dump[:,0]
+                self.co_occ[spin,kpt,:] = dump[:,2]
+            
+    def get_wfn(self, spin=0, kpt=0):
+        '''Extract wfn coefficients''' 
 
+        if kpt >= self.nkpts:
+            raise ValueError("kpt must be smaller than the maximum index for kpt", self.nkpts)
+            
+        #TODO: check spin value
+
+        cg = []
+        for band in range(self.nkpts):
+            rec = 3 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1) + band 
+            self._wavecar.seek(rec * self.recl)
+            dump = np.fromfile(self._wavecar, dtype=self.prec, count=self.nplws[kpt])
+            cg.append(np.asarray(dump, dtype=np.complex128))
+  
+        return np.asarray(cg)
         

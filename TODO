@@ -1,0 +1,4 @@
+TODO list:
+- best kpath generator SeeKpath or AFLOW
+- Will we need all the irreducible k-point for band structure?
+- Compute average potential over a sphere following Aron Walsh, DOI: 10.1021/ja4110073

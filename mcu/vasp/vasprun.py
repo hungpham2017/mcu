@@ -20,7 +20,6 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import os
 import numpy as np
-import mcu
 from mcu.vasp import utils, vasp_io
 from mcu.cell import spg_wrapper, cell_io
 from mcu.cell import utils as cell_utils

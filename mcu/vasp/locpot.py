@@ -19,7 +19,6 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-import mcu
 from mcu.vasp import utils, vasp_io
 import matplotlib as mpl
 import matplotlib.pyplot as plt
