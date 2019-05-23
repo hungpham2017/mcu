@@ -11,3 +11,4 @@ Tutorial
     symmetry
     plotting1D
     plotting2D
+    plottingWFN

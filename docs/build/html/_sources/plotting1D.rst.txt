@@ -41,7 +41,7 @@ efermi : float
 spin : int
     * Default: 0
     * If ISPIN = 1: spin = 0
-    * If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin)
+    * If ISPIN = 2: spin = 0 (up spin) or 1 (down spin)
 label : str or list
     * Default: None 
     * For conventional band structure, e.g. label = 'X-G-Y-L-G'
