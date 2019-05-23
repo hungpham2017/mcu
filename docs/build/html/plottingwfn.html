@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tutorial &mdash; mcu 0.2.beta documentation</title>
+  <title>Plotting the periodic part unk of a Bloch state &mdash; mcu 0.2.beta documentation</title>
   
 
   
@@ -36,8 +36,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Basic functions in mcu" href="basic.html" />
-    <link rel="prev" title="Installation" href="install.html" /> 
+    <link rel="next" title="Gallery" href="gallery.html" />
+    <link rel="prev" title="Generate 2D k-mesh" href="plotting2D.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -100,7 +100,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorial</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
 <li class="toctree-l2"><a class="reference internal" href="symmetry.html">Spacegroup analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plotting1D.html">Plot band structure</a><ul>
@@ -131,9 +131,9 @@
 <li class="toctree-l3"><a class="reference internal" href="plotting2D.html#id3">Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="plottingwfn.html">Plotting the periodic part unk of a Bloch state</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="plottingwfn.html#parameters-for-get-unk">Parameters for <strong>get_unk</strong></a></li>
-<li class="toctree-l3"><a class="reference internal" href="plottingwfn.html#parameters-for-write-vesta">Parameters for <strong>write_vesta</strong></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting the periodic part unk of a Bloch state</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parameters-for-get-unk">Parameters for <strong>get_unk</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters-for-write-vesta">Parameters for <strong>write_vesta</strong></a></li>
 </ul>
 </li>
 </ul>
@@ -185,13 +185,15 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Tutorial</li>
+          <li><a href="tutorial.html">Tutorial</a> &raquo;</li>
+        
+      <li>Plotting the periodic part unk of a Bloch state</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/plottingwfn.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -204,46 +206,93 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tutorial">
-<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
-<li class="toctree-l1"><a class="reference internal" href="symmetry.html">Spacegroup analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html">Plot band structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#parameters">Parameters</a></li>
+  <span class="target" id="plottingwfn"></span><div class="section" id="plotting-the-periodic-part-unk-of-a-bloch-state">
+<h1>Plotting the periodic part unk of a Bloch state<a class="headerlink" href="#plotting-the-periodic-part-unk-of-a-bloch-state" title="Permalink to this headline">¶</a></h1>
+<p>POSCAR is needed to to get the lattice information.
+the following command generates a k-mesh (-0.2 &lt;= x &lt;= 0.2 and -0.2 &lt;= y &lt;= 0.2) on the xy plan and around the <span class="math notranslate nohighlight">\(\Gamma\)</span> point with 21 points along each dimension.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">WAVECAR</span><span class="p">()</span>
+<span class="n">unk</span> <span class="o">=</span> <span class="n">mymcu</span><span class="o">.</span><span class="n">get_unk</span><span class="p">()</span>       <span class="c1"># Generate the unk</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">write_vesta</span><span class="p">(</span><span class="n">unk</span><span class="p">)</span>      <span class="c1"># Save to a VESTA file for visualization</span>
+</pre></div>
+</td></tr></table></div>
+<div class="section" id="parameters-for-get-unk">
+<h2>Parameters for <strong>get_unk</strong><a class="headerlink" href="#parameters-for-get-unk" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0</li>
+<li>If ISPIN = 1 or LSORBIT = True: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (up spin) or 1 (down spin)</li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html#plot-projected-band-structure">Plot projected band structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#id1">Parameters</a></li>
+</dd>
+<dt>kpt <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1</li>
+<li>The first k-point in the k-point list</li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html#plotting-density-of-states">Plotting density of states</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#id7">Parameters</a></li>
+</dd>
+<dt>band <span class="classifier-delimiter">:</span> <span class="classifier">1</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1</li>
+<li>The first band</li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting1D.html#work-function-and-the-electrostatic-potential-over-a-plane">Work function and the electrostatic potential over a plane</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#id10">Parameters</a></li>
+</dd>
+<dt>ngrid <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 2*ngrid with ngrid is the estimated minimum planewave</li>
+<li>The mesh used in FFT of planewave coefficients to get the unk</li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting2D.html">Generate 2D k-mesh</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#parameters">Parameters</a></li>
+</dd>
+<dt>norm_u <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: True</li>
+<li>Normalize the unk by 1/sqrt(N_G) if N_G if the number of grid point</li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting2D.html#plot-2d-band-structure">Plot 2D band structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#id1">Parameters</a></li>
+</dd>
+<dt>norm_c: bool</dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>Whether to normalize the planewave coefficients (C_G) such that &lt;C_G|C_G&gt; = 1</li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plotting2D.html#plot-spin-texture">Plot spin texture</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#id3">Parameters</a></li>
+</dd>
+</dl>
+</div>
+<div class="section" id="parameters-for-write-vesta">
+<h2>Parameters for <strong>write_vesta</strong><a class="headerlink" href="#parameters-for-write-vesta" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>unk <span class="classifier-delimiter">:</span> <span class="classifier">unk object</span></dt>
+<dd><ul class="first last simple">
+<li>Default: have to provide one unk to plot</li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plottingwfn.html">Plotting the periodic part unk of a Bloch state</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plottingwfn.html#parameters-for-get-unk">Parameters for <strong>get_unk</strong></a></li>
-<li class="toctree-l2"><a class="reference internal" href="plottingwfn.html#parameters-for-write-vesta">Parameters for <strong>write_vesta</strong></a></li>
+</dd>
+<dt>realonly: bool</dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>Generate only real part of the unk</li>
 </ul>
-</li>
+</dd>
+<dt>poscar: POSCAR file</dt>
+<dd><ul class="first last simple">
+<li>Default: POSCAR in the current directory</li>
 </ul>
+</dd>
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘unk’</li>
+<li>The unk_r.vasp (real) and unk_i.vasp (imaginary) will be generatated</li>
+</ul>
+</dd>
+<dt>ncol <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 10</li>
+<li>The number of column of the unk values in the VESTA file</li>
+</ul>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -255,10 +304,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="basic.html" class="btn btn-neutral float-right" title="Basic functions in mcu" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="gallery.html" class="btn btn-neutral float-right" title="Gallery" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="plotting2D.html" class="btn btn-neutral float-left" title="Generate 2D k-mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
