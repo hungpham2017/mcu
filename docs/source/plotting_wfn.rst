@@ -1,4 +1,4 @@
-.. _plottingWFN:
+.. _plottingwfn:
 
 ..
     ///////////////Plotting the U_n^k(r)///////////////   
