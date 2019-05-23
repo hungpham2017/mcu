@@ -173,7 +173,7 @@ class main:
         normfac = np.sqrt(np.prod(ngrid)) if norm_u else 1.0
 
         gvec = self.get_gvec(kpt)
-        phi_k = np.zeros(ngrid, dtype=np.complex128)
+        unk = np.zeros(ngrid, dtype=np.complex128)
         gvec %= ngrid[np.newaxis,:]
         nx, ny, nz = gvec[:,0], gvec[:,1], gvec[:,2]
 
@@ -183,27 +183,27 @@ class main:
             nplw = Cg.shape[0] // 2
             
             # spinor up
-            phi_k[nx, ny, nz] = Cg[:nplw]
-            wfc_spinor.append(ifftn(phi_k))
+            unk[nx, ny, nz] = Cg[:nplw]
+            wfc_spinor.append(ifftn(unk))
             
             # spinor down
-            phi_k[:,:,:] = 0.0j
-            phi_k[nx, ny, nz] = Cg[nplw:]
-            wfc_spinor.append(ifftn(phi_k))
+            unk[:,:,:] = 0.0j
+            unk[nx, ny, nz] = Cg[nplw:]
+            wfc_spinor.append(ifftn(unk))
 
             del Cg
             return np.asarray(wfc_spinor)*normfac
             
         else:
-            phi_k[nx, ny, nz] = self.get_coeff(spin, kpt, norm_c)[band] 
-            return ifftn(phi_k * normfac)
+            unk[nx, ny, nz] = self.get_coeff(spin, kpt, norm_c)[band] 
+            return ifftn(unk * normfac)
                 
-    def write_vesta(self, phi, realonly=False, poscar='POSCAR', prefix='unk',
+    def write_vesta(self, unk, realonly=False, poscar='POSCAR', filename='unk',
                    ncol=10):
         '''
         Save the real space pseudo-wavefunction as vesta format.
         '''
-        nx, ny, nz = phi.shape
+        nx, ny, nz = unk.shape
         try:
             pos = open(poscar, 'r')
             head = ''
@@ -217,17 +217,17 @@ class main:
             raise IOError('Failed to open %s' % poscar)
 
         # Faster IO
-        nrow = phi.size // ncol
-        nrem = phi.size % ncol
+        nrow = unk.size // ncol
+        nrem = unk.size % ncol
         fmt = "%16.8E"
 
-        psi = phi.copy()
+        psi = unk.copy()
         psi = psi.flatten(order='F')
         psi_h = psi[:nrow * ncol].reshape((nrow, ncol))
         psi_r = psi[nrow * ncol:]
 
         # Write the real part
-        with open(prefix + '_r.vasp', 'w') as out:
+        with open(filename + '_r.vasp', 'w') as out:
             out.write(head)
             out.write(
                 '\n'.join([''.join([fmt % xx for xx in row])
@@ -237,7 +237,7 @@ class main:
             
         # Write the imaginary part            
         if not realonly:
-            with open(prefix + '_i.vasp', 'w') as out:
+            with open(filename + '_i.vasp', 'w') as out:
                 out.write(head)
                 out.write(
                     '\n'.join([''.join([fmt % xx for xx in row])

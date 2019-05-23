@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Features &mdash; mcu 0.2.beta documentation</title>
+  <title>Plotting the periodic part unk of a Bloch state &mdash; mcu 0.2.beta documentation</title>
   
 
   
@@ -35,9 +35,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="install.html" />
-    <link rel="prev" title="Welcome to mcu’s documentation!" href="index.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,11 +83,11 @@
               
             
             
-              <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Features</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#current-functions">Current functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#soon-to-be-released-functions">Soon-to-be-released functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#future-functions">Future functions</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="feature.html">Features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature.html#current-functions">Current functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature.html#soon-to-be-released-functions">Soon-to-be-released functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature.html#future-functions">Future functions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
@@ -180,13 +178,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Features</li>
+      <li>Plotting the periodic part unk of a Bloch state</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/feature.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/plotting_wfn.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -199,35 +197,93 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="features">
-<span id="feature"></span><h1>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="current-functions">
-<h2>Current functions<a class="headerlink" href="#current-functions" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Basic electronic structure analysis: (projected) band structure, density of states</li>
-<li>2D analysis: 2D band structure, spin texture</li>
-<li>In-plane average of electrostatic potential for work function calculation</li>
-<li>Structure analysis: spacegroup analysis, unit cell transformation, working with cif file, and variety of structure formats (POSCAR, cif, xsf)</li>
-<li>Read WAVECAR and visualize the (real/imaginary) periodic part of a Bloch state</li>
-<li>Read WAVEDER/WAVEDERF to get the derivative of the orbitals with respect to k</li>
-<li>Currently, only VASP outpus are supported (vasprun.xml, OUTCAR)</li>
+  <span class="target" id="plottingwfn"></span><div class="section" id="plotting-the-periodic-part-unk-of-a-bloch-state">
+<h1>Plotting the periodic part unk of a Bloch state<a class="headerlink" href="#plotting-the-periodic-part-unk-of-a-bloch-state" title="Permalink to this headline">¶</a></h1>
+<p>POSCAR is needed to to get the lattice information.
+the following command generates a k-mesh (-0.2 &lt;= x &lt;= 0.2 and -0.2 &lt;= y &lt;= 0.2) on the xy plan and around the <span class="math notranslate nohighlight">\(\Gamma\)</span> point with 21 points along each dimension.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">WAVECAR</span><span class="p">()</span>
+<span class="n">unk</span> <span class="o">=</span> <span class="n">mymcu</span><span class="o">.</span><span class="n">get_unk</span><span class="p">()</span>       <span class="c1"># Generate the unk</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">write_vesta</span><span class="p">(</span><span class="n">unk</span><span class="p">)</span>      <span class="c1"># Save to a VESTA file for visualization</span>
+</pre></div>
+</td></tr></table></div>
+<div class="section" id="parameters-for-get-unk">
+<h2>Parameters for <strong>get_unk</strong><a class="headerlink" href="#parameters-for-get-unk" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0</li>
+<li>If ISPIN = 1 or LSORBIT = True: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (up spin) or 1 (down spin)</li>
 </ul>
+</dd>
+<dt>kpt <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1</li>
+<li>The first k-point in the k-point list</li>
+</ul>
+</dd>
+<dt>band <span class="classifier-delimiter">:</span> <span class="classifier">1</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1</li>
+<li>The first band</li>
+</ul>
+</dd>
+<dt>ngrid <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 2*ngrid with ngrid is the estimated minimum planewave</li>
+<li>The mesh used in FFT of planewave coefficients to get the unk</li>
+</ul>
+</dd>
+<dt>norm_u <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: True</li>
+<li>Normalize the unk by 1/sqrt(N_G) if N_G if the number of grid point</li>
+</ul>
+</dd>
+<dt>norm_c: bool</dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>Whether to normalize the planewave coefficients (C_G) such that &lt;C_G|C_G&gt; = 1</li>
+</ul>
+</dd>
+</dl>
 </div>
-<div class="section" id="soon-to-be-released-functions">
-<h2>Soon-to-be-released functions<a class="headerlink" href="#soon-to-be-released-functions" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Connecting to Bilbao Crystallographic Server</li>
-<li>Topological analysis</li>
-<li>Optical adsorption coefficient</li>
+<div class="section" id="parameters-for-write-vesta">
+<h2>Parameters for <strong>write_vesta</strong><a class="headerlink" href="#parameters-for-write-vesta" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>unk <span class="classifier-delimiter">:</span> <span class="classifier">unk object</span></dt>
+<dd><ul class="first last simple">
+<li>Default: have to provide one unk to plot</li>
 </ul>
-</div>
-<div class="section" id="future-functions">
-<h2>Future functions<a class="headerlink" href="#future-functions" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Phonon calculation</li>
-<li>Band structure unfolding</li>
-<li>Set up a EOS calculation</li>
+</dd>
+<dt>realonly: bool</dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>Generate only real part of the unk</li>
 </ul>
+</dd>
+<dt>poscar: POSCAR file</dt>
+<dd><ul class="first last simple">
+<li>Default: POSCAR in the current directory</li>
+</ul>
+</dd>
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘unk’</li>
+<li>The unk_r.vasp (real) and unk_i.vasp (imaginary) will be generatated</li>
+</ul>
+</dd>
+<dt>ncol <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 10</li>
+<li>The number of column of the unk values in the VESTA file</li>
+</ul>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -236,15 +292,6 @@
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to mcu’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
