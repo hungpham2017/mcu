@@ -18,7 +18,7 @@ limitations under the License.
 Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
-'''This module is modied from the vaspwfc.py from QijingZheng's project.
+'''This module is modied from the vaspwfc.py from QijingZheng's project
     ref: https://github.com/QijingZheng/VaspBandUnfolding/blob/master/vaspwfc.py)
 '''
 
@@ -140,7 +140,7 @@ class main:
                          
         return Gvec
         
-    def get_unk(self, spin=0, kpt=0, band=0, ngrid=None, norm_u=True, norm_c=False):
+    def get_u(self, spin=0, kpt=0, band=0, gvec=None, Cg=None, ngrid=None, norm_u=True, norm_c=False):
         '''
         Obtain the pseudo periodic part of the Bloch function in real space
 
@@ -172,76 +172,42 @@ class main:
         # \sum_{ijk} | \phi_{ijk} | ^ 2 = 1
         normfac = np.sqrt(np.prod(ngrid)) if norm_u else 1.0
 
-        gvec = self.get_gvec(kpt)
+        if gvec is None:
+            gvec = self.get_gvec(kpt)
+
         phi_k = np.zeros(ngrid, dtype=np.complex128)
         gvec %= ngrid[np.newaxis,:]
         nx, ny, nz = gvec[:,0], gvec[:,1], gvec[:,2]
-
+       
         if self._lsorbit:
             wfc_spinor = []
-            Cg = self.get_coeff(spin, kpt, norm_c)[band]  
-            nplw = Cg.shape[0] // 2
+           
+            if Cg is not None:
+                dump = Cg
+            else:
+                dump = self.get_coeff(spin, kpt, norm_c)[band]
+                
+            nplw = dump.shape[0] / 2
             
             # spinor up
-            phi_k[nx, ny, nz] = Cg[:nplw]
+            phi_k[nx, ny, nz] = dump[:nplw]
             wfc_spinor.append(ifftn(phi_k))
             
             # spinor down
             phi_k[:,:,:] = 0.0j
-            phi_k[nx, ny, nz] = Cg[nplw:]
+            phi_k[nx, ny, nz] = dump[nplw:]
             wfc_spinor.append(ifftn(phi_k))
 
-            del Cg
+            del dump
+            
             return np.asarray(wfc_spinor)*normfac
             
         else:
-            phi_k[nx, ny, nz] = self.get_coeff(spin, kpt, norm_c)[band] 
+            if Cg is not None:
+                phi_k[nx, ny, nz] = Cg
+            else:
+                phi_k[nx, ny, nz] = self.get_coeff(spin, kpt, norm_c)[band]
+                
             return ifftn(phi_k * normfac)
                 
-    def write_vesta(self, phi, realonly=False, poscar='POSCAR', prefix='unk',
-                   ncol=10):
-        '''
-        Save the real space pseudo-wavefunction as vesta format.
-        '''
-        nx, ny, nz = phi.shape
-        try:
-            pos = open(poscar, 'r')
-            head = ''
-            for line in pos:
-                if line.strip():
-                    head += line
-                else:
-                    break
-            head += '\n%5d%5d%5d\n' % (nx, ny, nz)
-        except:
-            raise IOError('Failed to open %s' % poscar)
-
-        # Faster IO
-        nrow = phi.size // ncol
-        nrem = phi.size % ncol
-        fmt = "%16.8E"
-
-        psi = phi.copy()
-        psi = psi.flatten(order='F')
-        psi_h = psi[:nrow * ncol].reshape((nrow, ncol))
-        psi_r = psi[nrow * ncol:]
-
-        # Write the real part
-        with open(prefix + '_r.vasp', 'w') as out:
-            out.write(head)
-            out.write(
-                '\n'.join([''.join([fmt % xx for xx in row])
-                           for row in psi_h.real])
-            )
-            out.write("\n" + ''.join([fmt % xx for xx in psi_r.real]))
-            
-        # Write the imaginary part            
-        if not realonly:
-            with open(prefix + '_i.vasp', 'w') as out:
-                out.write(head)
-                out.write(
-                    '\n'.join([''.join([fmt % xx for xx in row])
-                               for row in psi_h.imag])
-                )
-                out.write("\n" + ''.join([fmt % xx for xx in psi_r.imag]))    
                 
