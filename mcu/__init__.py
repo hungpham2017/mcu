@@ -14,5 +14,6 @@ OUTCAR = vasp.vasp_io.OUTCAR
 make_KPOINTS = vasp.utils.get_1Dkpath
 read_WAVEDER = vasp.utils.read_WAVEDER
 read_WAVEDERF = vasp.utils.read_WAVEDERF
+read_unk = vasp.utils.read_unk
 
 CELL = cell.main.CELL

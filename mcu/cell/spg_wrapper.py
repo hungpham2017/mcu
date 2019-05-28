@@ -80,10 +80,10 @@ def get_sym(cell, symprec=1e-5, print_atom=False, export_operator=False):
         prim_cell = spglib.find_primitive(cell, symprec)
         #Print
         misc.print_msg("Spacegroup  number           : %s" % (number))
-        misc.print_msg("Short Internatmiscnal symbol : %s" % (intl_label))
+        misc.print_msg("Short International symbol   : %s" % (intl_label))
         misc.print_msg("Schoenflies symbol           : %s" % (Schoenflies_label))
         if print_atom == True:
-            misc.print_msg("Atoms list (No.   Sym   symbol):")
+            misc.print_msg("Atoms list (No. - Sym - Symbol):")
             for i, atom in enumerate(atoms):
                 misc.print_msg("%3d   %3d   %s" %(i+1, equi_atoms[i]+1, atom))
             misc.print_msg("Irreducible atoms:")
