@@ -85,6 +85,7 @@ class main:
         self.lsorbit = electronic.spin['LSORBIT']
         self.ispin = electronic.spin['ISPIN']    
         self.kpts = vasprun.kpoints['kpointlist']
+        self.kpts_weight = vasprun.kpoints['weights']
         self.nkpts = self.kpts.shape[0] 
         self.natom  = vasprun.natom 
         self.atom  = vasprun.atom     
@@ -189,8 +190,6 @@ class main:
             self.co_occ = self.vasprun.band[:,:,:,1] 
             self.co_occ_ = self.co_occ > 0.5       
             electronic = self.vasprun.parameters['electronic']
-            self.kpts = self.vasprun.kpoints['kpointlist']
-            nkpts = self.kpts.shape[0]
         elif isinstance(self.vasprun,list):                             # For multiple vasprun.xml file
             assert isinstance(efermi,list)
             for i in range(len(self.vasprun)): 
@@ -224,14 +223,14 @@ class main:
                 co_occ_spin1.append(co_occ1[1:])   
                 co_occ_spin2.append(co_occ2[1:])  
             self.kpts, self.band = np.asarray(kptss[1:]), np.asarray(band_spin)
-            nkpts = self.kpts.shape[0]
+            self.nkpts = self.kpts.shape[0]
             self.co_occ, self.co_occ_ = np.asarray(co_occ_spin1), np.asarray(co_occ_spin2)
             
-        bandedge = np.zeros([self.ispin,nkpts,2,2])
+        bandedge = np.zeros([self.ispin,self.nkpts,2,2])
         self.bandgap = []
         for spin in range(self.ispin):
             print('Spin:', spin)        
-            for kpt in range(nkpts):
+            for kpt in range(self.nkpts):
                 band_kpt = self.band[spin,kpt]
                 occ = self.co_occ_[spin,kpt]               
                 homo_idx = np.count_nonzero(occ) - 1
@@ -1036,9 +1035,7 @@ class main:
             proj_wfs = []
             for spin in range(1,4):
                 proj_wf = vasprun.proj_wf[spin] 
-                #proj_wf = utils.rm_redundant_band(self.kpts, proj_wf)[1]          # remove redundant 
-                weight = vasprun.kpoints['weights']
-                nonzero = np.count_nonzero(weight)
+                nonzero = np.count_nonzero(self.kpts_weight)
                 proj_wf = proj_wf[nonzero:]
                 proj_wfs.append(proj_wf)
                 
