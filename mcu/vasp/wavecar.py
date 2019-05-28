@@ -99,7 +99,7 @@ class main:
         #TODO: check spin value
 
         cg = []
-        for band in range(self.nkpts):
+        for band in range(self.nbands):
             rec = 3 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1) + band 
             self._wavecar.seek(rec * self.recl)
             dump = np.fromfile(self._wavecar, dtype=self.prec, count=self.nplws[kpt])
@@ -140,7 +140,7 @@ class main:
                          
         return Gvec
         
-    def get_unk(self, spin=0, kpt=0, band=0, ngrid=None, norm_u=True, norm_c=False):
+    def get_unk(self, spin=0, kpt=1, band=1, ngrid=None, norm_u=True, norm_c=False):
         '''
         Obtain the pseudo periodic part of the Bloch function in real space
 
@@ -159,6 +159,8 @@ class main:
                         \sum_{ijk} | \phi_{ijk} | ^ 2 = 1
             
         '''
+        kpt -= 1
+        band -= 1
 
         if ngrid is None:
             ngrid = 2 * self.ngrid.copy()
