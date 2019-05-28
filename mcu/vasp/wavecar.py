@@ -140,7 +140,7 @@ class main:
                          
         return Gvec
         
-    def get_unk(self, spin=0, kpt=1, band=1, ngrid=None, norm_u=True, norm_c=False):
+    def get_unk(self, spin=0, kpt=1, band=1, ngrid=None, norm=False, norm_c=False):
         '''
         Obtain the pseudo periodic part of the Bloch function in real space
 
@@ -151,28 +151,29 @@ class main:
             gvec    : the G-vectors correspond to the plane-wave coefficients
             Cg      : the plane-wave coefficients. If None, read from WAVECAR
             ngrid   : the FFT grid size
-            norm_u  : whether to normalzie the u
+            norm    : whether to normalzie the u by a factor: 1/sqrt(N), 1/N, or 1
             norm_c  : whether to normalzie cg            
-
-        The wavefunctions can be normalized such that:
-
-                        \sum_{ijk} | \phi_{ijk} | ^ 2 = 1
             
         '''
         kpt -= 1
         band -= 1
 
         if ngrid is None:
-            ngrid = 2 * self.ngrid.copy()
+            ngrid = self.ngrid.copy()
         else:
             ngrid = np.array(ngrid, dtype=np.int64)
             assert ngrid.shape[0] == 3, 'Wrong syntax for ngrid'
             assert np.alltrue(ngrid >= self.ngrid), "Minium FT grid size: (%d, %d, %d)" % \
                     (self.ngrid[0], self.ngrid[1], self.ngrid[2])
 
-        # default normalization factor so that 
-        # \sum_{ijk} | \phi_{ijk} | ^ 2 = 1
-        normfac = np.sqrt(np.prod(ngrid)) if norm_u else 1.0
+        # The FFT normalization factor
+        # the iFFT has a factor 1/N_G, unk exported by VASP does not have this factor
+        if norm == False:
+            normfac = np.prod(ngrid) 
+        elif norm == 'sqrtN':
+            normfac = np.sqrt(np.prod(ngrid))
+        elif norm == 'N':
+            normfac = 1.0
 
         gvec = self.get_gvec(kpt)
         unk = np.zeros(ngrid, dtype=np.complex128)
@@ -247,3 +248,30 @@ class main:
                 )
                 out.write("\n" + ''.join([fmt % xx for xx in psi_r.imag]))    
                 
+    def export_unk(self, spin=0, ngrid=None):
+        '''
+        Export the periodic part of BF in a real space grid for plotting with wannier90
+        '''    
+        
+        from scipy.io import FortranFile
+        if spin == 0:
+            spin_str = '.1'
+        else:
+            spin_str = '.2'
+            
+        if ngrid is None:
+            ngrid = self.ngrid.copy()
+        else:
+            ngrid = np.array(ngrid, dtype=np.int64)
+            assert ngrid.shape[0] == 3, 'Wrong syntax for ngrid'
+            assert np.alltrue(ngrid >= self.ngrid), "Minium FT grid size: (%d, %d, %d)" % \
+                    (self.ngrid[0], self.ngrid[1], self.ngrid[2])
+                    
+        for kpt in range(self.nkpts):
+            unk_file = FortranFile('UNK' + "%05d" % (kpt + 1) + spin_str, 'w')
+            unk_file.write_record(np.asarray([ngrid[0], ngrid[1], ngrid[2], kpt + 1, self.nbands], dtype = np.int32))    
+            for band in range(self.nbands):
+                unk = self.get_unk(spin=spin, kpt=kpt+1, band=band+1, ngrid=ngrid)
+                unk = unk.T.flatten()
+                unk_file.write_record(unk)                    
+            unk_file.close()

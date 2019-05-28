@@ -62,14 +62,16 @@ def str_extract(string, start, end):
     
     return substring
     
-def read_WAVEDER(waveder = 'WAVEDER'):
+def read_WAVEDER(file='WAVEDER'):
     '''Read the WAVEDER file
     
         the matrix of the derivative of the cell periodic part
         of the wavefunctions with respect to i k is:      
         cder = CDER_BETWEEN_STATES(m,n,1:NK,1:ISP,j)= <u_m|  -i d/dk_j | u_n> = - <u_m| r_j |u_n>
     '''
-    
+    if not check_exist(file):
+        print('Cannot find the %s file. Check the path:' % file)
+        
     from scipy.io import FortranFile
     file = FortranFile(waveder, 'r')
     nb_tot, nbands_cder, nkpts, ispin = file.read_record(dtype= np.int32)
@@ -80,9 +82,12 @@ def read_WAVEDER(waveder = 'WAVEDER'):
     return cder, nodesn_i_dielectric_function, wplasmon
     
     
-def read_WAVEDERF(wavederf = 'WAVEDERF'):
+def read_WAVEDERF(file='WAVEDERF'):
     '''Read the WAVEDERF file, a formatted WAVEDER file'''
     
+    if not check_exist(file):
+        print('Cannot find the %s file. Check the path:' % file)
+        
     file = open(wavederf, "r").readlines() 
     ispin, nkpts, nbands_cder = np.int32(file[0].split())
     
@@ -99,6 +104,30 @@ def read_WAVEDERF(wavederf = 'WAVEDERF'):
                     line += 1
                 
     return cder
+    
+def read_unk(path='.', spin=0, kpt=1, band=1):
+    '''Export the periodic part of BF in a real space grid for plotting with wannier90
+    '''	
+    spin = spin + 1
+    file = path + '/' + 'UNK' + "%05d" % (kpt) + '.' + str(spin)
+    if not check_exist(file):
+        print('Cannot find the %s file. Check the path:' % file)
+        
+    from scipy.io import FortranFile
+    unk_file = FortranFile(file, 'r')
+    temp = unk_file.read_record(dtype=np.int32)
+    ngrid, kpt, nbands = temp[:3], temp[3], temp[4]
+    assert band <= nbands, 'The band index is larger than the No. of bands in the unk file'
+
+    for i in range(band):
+        temp = unk_file.read_record(dtype=np.complex128)
+        if i == band - 1:
+            unk = temp
+        del temp 
+
+    unk_file.close()
+    
+    return unk.reshape(ngrid, order='F')
     
 def rm_redundant_band(kpts, band):
     '''Remove redundant kpoints from the band calculations'''
