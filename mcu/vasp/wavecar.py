@@ -90,10 +90,12 @@ class main:
                 self.band[spin,kpt,:] = dump[:,0]
                 self.co_occ[spin,kpt,:] = dump[:,2]
             
-    def get_coeff(self, spin=0, kpt=0, norm=False):
+    def get_coeff(self, spin=0, kpt=1, norm=False):
         '''Extract plw coefficients of the wfn''' 
 
-        if kpt >= self.nkpts:
+        assert 0 < kpt  <= self.nkpts,  'Invalid kpoint index!'
+        kpt -= 1
+        if kpt > self.nkpts:
             raise ValueError("kpt must be smaller than the maximum index for kpt", self.nkpts)
             
         #TODO: check spin value
@@ -105,16 +107,21 @@ class main:
             dump = np.fromfile(self._wavecar, dtype=self.prec, count=self.nplws[kpt])
             cg.append(np.asarray(dump, dtype=np.complex128))
             
-        if norm: cg = cg/np.linalg.norm(cg)
+        cg = np.asarray(cg)
+        if norm: 
+            norm_factor = np.sqrt((cg.conj()*cg).sum(axis=1).real.reshape(self.nbands,-1))
+            cg = cg/norm_factor
 
-        return np.asarray(cg)
+        return cg
         
-    def get_gvec(self, kpt=0):
+    def get_gvec(self, kpt=1):
         '''
         Generate the G-vectors that satisfies the following relation
             (G + k)**2 / 2 < ENCUT
         '''
-        assert 0 <= kpt  <= self.nkpts - 1,  'Invalid kpoint index!'
+
+        assert 0 < kpt  <= self.nkpts,  'Invalid kpoint index!'
+        kpt -= 1
         kvec = self.kpts[kpt]
         
         # Fast algorithm without for loop
@@ -140,7 +147,7 @@ class main:
                          
         return Gvec
         
-    def get_unk(self, spin=0, kpt=1, band=1, ngrid=None, norm=False, norm_c=False):
+    def get_unk(self, spin=0, kpt=1, band=1, Gp=[0,0,0], ngrid=None, norm=True, norm_c=True):
         '''
         Obtain the pseudo periodic part of the Bloch function in real space
 
@@ -148,15 +155,20 @@ class main:
             spin    : spin index of the desired KS states, starting from 1
             kpt     : k-point index of the desired KS states, starting from 1
             band    : band index of the desired KS states, starting from 1
+            Gp      : shift the G vectors by Gp 
             gvec    : the G-vectors correspond to the plane-wave coefficients
             Cg      : the plane-wave coefficients. If None, read from WAVECAR
             ngrid   : the FFT grid size
             norm    : whether to normalzie the u by a factor: 1/sqrt(N), 1/N, or 1
             norm_c  : whether to normalzie cg            
             
+             
+            u_{n}^{k+Gp}(r) = 1/ norm * \sum_G u_{n}^{k}(G).e^{i(G-Gp)r} 
+            
+            special case when Gp = 0: 
+                u_{n}^{k}(r) = 1/ norm * \sum_G u_{n}^{k}(G).e^{iGr} 
+                u_{n}^{k}(r) = FFT(u_{n}^{k}(G)) 
         '''
-        kpt -= 1
-        band -= 1
 
         if ngrid is None:
             ngrid = self.ngrid.copy()
@@ -165,24 +177,20 @@ class main:
             assert ngrid.shape[0] == 3, 'Wrong syntax for ngrid'
             assert np.alltrue(ngrid >= self.ngrid), "Minium FT grid size: (%d, %d, %d)" % \
                     (self.ngrid[0], self.ngrid[1], self.ngrid[2])
+                    
+        assert band <= self.nbands, 'The band index is larger than the number of bands'                   
 
         # The FFT normalization factor
         # the iFFT has a factor 1/N_G, unk exported by VASP does not have this factor
-        if norm == False:
-            normfac = np.prod(ngrid) 
-        elif norm == 'sqrtN':
-            normfac = np.sqrt(np.prod(ngrid))
-        elif norm == 'N':
-            normfac = 1.0
-
-        gvec = self.get_gvec(kpt)
+        Gp = np.int64(Gp)
+        gvec = self.get_gvec(kpt) - Gp
         unk = np.zeros(ngrid, dtype=np.complex128)
         gvec %= ngrid[np.newaxis,:]
         nx, ny, nz = gvec[:,0], gvec[:,1], gvec[:,2]
 
         if self._lsorbit:
             wfc_spinor = []
-            Cg = self.get_coeff(spin, kpt, norm_c)[band]  
+            Cg = self.get_coeff(spin, kpt, norm_c)[band-1]  
             nplw = Cg.shape[0] // 2
             
             # spinor up
@@ -195,12 +203,29 @@ class main:
             wfc_spinor.append(ifftn(unk))
 
             del Cg
-            return np.asarray(wfc_spinor)*normfac
+            return np.asarray(wfc_spinor)*normfac 
             
         else:
-            unk[nx, ny, nz] = self.get_coeff(spin, kpt, norm_c)[band] 
-            return ifftn(unk * normfac)
-                
+            unk[nx, ny, nz] = self.get_coeff(spin, kpt, norm_c)[band-1] 
+            unk = ifftn(unk)
+            if norm == False:
+                return unk * np.prod(ngrid)  
+            else:
+                return unk / np.linalg.norm(unk)
+            
+    def get_unk_list(self, spin=0, kpt=1, band_list=None, Gp=[0,0,0], ngrid=None, norm=True, norm_c=True):
+        '''Get unk for a list of states'''
+        if band_list is None:
+            band_list = np.arange(self.nbands) + 1
+        else:
+            band_list = np.asarray(band_list)
+            
+        unk = []
+        for i, band in enumerate(band_list):
+            unk.append(self.get_unk(spin=spin, kpt=kpt, band=band, Gp=Gp, ngrid=ngrid, norm=norm, norm_c=norm_c))
+            
+        return np.asarray(unk)
+          
     def write_vesta(self, unk, realonly=False, poscar='POSCAR', filename='unk',
                    ncol=10):
         '''
@@ -271,7 +296,7 @@ class main:
             unk_file = FortranFile('UNK' + "%05d" % (kpt + 1) + spin_str, 'w')
             unk_file.write_record(np.asarray([ngrid[0], ngrid[1], ngrid[2], kpt + 1, self.nbands], dtype = np.int32))    
             for band in range(self.nbands):
-                unk = self.get_unk(spin=spin, kpt=kpt+1, band=band+1, ngrid=ngrid)
+                unk = self.get_unk(spin=spin, kpt=kpt+1, band=band+1, ngrid=ngrid, norm=False, norm_c=False)
                 unk = unk.T.flatten()
                 unk_file.write_record(unk)                    
             unk_file.close()
