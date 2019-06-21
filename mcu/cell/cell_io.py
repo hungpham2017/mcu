@@ -22,7 +22,7 @@ import numpy as np
 import subprocess
 from mcu.utils import misc
 from mcu.cell import utils as cell_utils
-from mcu.cell import cell_io, spg_wrapper
+from mcu.cell import spg_wrapper
         
         
 ##################### EXPORT CIF, XSF, POSCAR ###########################          
@@ -295,7 +295,7 @@ class cif:
 
     def write_poscar(self, cell=None, filename=None):
         if cell == None: cell = self.cell
-        cell_io.write_poscar(cell, filename)
+        write_poscar(cell, filename)
         
     def write_cif(self, cell=None, symprec=1e-5, filename=None, symmetry=True):
         if cell == None: 
@@ -318,8 +318,8 @@ class cif:
             symopt = spg_wrapper.get_symmetry_from_database(1)
             rotations, translations = symopt['rotations'], symopt['translations']
         symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        cell_io.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
+        write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
 
     def write_xsf(self, cell=None, filename=None):
         if cell == None: cell = self.cell
-        cell_io.write_xsf(cell, filename) 
+        write_xsf(cell, filename) 
