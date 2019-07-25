@@ -50,7 +50,7 @@ After finishing the calculation, you should be able to plot it simly by:
     :linenos:
    
     import mcu           
-    mymcu = mcy.VASP()
+    mymcu = mcu.VASP()
     mymcu.plot_band2D()
 
 You can run the following example in the /mcu/example/Graphene_2D directory. You should get:
@@ -118,7 +118,7 @@ After finishing the calculation, you should be able to plot it simly by:
     :linenos:
    
     import mcu           
-    mymcu = mcy.VASP()
+    mymcu = mcu.VASP()
     mymcu.plot_spin(band=2)
 
 You can run the following example in the /mcu/example/MoS2_spintexture directory. You should get:
