@@ -2,7 +2,7 @@
 
 __version__ = '0.0.1'
 from . import vasp
-from . import cell
+#from . import cell
 
 VASP = vasp.vasprun.main
 LOCPOT = vasp.locpot.main

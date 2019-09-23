@@ -20,16 +20,9 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 # This is the only place needed to be modified
 # The path for the libwannier90 library
-W90LIB = '/home/gagliard/phamx494/CPPlib/pyWannier90'
-
-import numpy as np
-import scipy
-import mcu
-from mcu.vasp import const
-from mcu.cell import utils as cell_utils
+W90LIB = '/panfs/roc/groups/6/gagliard/phamx494/pyWannier90/src'
 import sys 
 sys.path.append(W90LIB)
-
 import importlib
 found = importlib.util.find_spec('libwannier90') is not None
 if found == True:
@@ -40,7 +33,12 @@ else:
     print('libwannier90 can be found at: https://github.com/hungpham2017/pyWannier90')
     raise ImportError
     
-    
+import numpy as np
+import scipy
+import mcu
+from mcu.vasp import const
+from mcu.cell import utils as cell_utils
+
 def angle(v1, v2):
 	'''
 	Return the angle (in radiant between v1 and v2)
@@ -94,6 +92,7 @@ def cartesian_prod(arrays, out=None, order = 'C'):
 def periodic_grid(lattice, grid = [50,50,50], supercell = [1,1,1], order = 'C'):
 	'''
 	Generate a periodic grid for the unit/computational cell in F/C order
+    Note: coords has the same unit as lattice
 	'''	
 	ngrid = np.asarray(grid)
 	qv = cartesian_prod([np.arange(-ngrid[i]*(supercell[i]//2),ngrid[i]*((supercell[i]+1)//2)) for i in range(3)], order=order)   
@@ -112,6 +111,7 @@ def periodic_grid(lattice, grid = [50,50,50], supercell = [1,1,1], order = 'C'):
 def R_r(r_norm, r = 1, zona = 1):
 	'''
 	Radial functions used to compute \Theta_{l,m_r}(\theta,\phi)
+    Note: r_norm has the unit of Bohr
 	'''	
 	
 	if r == 1:
@@ -268,7 +268,7 @@ def g_r(grids_coor, site, l, mr, r, zona, x_axis = [1,0,0], z_axis = [0,0,1], un
 	ref: Chapter 3, wannier90 User Guide
 	Attributes:
 		grids_coor					: a grids for the cell of interest
-		site					    : absolute coordinate (in Borh/Angstrom) of the g(r) in the cell
+		site					    : absolute coordinate (in Angstrom) of the g(r) in the cell.
 		l, mr					    : l and mr value in the Table 3.1 and 3.2 of the ref
 	Return:
 		theta_lmr					: an array (ngrid, value) of g(r)
@@ -296,7 +296,7 @@ def g_r(grids_coor, site, l, mr, r, zona, x_axis = [1,0,0], z_axis = [0,0,1], un
 		else:
 			phi[point] = np.sign(r_vec[point,1]) * 0.5 * np.pi
 	
-	return theta_lmr(l, mr, cost, phi) * R_r(r_norm * unit_conv, r = r, zona = zona)
+	return theta_lmr(l, mr, cost, phi) * R_r(r_norm/unit_conv, r = r, zona = zona)
     
 	
 class W90:
@@ -315,6 +315,7 @@ class W90:
         self.real_lattice_loc = self.wave.cell[0]
         self.recip_lattice_loc = self.wave.cell[1]
         self.kpt_latt_loc = self.wave.kpts
+        self.kpts_abs = self.kpt_latt_loc.dot(self.recip_lattice_loc)
         self.abs_kpts = self.wave.kpts.dot(self.recip_lattice_loc)
         self.num_atoms_loc = len(self.pos.cell[2])
         self.atom_symbols_loc = cell_utils.convert_atomtype(self.pos.cell[2])
@@ -376,8 +377,8 @@ class W90:
         '''    
         self.make_win()
         self.setup()
-        self.M_matrix_loc = self.get_M_mat()
-        self.A_matrix_loc = self.get_A_mat()        
+        self.M_matrix_loc = self.read_M_mat()
+        self.A_matrix_loc = self.read_A_mat()        
         self.eigenvalues_loc = self.get_epsilon_mat()    
         self.run()
     
@@ -430,9 +431,37 @@ class W90:
             for nn in range(self.nntot_loc):
                 k_id2 = self.nn_list[nn, k_id, 0] - 1
                 b = self.nn_list[nn, k_id, 1:4]     
-                unk = self.wave.get_unk_list(spin=self.spin, kpt=k_id+1, band_list=band_list+1, ngrid=ngrid)
-                umk = self.wave.get_unk_list(spin=self.spin, kpt=k_id2+1, band_list=band_list+1, Gp=b, ngrid=ngrid)
-                M_matrix_loc[k_id,nn] = np.einsum('ixyz,jxyz->ij', unk.conj(), umk, optimize = True)
+                umk = self.wave.get_unk_list(spin=self.spin, kpt=k_id+1, band_list=band_list+1, ngrid=ngrid)
+                unk = self.wave.get_unk_list(spin=self.spin, kpt=k_id2+1, band_list=band_list+1, Gp=b, ngrid=ngrid)
+                M_matrix_loc[k_id,nn] = np.einsum('ixyz,jxyz->ij', unk, umk.conj(), optimize = True)
+
+        return M_matrix_loc
+        
+    def read_M_mat(self):
+        num_mmn = self.nntot_loc * self.num_kpts_loc
+        M_kpt2 = np.empty([num_mmn, 5], dtype = int)
+        M_matrix_loc = np.empty([self.num_kpts_loc, self.nntot_loc, self.num_bands_loc, self.num_bands_loc], dtype = np.complex128)
+        file = open("wannier90.vasp.mmn")
+        file.readline()
+        file.readline() 
+
+        lines = []	
+        for nkp in range(num_mmn):
+            line = np.asarray(file.readline().split(), dtype = int)
+            for k in range(self.num_bands_loc):
+                for l in range(self.num_bands_loc):
+                    lines.append(file.readline().split())		
+
+        M1 = self.num_bands_loc
+        M2 = M1 * self.num_bands_loc
+        M3 = M2 * self.nntot_loc 			
+        for k_id in range(self.num_kpts_loc):
+            for nn in range(self.nntot_loc): 
+                for n in range(self.num_bands_loc):
+                    for m in range(self.num_bands_loc):
+                        xy = lines[k_id*M3 + nn*M2 + n*M1 + m]
+                        x, y = np.float64(xy)
+                        M_matrix_loc[k_id, nn, n, m] = complex(x,y)
 
         return M_matrix_loc
 
@@ -451,22 +480,54 @@ class W90:
             A_matrix_loc[:,:,:] = Amn
         else:        
             coords, weights = periodic_grid(self.real_lattice_loc, ngrid, supercell = [1,1,1], order = 'F')
-            weights = weights.reshape(ngrid)
             for ith_wann in range(self.num_wann_loc):
                 frac_site = self.proj_site[ith_wann] 
+                #Ts = cartesian_prod([[-2,-1,0,1,2],[-2,-1,0,1,2],[-2,-1,0,1,2]])
+                Ts = cartesian_prod([[-1,0,1],[-1,0,1],[-1,0,1]])
+                abs_Ts = Ts.dot(self.real_lattice_loc)
                 abs_site = frac_site.dot(self.real_lattice_loc)
                 l = self.proj_l[ith_wann]
                 mr = self.proj_m[ith_wann]
                 r = self.proj_radial[ith_wann]
                 zona = self.proj_zona[ith_wann]
                 x_axis = self.proj_x[ith_wann]
-                z_axis = self.proj_z[ith_wann]                                
-                gr = g_r(coords, abs_site, l, mr, r, zona, x_axis, z_axis, unit = 'A').reshape(ngrid)
+                z_axis = self.proj_z[ith_wann] 
+                # gr = 0
+                # for T in abs_Ts:
+                    # gr += g_r(coords, abs_site+T, l, mr, r, zona, x_axis, z_axis, unit = 'A') #.reshape(ngrid, order = 'F') 
+
+                #gr = gr / np.linalg.norm(gr)
                 for k_id in range(self.num_kpts_loc):
-                    unk = self.wave.get_unk_list(spin=self.spin, kpt=k_id+1, band_list=band_list+1, ngrid=ngrid)
-                    A_matrix_loc[k_id,ith_wann] = np.einsum('xyz,xyz,nxyz->n', weights, gr, unk, optimize = True)
+                    # Compute g_k
+                    gr = 0
+                    for T in abs_Ts:
+                        gr += np.exp(1j*self.kpts_abs[k_id].dot(T)) * g_r(coords, abs_site+T, l, mr, r, zona, x_axis, z_axis, unit = 'A') #.reshape(ngrid, order = 'F') 
+                    #gr = gr / np.linalg.norm(gr)
+                    exp_ikr = np.exp(-1j*coords.dot(self.kpts_abs[k_id])) #.reshape(ngrid, order = 'F') 
+                    umk = self.wave.get_unk_list(spin=self.spin, kpt=k_id+1, band_list=band_list+1, ngrid=ngrid).reshape([self.num_bands_loc,-1], order='F')
+                    A_matrix_loc[k_id,ith_wann] = np.einsum('x,x,nx->n', gr, exp_ikr, umk.conj(), optimize = True)
                     
         return A_matrix_loc 
+        
+    def read_A_mat(self):  
+        A_matrix_loc = np.empty([self.num_kpts_loc, self.num_wann_loc, self.num_bands_loc], dtype = complex)
+        file = open("wannier90.vasp.amn")
+        file.readline()
+        file.readline() 
+        num_data = self.num_bands_loc * self.num_wann_loc * self.num_kpts_loc
+
+        lines = []	
+        for point in range(num_data):	
+            lines.append(file.readline().split())
+
+        for i in range(self.num_kpts_loc):
+            for j in range(self.num_wann_loc):
+                for k in range(self.num_bands_loc):
+                    x = float(lines[i*self.num_wann_loc*self.num_bands_loc + j*self.num_bands_loc + k][3])
+                    y = float(lines[i*self.num_wann_loc*self.num_bands_loc + j*self.num_bands_loc + k][4])			
+                    A_matrix_loc[i,j,k] = complex(x,y)	
+                    
+        return A_matrix_loc         
 
     def get_epsilon_mat(self):
         '''
@@ -520,9 +581,9 @@ class W90:
         recip_lattice_loc = self.recip_lattice_loc.T.flatten()
         kpt_latt_loc = self.kpt_latt_loc.flatten()
         atoms_cart_loc = self.atoms_cart_loc.flatten()
-        M_matrix_loc = self.M_matrix_loc.flatten()    
-        A_matrix_loc = self.A_matrix_loc.flatten()     
-        eigenvalues_loc = self.eigenvalues_loc.flatten()            
+        M_matrix_loc = self.M_matrix_loc.flatten()   
+        A_matrix_loc = self.A_matrix_loc.flatten()   
+        eigenvalues_loc = self.eigenvalues_loc.flatten()          
         
         U_matrix, U_matrix_opt, lwindow, wann_centres, wann_spreads, spread = \
         libwannier90.run(self.mp_grid_loc, self.num_kpts_loc, real_lattice_loc, \
@@ -582,7 +643,7 @@ class W90:
                     k_id2 = self.nn_list[nn, k_id, 0]
                     nnn, nnm, nnl = self.nn_list[nn, k_id, 1:4]
                     f.write('    %d  %d    %d  %d  %d\n' % (k_id1, k_id2, nnn, nnm, nnl))
-                    M_matrix = self.M_matrix_loc[k_id, nn].flatten(order='F')
+                    M_matrix = self.M_matrix_loc[k_id, nn].flatten(order='C')
                     for m in range(nband2):
                         f.write('    %22.18f  %22.18f\n' % (M_matrix[m].real, M_matrix[m].imag))
                     
@@ -686,62 +747,4 @@ class W90:
                 
             
 if __name__ == '__main__':
-    import numpy as np
-    from pyscf import scf, gto
-    from pyscf.pbc import gto as pgto
-    from pyscf.pbc import scf as pscf
-    import pywannier90
-
-    cell = pgto.Cell()
-    cell.atom = '''
-     C                  3.17500000    3.17500000    3.17500000
-     H                  2.54626556    2.54626556    2.54626556
-     H                  3.80373444    3.80373444    2.54626556
-     H                  2.54626556    3.80373444    3.80373444
-     H                  3.80373444    2.54626556    3.80373444
-    '''
-    cell.basis = 'sto-3g'
-    cell.a = np.eye(3) * 6.35
-    cell.gs = [15] * 3
-    cell.verbose = 5
-    cell.build()
-
-
-    nk = [1, 1, 1]
-    abs_kpts = cell.make_kpts(nk)
-    kmf = dft.KRKS(cell, abs_kpts).mix_density_fit()
-    kmf.xc = 'pbe'
-    ekpt = kmf.run()
-    pywannier90.save_kmf(kmf, 'chk_mf')  # Save the wave function
-        
-    # Run pyWannier90 and plot WFs using pyWannier90        
-    num_wann = 4
-    keywords = \
-    '''
-    exclude_bands : 1,6-9
-    begin projections
-    C:sp3
-    end projections
-    '''
-    
-    # To use the saved wave function, replace kmf with 'chk_mf' 
-    w90 = pywannier90.W90(kmf, cell, nk, num_wann, other_keywords = keywords) 
-    w90.kernel()
-    w90.plot_wf(grid=[25,25,25], supercell = [1,1,1])
-    
-    # Run pyWannier90, export unk files, and plot WFs using Wannier90
-    w90.export_unk()
-    keywords = \
-    '''
-    begin projections
-    C:sp3
-    end projections
-    wannier_plot = True
-    wannier_plot_supercell = 1
-    '''
-
-    w90 = pywannier90.W90(kmf, cell, nk, num_wann, other_keywords = keywords)
-    w90.make_win()
-    w90.setup()
-    w90.export_unk(grid = grid)
-    w90.kernel()
+    pass

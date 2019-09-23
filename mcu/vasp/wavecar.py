@@ -147,7 +147,7 @@ class main:
                          
         return Gvec
         
-    def get_unk(self, spin=0, kpt=1, band=1, Gp=[0,0,0], ngrid=None, norm=True, norm_c=True):
+    def get_unk(self, spin=0, kpt=1, band=1, Gp=[0,0,0], ngrid=None, norm=False, norm_c=False):
         '''
         Obtain the pseudo periodic part of the Bloch function in real space
 
@@ -159,8 +159,10 @@ class main:
             gvec    : the G-vectors correspond to the plane-wave coefficients
             Cg      : the plane-wave coefficients. If None, read from WAVECAR
             ngrid   : the FFT grid size
-            norm    : whether to normalzie the u by a factor: 1/sqrt(N), 1/N, or 1
-            norm_c  : whether to normalzie cg            
+            norm    : thr normalized factorl, False: 1/sqrt(N), True: < unk | unk > = 1 
+            norm_c  : whether to normalzie cg    
+            
+            norm=False and norm_c=False: the unk will be identical to VASP UNK files
             
              
             u_{n}^{k+Gp}(r) = 1/ norm * \sum_G u_{n}^{k}(G).e^{i(G-Gp)r} 
@@ -208,6 +210,8 @@ class main:
         else:
             unk[nx, ny, nz] = self.get_coeff(spin, kpt, norm_c)[band-1] 
             unk = ifftn(unk)
+            
+            # Note: ifftn has a norm factor of 1/N
             if norm == False:
                 return unk * np.prod(ngrid)  
             else:
