@@ -1,2 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
 # Compiled sphinx modules.
-build
+docs/build
+
+# Compiled python modules.
+*.pyc
+
+# Setuptools distribution folder.
+dist/
+env/
+build/
+develop-eggs/
+
+# Project configurations files
+.idea/
