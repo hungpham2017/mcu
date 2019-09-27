@@ -12,7 +12,7 @@ A package for periodic wavefunction and crystallography analysis. **mcu** is des
 <img src="https://github.com/hungpham2017/mcu/blob/gh-pages/docs/image/quicklook.png" width="800" align="middle">
 
 ## Documentation:
--  Installation and tutorials can be found [here](https://mcu.readthedocs.io/en/latest/)
+-  Installation and tutorials can be found [here](https://hungpham2017.github.io/mcu/index.html#)
 
 ## Authors
 - **Hung Pham**
