@@ -15,7 +15,10 @@ A package for periodic wavefunction and crystallography analysis. **mcu** is des
 -  Installation and tutorials can be found [here](https://hungpham2017.github.io/mcu)
 
 ## Authors
-- **Hung Pham** - [My Github](https://github.com/hungpham2017)
+- **Hung Pham**
+
+## Contributors:
+- **Yue-Wen Fang** - [Github](https://github.com/yw-fang)
 
 ## License
 This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details
