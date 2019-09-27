@@ -1,0 +1,992 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Plot band structure &mdash; mcu 0.2.beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #008ae6" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> mcu
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="feature.html">Features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature.html#current-functions">Current functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature.html#soon-to-be-released-functions">Soon-to-be-released functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature.html#future-functions">Future functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#downloading-mcu">Downloading mcu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#python-environment">Python environment</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="basic.html">Basic functions in mcu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="symmetry.html">Spacegroup analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html">Plot band structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#plot-projected-band-structure">Plot projected band structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#id1">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#plotting-density-of-states">Plotting density of states</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#id7">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plotting1D.html#work-function-and-the-electrostatic-potential-over-a-plane">Work function and the electrostatic potential over a plane</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting1D.html#id10">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plotting2D.html">Generate 2D k-mesh</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting2D.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#plot-2d-band-structure">Plot 2D band structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting2D.html#id1">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plotting2D.html#plot-spin-texture">Plot spin texture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plotting2D.html#id3">Parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mcu</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Plot band structure</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/plotting.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="plotting"></span><div class="section" id="plot-band-structure">
+<h1>Plot band structure<a class="headerlink" href="#plot-band-structure" title="Permalink to this headline">¶</a></h1>
+<p>In python environment, band structure can be plotted by calling the <strong>mcu.plot_band()</strong> function</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>    <span class="c1"># or mymcu = mcu.VASP(path=&#39;path-to-vasprun&#39;, vaspruns=&#39;vasprun&#39;)</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<p>To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Y-G-R-X-G&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span> <span class="mi">9</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>You should get:</p>
+<a class="reference internal image-reference" href="_images/plot_band_MoS2_a.png"><img alt="_images/plot_band_MoS2_a.png" class="align-center" src="_images/plot_band_MoS2_a.png" style="width: 450.0px; height: 450.0px;" /></a>
+<p>All parameters and their defaults of <strong>plot_band</strong> function are given below. Most of the parameters are passed to matplotlib functions.
+So more information can be found in matplotlib docs.</p>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: fermi level from vasprun.xml or OUTCAR</li>
+<li>User can shift the Fermi level to a value</li>
+</ul>
+</dd>
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0</li>
+<li>If ISPIN = 1: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin)</li>
+</ul>
+</dd>
+<dt>label <span class="classifier-delimiter">:</span> <span class="classifier">str or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>For conventional band structure, e.g. label = ‘X-G-Y-L-G’</li>
+<li>For hydrib functional band structure, e.g. label = [[‘L’,0.50,0.50,0.50],[‘G’,0.0,0.0,0.00],[‘X’,0.5,0.0,0.50],[‘W’,0.50,0.25,0.75]]</li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>band_color: list</dt>
+<dd><ul class="first last simple">
+<li>Default: [‘#007acc’,’#808080’,’#808080’]</li>
+<li>Three color codes indice color of band curve, kpoint grid, Fermi level, respectively.</li>
+<li>Exp: [‘k’,’#808080’,’r’]</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: De(6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘BAND’</li>
+<li>Name of the image</li>
+</ul>
+</dd>
+<dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>Limit range for momentum (k) axis. Used when to zoom in a specific range of k with the unit <span class="math notranslate nohighlight">\(Angstrom^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [-6,6]</li>
+<li>Limit range for energy axis in eV</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="plot-projected-band-structure">
+<h1>Plot projected band structure<a class="headerlink" href="#plot-projected-band-structure" title="Permalink to this headline">¶</a></h1>
+<p>In python environment, band structure can be plotted by calling the <strong>mcu.plot_band()</strong> function</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_pband</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<p>To customize the band, one can modify some of these attributes. For mcu/example/MoS2, you can run:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Y-G-R-X-G&#39;</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_pband</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">lm</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Mo:d&#39;</span><span class="p">,</span><span class="s1">&#39;S:p&#39;</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#00ccff&#39;</span><span class="p">,</span><span class="s1">&#39;#ff0000&#39;</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span> <span class="mi">9</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">),</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="n">legend</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Mo:d&#39;</span><span class="p">,</span><span class="s1">&#39;S:p&#39;</span><span class="p">],</span><span class="n">legend_size</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s1">&#39;MoS2_style2&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>You should get:</p>
+<a class="reference internal image-reference" href="_images/MoS2_style2.png"><img alt="_images/MoS2_style2.png" class="align-center" src="_images/MoS2_style2.png" style="width: 480.0px; height: 360.0px;" /></a>
+<p>Or for style = 3:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Y-G-R-X-G&#39;</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_pband</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lm</span><span class="o">=</span><span class="s1">&#39;pd&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span> <span class="mi">9</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s1">&#39;MoS2_style3&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<a class="reference internal image-reference" href="_images/MoS2_style3.png"><img alt="_images/MoS2_style3.png" class="align-center" src="_images/MoS2_style3.png" style="width: 600.0px; height: 450.0px;" /></a>
+<p>All parameters and their defaults of <strong>plot_pband</strong> function are given below. Most of the parameters are passed to <strong>plot_band</strong> function.
+Some of additional parameters for projected band structure. Most important parameters are <strong>style</strong> and <strong>lm</strong>.</p>
+<div class="section" id="id1">
+<h2>Parameters<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: fermi level from vasprun.xml or OUTCAR</li>
+<li>User can shift the Fermi level to a value</li>
+</ul>
+</dd>
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0</li>
+<li>If ISPIN = 1: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin)</li>
+</ul>
+</dd>
+<dt>label <span class="classifier-delimiter">:</span> <span class="classifier">str or a list of str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>For conventional band structure, e.g. label = ‘X-G-Y-L-G’</li>
+<li>For hydrib functional band structure, e.g. label = [[‘L’,0.50,0.50,0.50],[‘G’,0.0,0.0,0.00],[‘X’,0.5,0.0,0.50],[‘W’,0.50,0.25,0.75]]</li>
+</ul>
+</dd>
+<dt>band_color: list</dt>
+<dd><ul class="first last simple">
+<li>Default: [‘#007acc’,’#808080’,’#808080’]</li>
+<li>Three color codes indice color of band curve, kpoint grid, Fermi level, respectively.</li>
+<li>Exp: [‘k’,’#808080’,’r’]</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
+</ul>
+</dd>
+<dt>style <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1</li>
+<li><dl class="first docutils">
+<dt>If style = 1: the most flexible style, all atoms are considered. A few examples of <strong>lm</strong> are:</dt>
+<dd><ul class="first last">
+<li>Choose one specific orbital: lm = ‘s’ or  lm = ‘p’ or lm = ‘dxz’ or lm = ‘dx2-y2’</li>
+<li>Shortcut: lm = ‘sp’ for ‘s’, ‘p’ or lm  = ‘spd’ for s, p, d or  lm  = ‘dsp’ for d, s, p (where orbital appears later will be on top of other orbitals before in plotting)</li>
+<li>lm = [[‘s’, ‘py’, ‘pz’],[‘dxy’, ‘dyz’, ‘dz2’]]</li>
+<li>Each color is used for each <strong>lm</strong> or each <strong>lm</strong> group</li>
+<li>The marker’s radius is proportional to the % of lm</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>If style = 2: user can specify atom and orbitals belong to that atom. A few examples of <strong>lm</strong> are:</dt>
+<dd><ul class="first last">
+<li>Only one certain atom is chose: lm = ‘Ni:s’ or lm = ‘Ni:s,p’</li>
+<li>More than one atoms are considered: lm = [‘Ni:s’,’C:s,pz’]</li>
+<li>Each color is used for each <strong>lm</strong> or each <strong>lm</strong> group</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>If style = 3: a colormap is used to show the transition between two <strong>lm</strong> values. . For example:</dt>
+<dd><ul class="first last">
+<li>lm = ‘sp’     : transition between s and p</li>
+<li>lm = ‘dp’     : transition between d and p</li>
+<li>A color map is used. Hence, user can choose a <strong>cmap</strong>, <em>e.g.</em> cmap = ‘bwr’</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>lm <span class="classifier-delimiter">:</span> <span class="classifier">str or a list of str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘spd’</li>
+<li>Depend onf the <em>style</em>, corresponding lm values can be specified.</li>
+</ul>
+</dd>
+<dt>band <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>If band = None, roughly five conduction bands and five valence bands are chosen to plot</li>
+<li>User can provide a list of of two index numbers for bands. For example, [3,10] means that there are eight bands from the 3rd band to the 10th band.
+For the whole band, band = [0,100000] or  band = [0,1000] as long as the second number is larger than the available bands (&gt; NBANDS)</li>
+</ul>
+</dd>
+<dt>color <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>By default, there is a list of random color codes in plot_pband functions can be used. It is not used if <strong>style</strong> = 3</li>
+<li>User can provide a list of color they wish to use. For example, [‘r’,’#ffffff,’k’].
+Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
+For example, lm =’spd’ then there should be a list of three color codes.</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
+</ul>
+</dd>
+<dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1.0</li>
+<li>Used to adjust the size of the marker</li>
+</ul>
+</dd>
+<dt>alpha <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0.5</li>
+<li>Used to adjust the transparency of the marker</li>
+</ul>
+</dd>
+<dt>cmap <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘bwr’</li>
+<li>Colormap used in style = 3. Other colormap type can be found <a class="reference external" href="https://matplotlib.org/tutorials/colors/colormaps.html">here</a></li>
+</ul>
+</dd>
+<dt>edgecolor :</dt>
+<dd><ul class="first last simple">
+<li>Default: ‘none’</li>
+<li>The marker’s border color in the style 3</li>
+</ul>
+</dd>
+<dt>facecolor <span class="classifier-delimiter">:</span> <span class="classifier">None</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘none’</li>
+<li>The filling color of style 1 and 2</li>
+<li>facecolor = None : taking from the <strong>color</strong> list</li>
+<li>facecolor = ‘none’ : unfilling markers</li>
+<li>facecolor = [True, False, True] : following the <strong>lm</strong> orders, where True indicates filling marker and vice versa</li>
+</ul>
+</dd>
+<dt>marker <span class="classifier-delimiter">:</span> <span class="classifier">str or a list of str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘o’</li>
+<li>marker = ‘o’ means ‘o’ used for all lm</li>
+<li>marker = [‘o’,’H’] and lm =’sp’ means ‘o’ used s orbitals and ‘H’ used for p orbitals.</li>
+<li>More detail about marker type can be found <a class="reference external" href="https://matplotlib.org/api/markers_api.html">here</a></li>
+</ul>
+</dd>
+<dt>legend <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><ul class="first last simple">
+<li>Defaul: None</li>
+<li>A list of labels for different group of orbitals. For example, [‘Mo_s’,’S_p’]</li>
+</ul>
+</dd>
+<dt>loc :</dt>
+<dd><ul class="first last simple">
+<li>Defaul: “upper right”</li>
+<li>Location of legend</li>
+<li>Possile <strong>loc</strong> value can be found <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html">here</a> . Look for ‘Location String’ or ‘Location Code’</li>
+</ul>
+</dd>
+<dt>legend_size <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1.0</li>
+<li>Size of the legend</li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: De(6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘BAND’</li>
+<li>Name of the image</li>
+</ul>
+</dd>
+<dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>Limit range for momentum (k) axis in eV. Used when to zoom in a specific range of k with the unit <span class="math notranslate nohighlight">\(\AA^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [-6,6]</li>
+<li>Limit range for energy axis in eV</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="plotting-density-of-states">
+<h1>Plotting density of states<a class="headerlink" href="#plotting-density-of-states" title="Permalink to this headline">¶</a></h1>
+<p>For DOS, the total DOS is always shown together with projected DOS (if computed). For mcu/example/Ni, you can run</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span> <span class="kn">import</span> <span class="nn">mcu</span>
+ <span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+ <span class="n">mymcu</span><span class="o">.</span><span class="n">plot_dos</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<a class="reference internal image-reference" href="_images/Ni_horizontal.png"><img alt="_images/Ni_horizontal.png" class="align-center" src="_images/Ni_horizontal.png" style="width: 540.0px; height: 270.0px;" /></a>
+<p>To customize the dos figure, one can modify some of these attributes.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span></span> <span class="kn">import</span> <span class="nn">mcu</span>
+ <span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+
+ <span class="c1"># Style = 2 and spin = &#39;updown&#39;</span>
+ <span class="n">mymcu</span><span class="o">.</span><span class="n">plot_dos</span><span class="p">(</span><span class="n">spin</span> <span class="o">=</span> <span class="s1">&#39;updown&#39;</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">lm</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Ni:s,dxy,dyz&#39;</span><span class="p">,</span><span class="s1">&#39;Ni:p&#39;</span><span class="p">,</span><span class="s1">&#39;Ni:dz2,dx2-y2&#39;</span><span class="p">],</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s1">&#39;Ni_updown&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>You should get:</p>
+<a class="reference internal image-reference" href="_images/Ni_updown.png"><img alt="_images/Ni_updown.png" class="align-center" src="_images/Ni_updown.png" style="width: 450.0px; height: 540.0px;" /></a>
+<p>All parameters and their defaults of <strong>plot_dos</strong> function are given below.</p>
+<div class="section" id="id7">
+<h2>Parameters<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>vasprun <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd><ul class="first last simple">
+<li>Defaul: None</li>
+<li>If multiple vasprun.xml files are used when defining a mcu object then user can pick of of those. By default, the first vasprun.xml in the list will be used</li>
+</ul>
+</dd>
+<dt>style <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1</li>
+<li>style = 1 (standard plot) or style = 2 (vertital plot)</li>
+</ul>
+</dd>
+<dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: fermi level from vasprun.xml or OUTCAR</li>
+<li>User can shift the Fermi level to a value</li>
+</ul>
+</dd>
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0</li>
+<li>If ISPIN = 1: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin). spin = ‘updown’ means plotting both alpha and beta electrons</li>
+<li>For LSORBIT = True: spin = 0 (total m) or spin = 1 (mx) or spin = 2 (my) or spin = 3 (mz)</li>
+</ul>
+</dd>
+<dt>lm <span class="classifier-delimiter">:</span> <span class="classifier">str or a list of str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: DOS is projected on each atom.</li>
+<li>Example: ‘Ni:s’ or [‘Ni:s’,’C:s,px,pz’]</li>
+</ul>
+</dd>
+<dt>color <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None</li>
+<li>By default, there is a list of random color codes in plot_pband functions can be used. It is not used if <strong>style</strong> = 3</li>
+<li>User can provide a list of color they wish to use. For example, [‘r’,’#ffffff,’k’].
+Just need to make sure the numbers of color code should match with the numbers of group of orbitals plotted.
+For example, lm =’spd’ then there should be a list of three color codes.</li>
+<li>Hex color code can be found here <a class="reference external" href="https://www.w3schools.com/colors/colors_picker.asp">here</a></li>
+</ul>
+</dd>
+<dt>legend <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><ul class="first last simple">
+<li>Defaul: None</li>
+<li>A list of labels for different group of orbitals. For example, [‘Mo_s’,’S_p’]</li>
+</ul>
+</dd>
+<dt>loc :</dt>
+<dd><ul class="first last simple">
+<li>Defaul: “upper right”</li>
+<li>Location of legend</li>
+<li>Possile <strong>loc</strong> value can be found <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html">here</a> . Look for ‘Location String’ or ‘Location Code’</li>
+</ul>
+</dd>
+<dt>fill <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: True</li>
+<li>Whether to fill the area below the DOS curve.</li>
+</ul>
+</dd>
+<dt>alpha <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0.2</li>
+<li>Used to adjust the transparency of the marker</li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: (6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘DOS’</li>
+<li>Name of the image</li>
+</ul>
+</dd>
+<dt>elim <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [-6,6]</li>
+<li>Limit range for energy axis in eV</li>
+</ul>
+</dd>
+<dt>yscale <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 1.1</li>
+<li>Used to zoom in and out the horizontal or DOS axis</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="work-function-and-the-electrostatic-potential-over-a-plane">
+<h1>Work function and the electrostatic potential over a plane<a class="headerlink" href="#work-function-and-the-electrostatic-potential-over-a-plane" title="Permalink to this headline">¶</a></h1>
+<p>The work function <span class="math notranslate nohighlight">\(\Phi\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[\Phi = - E_{VBM} = E_{Vacuum} - \epsilon_F\]</div>
+<p>where <span class="math notranslate nohighlight">\(\epsilon_F\)</span> and <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> are the Fermi level and the electrostatic potential of vacuum, respectively.
+The <span class="math notranslate nohighlight">\(E_{Vacuum}\)</span> can be computed by simply constructing a slab model and adding LVTOT = .TRUE. to INCAR in VASP calculation.
+LOCPOT file , where the electrostatic potential is computed on the fine FFT-grid, will be generated as a result.
+The average over a plane perpendicular to an crystal axis can be computed and plotted via <strong>mcu</strong>.</p>
+<p>You can run the below commands in the mcu/example/InCuCl directory</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">LOCPOT</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>You should get:</p>
+<a class="reference internal image-reference" href="_images/elecpot.png"><img alt="_images/elecpot.png" class="align-center" src="_images/elecpot.png" style="width: 480.0px; height: 360.0px;" /></a>
+<p>In case you want to get the electrostatic potential data and plot it yourself</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">LOCPOT</span><span class="p">()</span>
+<span class="n">pot</span> <span class="o">=</span> <span class="n">mymcu</span><span class="o">.</span><span class="n">get_2D_average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>                       <span class="c1"># an 2 dimensional array [x,y] with x is the coordinates and y is the potential</span>
+<span class="n">e_vacuum</span> <span class="o">=</span> <span class="n">mymcu</span><span class="o">.</span><span class="n">get_2D_average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>      <span class="c1"># to get E_vacuum</span>
+</pre></div>
+</td></tr></table></div>
+<p>All parameters and their defaults of <strong>plot</strong> function are given below.</p>
+<div class="section" id="id10">
+<h2>Parameters<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>axis <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘z’</li>
+<li>The average of electrostatic potential is computed over a plane that is perpendicular to this axis</li>
+</ul>
+</dd>
+<dt>error <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0.01</li>
+<li>The electrostatic potential (pot) at the vacuum is computed by taking the average of all the pot in the window (pot - 2*error, maximum of pot)</li>
+</ul>
+</dd>
+<dt>color <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [‘r’, ‘#737373’]</li>
+<li>The color codes for the electrostatic potential and the vacuum marker</li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: None, automatic estimated</li>
+<li>Limit range for energy axis in eV</li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: (8,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘elecpot’</li>
+<li>Name of the image</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="generate-2d-k-mesh">
+<h1>Generate 2D k-mesh<a class="headerlink" href="#generate-2d-k-mesh" title="Permalink to this headline">¶</a></h1>
+<p>POSCAR is needed to to get the lattice information.
+the following command generates a k-mesh (-0.2 &lt;= x &lt;= 0.2 and -0.2 &lt;= y &lt;= 0.2) on the xy plan and around the <span class="math notranslate nohighlight">\(\Gamma\)</span> point with 21 points along each dimension.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcu</span><span class="o">.</span><span class="n">POSCAR</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">get_2D_kmesh</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">krange</span><span class="o">=</span><span class="p">[</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">],</span> <span class="n">plane</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">npoint</span><span class="o">=</span><span class="p">[</span><span class="mi">21</span><span class="p">,</span><span class="mi">21</span><span class="p">])</span>
+</pre></div>
+</td></tr></table></div>
+<p>You should get the KPOINTS file generated. This is not done yet.
+Copy the k-mesh block in IBZKPT file to the KPOINTS file and do a simple math to figure out how many k-points in total.
+This new KPOINTS file should be ready for band structure calculation step.</p>
+<div class="section" id="id11">
+<h2>Parameters<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>origin <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [0,0,0] or <span class="math notranslate nohighlight">\(\Gamma\)</span> point</li>
+<li>Fractional coordinates of the origin of the mesh</li>
+</ul>
+</dd>
+<dt>krange <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [0.1,0.1]</li>
+<li>The first indicates -0.2 &lt;= x &lt;= 0.2, similarly for the second dimension.</li>
+</ul>
+</dd>
+<dt>plane <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘xy’</li>
+<li>Options: ‘xy’, ‘xz’, ‘yz’</li>
+</ul>
+</dd>
+<dt>npoint <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: [11,11]</li>
+<li>Number of k-points along each dimension</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="plot-2d-band-structure">
+<h1>Plot 2D band structure<a class="headerlink" href="#plot-2d-band-structure" title="Permalink to this headline">¶</a></h1>
+<p>2D band structure can be generated by following this procedure</p>
+<blockquote>
+<div><ul class="simple">
+<li>Run a conventional SCF calculation to get WAVECAR</li>
+<li>Generate KPOINTS file for a 2D k-mesh using mcu</li>
+<li>Run band structure calculation using the new KPOINTS file</li>
+</ul>
+</div></blockquote>
+<p>After finishing the band structure calculation, you should be able to plot it simly by:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mcu</span>
+<span class="n">mymcu</span> <span class="o">=</span> <span class="n">mcy</span><span class="o">.</span><span class="n">VASP</span><span class="p">()</span>
+<span class="n">mymcu</span><span class="o">.</span><span class="n">plot_band2D</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<p>You can run the following example in the /mcu/example/Graphene_2D directory. You should get:</p>
+<a class="reference internal image-reference" href="_images/gra_band2D.png"><img alt="_images/gra_band2D.png" class="align-center" src="_images/gra_band2D.png" style="width: 600.0px; height: 480.0px;" /></a>
+<p>All parameters and their defaults of <strong>plot_band</strong> function are given below. Most of the parameters are passed to matplotlib functions.
+So more information can be found in matplotlib docs.</p>
+<div class="section" id="id12">
+<h2>Parameters<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>efermi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><ul class="first last simple">
+<li>Default: fermi level from vasprun.xml or OUTCAR</li>
+<li>User can shift the Fermi level to a value</li>
+</ul>
+</dd>
+<dt>spin <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 0</li>
+<li>If ISPIN = 1: spin = 0</li>
+<li>If ISPIN = 2: spin = 0 (Up spin) or 1 (Down spin)</li>
+</ul>
+</dd>
+<dt>band <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: VBM and CBM</li>
+<li>Which bands to plot</li>
+</ul>
+</dd>
+<dt>cmap <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘bwr’</li>
+<li>Colormap used in style = 3. Other colormap type can be found <a class="reference external" href="https://matplotlib.org/tutorials/colors/colormaps.html">here</a></li>
+</ul>
+</dd>
+<dt>save <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><ul class="first last simple">
+<li>Default: False</li>
+<li>True to save to an image</li>
+</ul>
+</dd>
+<dt>figsize <span class="classifier-delimiter">:</span> <span class="classifier">tuple or list</span></dt>
+<dd><ul class="first last simple">
+<li>Default: De(6,6)</li>
+<li>Size of image in inch</li>
+</ul>
+</dd>
+<dt>figname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘BAND2D’</li>
+<li>Name of the image</li>
+</ul>
+</dd>
+<dt>xlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from k-mesh</li>
+<li>Plotting range for 1st momentum (k). Unit <span class="math notranslate nohighlight">\(Angstrom^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>ylim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from k-mesh</li>
+<li>Plotting range for 2nd momentum (k). Unit <span class="math notranslate nohighlight">\(Angstrom^{-1}\)</span></li>
+</ul>
+</dd>
+<dt>zlim <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple</span></dt>
+<dd><ul class="first last simple">
+<li>Default: from band values</li>
+<li>Plotting range for energy (eV)</li>
+</ul>
+</dd>
+<dt>fontsize <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 18</li>
+<li>Font size</li>
+</ul>
+</dd>
+<dt>dpi <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><ul class="first last simple">
+<li>Default: 600</li>
+<li>Resolution of the image</li>
+</ul>
+</dd>
+<dt>format <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><ul class="first last simple">
+<li>Default: ‘png’</li>
+<li>Extension of the image</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="setup-and-plot-spin-texture">
+<h1>Setup and plot spin texture<a class="headerlink" href="#setup-and-plot-spin-texture" title="Permalink to this headline">¶</a></h1>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hung Q. Pham
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-XXXXXXX-1', 'auto');
+    ga('send', 'pageview');
+    </script>
+
+    
+   
+
+</body>
+</html>
