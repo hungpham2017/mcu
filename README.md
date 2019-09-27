@@ -9,7 +9,7 @@ A package for periodic wavefunction and crystallography analysis. **mcu** is des
 
 ## A quick look
 
-<img src="https://github.com/hungpham2017/mcu/blob/master/docs/image/quicklook.png" width="800" align="middle">
+<img src="https://github.com/hungpham2017/mcu/blob/gh-pages/docs/image/quicklook.png" width="800" align="middle">
 
 ## Documentation:
 -  Installation and tutorials can be found [here](https://mcu.readthedocs.io/en/latest/)
@@ -18,7 +18,7 @@ A package for periodic wavefunction and crystallography analysis. **mcu** is des
 - **Hung Pham**
 
 ## Contributors:
-- **Hung Pham** - [Github](https://github.com/yw-fang)
+- **Yue-Wen Fang** - [Github](https://github.com/yw-fang)
 
 ## License
 This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details
