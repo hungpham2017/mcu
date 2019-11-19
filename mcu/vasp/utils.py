@@ -24,15 +24,12 @@ Utilities for vasp module
 
 import os
 import numpy as np
+from mcu.utils.misc import check_exist
 from mcu.cell import parameters, utils            
             
-def check_exist(file):
-    '''Check if a file exists in the running directory '''        
-    exist = os.path.exists(file)
-    return exist
     
 def str_extract(string, start, end):
-    '''Get sbustring between start and end keyword from a string'''
+    '''Get substring between start and end keyword from a string'''
     
     if not isinstance(start,str) or not isinstance(end,str):
         raise Exception('start and end are two string')
