@@ -23,15 +23,17 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
+from mcu.utils.misc import check_exist
 from mcu.vasp import utils, vasp_io, const
 from scipy.fftpack import fftfreq, fftn, ifftn
+
             
 class main:
     def __init__(self, file="WAVECAR", lsorbit=False):
         '''The wavecar manipulation is modied from the vaspwfc.py from QijingZheng's project
             ref: https://github.com/QijingZheng/VaspBandUnfolding/blob/master/vaspwfc.py)
         '''
-        if not utils.check_exist(file):
+        if not check_exist(file):
             print('Cannot find the WAVECAR file. Check the path:', file)
             self.success = False
         else: 

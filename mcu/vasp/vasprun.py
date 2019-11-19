@@ -21,12 +21,13 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import os
 import numpy as np
 import mcu
+from mcu.utils.misc import check_exist
 from mcu.vasp import utils, vasp_io
 from mcu.cell import spg_wrapper, cell_io
 from mcu.cell import utils as cell_utils
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
         
 class main:
     def __init__(self, path=None, vaspruns='vasprun', outcars='OUTCAR'):
@@ -49,7 +50,7 @@ class main:
             self.vasprun = []
             for xml in vaspruns:
                 xml_file = path + '/' + xml + '.xml'
-                if not utils.check_exist(xml_file):
+                if not check_exist(xml_file):
                     print('Cannot find:', xml_file)
                     break
                 self.vasprun.append(vasp_io.vasprun(xml_file))
@@ -60,7 +61,7 @@ class main:
                 self.outcar = []
                 for outcar in outcars:
                     outcar_file = path + '/' + outcar
-                    if not utils.check_exist(outcar_file):
+                    if not check_exist(outcar_file):
                         print('Cannot find:', outcar_file)
                         break
                     self.outcar.append(vasp_io.OUTCAR(outcar_file))  
@@ -278,7 +279,7 @@ class main:
         conventional = False
             
         if isinstance(vasprun,mcu.vasp.vasp_io.vasprun) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
-            if label != None:
+            if label is not None:
                 assert isinstance(label,str)     # label needs to be a string in the format,e.g. 'A-B-C-D'
                 label = label.split('-')
             assert isinstance(efermi,float)
@@ -350,7 +351,7 @@ class main:
             path = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
 
             # Find absolute coordinates for high symmetric kpoints  
-            if label != None:
+            if label is not None:
                 assert isinstance(label,list)           # label needs to be a list of labels and corresponding coordinates
                 temp = []
                 coor_kpts = [] 
@@ -395,11 +396,11 @@ class main:
         yrange = (-50,50)
         
         # Plot the high symmetric kpoint grid
-        if conventional == True or label != None:
+        if conventional == True or label is not None:
             for kpt in range(sym_kpoint_coor.shape[0]):
                 ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
 
-        if label != None and xlim == None:
+        if label is not None and xlim == None:
             nkpts = len(label)
             assert nkpts == sym_kpoint_coor.shape[0]        # The numbers of label should be match with the # of coordiantes provided
             for kpt in range(nkpts):   

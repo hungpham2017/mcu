@@ -20,14 +20,14 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import numpy as np
 from mcu.vasp import utils
-from mcu.utils import misc
+from mcu.utils.misc import check_exist
 from mcu.cell import utils as cell_utils
 import subprocess
 
 class vasprun:
     def __init__(self, file="vasprun.xml"):
         
-        if not utils.check_exist(file):
+        if not check_exist(file):
             print('Cannot find the vasprun.xml file. Check the path:', file)
         else:
             self.vasprun = open(file, "r").readlines()  
@@ -583,7 +583,7 @@ class vasprun:
 class OUTCAR:
     def __init__(self, file="OUTCAR"):
         '''Read additional infomation that cannot be extracted from vasprun.xml'''
-        if not utils.check_exist(file):
+        if not check_exist(file):
             print('Cannot find the OUTCAR file (optional). Check the path:', file)
             self.success = False
         else: 
@@ -632,7 +632,7 @@ class POSCAR:
         '''Read POSCAR
            TODO: extend it to Selective dynamics
         '''
-        if not utils.check_exist(file):
+        if not check_exist(file):
             print('Cannot find the POSCAR file (optional). Check the path:', file)
             self.success = False
         else: 
@@ -651,7 +651,7 @@ class LOCPOT:
         '''Read LOCPOT
            TODO: extend it to Selective dynamics
         '''
-        if not utils.check_exist(file):
+        if not check_exist(file):
             print('Cannot find the LOCPOT file. Check the path:', file)
             self.success = False
         else: 
@@ -710,7 +710,7 @@ class KPOINTS:
         '''Read KPOINTS
            TODO: extend it to Selective dynamics
         '''
-        if not utils.check_exist(file):
+        if not check_exist(file):
             print('Cannot find the KPOINTS file. Check the path:', file)
             self.success = False
         else: 
@@ -731,7 +731,7 @@ class WAVECAR:
         '''WAVECAR reading is modied the vaspwfc.py from QijingZheng's project
             ref: https://github.com/QijingZheng/VaspBandUnfolding/blob/master/vaspwfc.py)
         '''
-        if not utils.check_exist(file):
+        if not check_exist(file):
             print('Cannot find the WAVECAR file. Check the path:', file)
             self.success = False
         else: 
