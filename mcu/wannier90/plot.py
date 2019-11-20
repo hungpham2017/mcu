@@ -48,8 +48,11 @@ def plot_band(self, efermi=None, spin=0, save=False, band_color=['#007acc','#808
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111)
     yrange = (-50,50)
-    
+               
     # Plot the high symmetric kpoint grid
+    for kpt in range(sym_kpoint_coor.shape[0]):
+        ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
+                
     if label is not None and xlim == None:
         nkpts = len(label)
         assert nkpts == sym_kpoint_coor.shape[0]        # The numbers of label should be match with the # of coordiantes provided

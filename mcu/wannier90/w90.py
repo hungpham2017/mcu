@@ -99,14 +99,58 @@ class main:
         if cell == None: cell = self.cell
         cell_io.write_xsf(cell, filename) 
 
-############ Plotting #################                
-    def get_bandgap(self, efermi=None):
-        '''Get the bandgap'''
+############ Plotting ################# 
+    def get_efermi(self, num_vb):
+        '''E_fermi is assumed to be the valence band maximum. This is a reasonable estimation for insulators'''
         if self.band is None:
             self.w90.read_band()
             self.band = self.w90.band
-        else:
-            pass
+        VBM = self.band[:,:num_vb].max()
+        return VBM
+               
+    def get_bandgap(self, efermi=None):
+        '''Get the bandgap'''
+        assert efermi is not None, "you need to provide the Fermi energy or estimate it using the get_efermi function"
+            
+        if self.band is None:
+            self.w90.read_band()
+            self.band = self.w90.band
+        
+        CBM = None
+        nbands = self.band.shape[1]
+        for bandth in range(nbands):
+            shifted_band = self.band[:,bandth] - efermi
+            if (shifted_band > 0.0).all() == True:
+                CBM = self.band[:, bandth]
+                VBM = self.band[:, bandth -1]                
+                break
+            elif ((shifted_band < 0.0).any() == True) and ((shifted_band > 0.0).any() == True):
+                print("This is a metal")
+                break
+                
+        if CBM is not None:
+            vbm_idx = np.argmax(VBM)
+            cbm_idx = np.argmin(CBM)
+            bandgap = CBM[cbm_idx] - VBM[vbm_idx]
+            direct = False
+            if vbm_idx == cbm_idx: direct = True
+            
+            if direct == True: 
+                print('Direct bandgap   : %6.3f' % (bandgap))             
+            else:  
+                print('Indirect bandgap : %6.3f' % (bandgap))              
+                gap1 = CBM[vbm_idx] - VBM[vbm_idx]
+                gap2 = CBM[cbm_idx] - VBM[cbm_idx]
+                if gap1 < gap2: 
+                    direct_gap = gap1
+                else:
+                    direct_gap = gap2
+
+                    
+                print('Direct bandgap   : %6.3f' % (direct_gap))
+        
+        self.w90.kpath
+
  
     def _generate_band(self, efermi=0.0, spin=0):
         '''Processing/collecting the band data before the plotting function

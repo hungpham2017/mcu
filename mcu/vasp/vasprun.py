@@ -246,9 +246,9 @@ class main:
             direct = False
             if vbm_idx == cbm_idx: direct = True
             print('  E(VBM) = %7.4f with occ = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (bandedge[spin,vbm_idx,0,0], bandedge[spin,vbm_idx,0,1], 
-                                                            self.kpts[vbm_idx,0],self.kpts[vbm_idx,1],self.kpts[vbm_idx,2]))
+                                                            self.kpts[vbm_idx,0], self.kpts[vbm_idx,1], self.kpts[vbm_idx,2]))
             print('  E(CBM) = %7.4f with occ = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (bandedge[spin,cbm_idx,1,0], bandedge[spin,cbm_idx,1,1], 
-                                                            self.kpts[cbm_idx,0],self.kpts[cbm_idx,1],self.kpts[cbm_idx,2]))
+                                                            self.kpts[cbm_idx,0], self.kpts[cbm_idx,1], self.kpts[cbm_idx,2]))
             bandgap = bandedge[spin,cbm_idx,1,0] - bandedge[spin,vbm_idx,0,0] 
             self.bandgap.append(bandgap)  
             if direct == True: 
