@@ -135,6 +135,11 @@ class main:
             direct = False
             if vbm_idx == cbm_idx: direct = True
             
+            kpath_frac = self.w90.kpath_frac
+            print('E(VBM) = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (VBM[vbm_idx], 
+                                                            kpath_frac[vbm_idx,0], kpath_frac[vbm_idx,1], kpath_frac[vbm_idx,2]))
+            print('E(CBM) = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (CBM[cbm_idx], 
+                                                            kpath_frac[cbm_idx,0], kpath_frac[cbm_idx,1], kpath_frac[cbm_idx,2]))
             if direct == True: 
                 print('Direct bandgap   : %6.3f' % (bandgap))             
             else:  
@@ -148,11 +153,8 @@ class main:
 
                     
                 print('Direct bandgap   : %6.3f' % (direct_gap))
-        
-        self.w90.kpath
-
  
-    def _generate_band(self, efermi=0.0, spin=0):
+    def _generate_band(self, efermi=0.0, spin=0, SCF_band=True):
         '''Processing/collecting the band data before the plotting function
            TODO: spin != 0 case will be updated later
         '''
@@ -161,24 +163,23 @@ class main:
         assert self.w90.klabel is not None, "Cannot find the label for high symmetric k-point in *.win file"
         
         band = self.w90.band - efermi
-        
         klabel = self.w90.klabel
         label = []
-        coor_kpts = [] 
+        frac_kpts = [] 
         for kpt in klabel:
             label.append(kpt[0])
-            coor_kpts.append(kpt[1])
+            frac_kpts.append(kpt[1])
             
         a = self.cell[0]                        # row vectors
         b = 2*np.pi*np.linalg.inv(a).T     # row vectors
-        coor_kpts = np.asarray(coor_kpts)
-        abs_kpts = coor_kpts.dot(b)   
+        frac_kpts = np.asarray(frac_kpts)
+        abs_kpts = frac_kpts.dot(b)   
         temp_kpts = np.empty_like(abs_kpts)
         temp_kpts[0] = abs_kpts[0]
         temp_kpts[1:] = abs_kpts[:-1] 
         sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
-
-        return band, self.w90.kpath, sym_kpoint_coor, label
+        
+        return band, self.w90.kpath_abs, sym_kpoint_coor, label
         
     def plot_band(self, efermi=0.0, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
