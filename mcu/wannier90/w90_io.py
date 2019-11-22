@@ -102,14 +102,10 @@ class io:
                 self.klabel = high_sym_kpoints
             
         else:
-            print('Cannot find the *.win file. Check the path:', seedname + '.win')
-        
-    def read_wout(self, seedname=None):  
-        '''Read the seedname.win file'''
-        if seedname is None: seedname = self.seedname
+            print('Cannot find the *.win file. Check the path:', seedname + '.win')       
         
     def read_band(self, seedname=None):  
-        '''Read the seedname_band.dat file'''
+        '''Read the seedname_band.dat and seedname_band.kpt file'''
         if seedname is None: seedname = self.seedname
         if check_exist(seedname + '_band.dat'):
             with open(seedname + '_band.dat', "r") as file:
@@ -131,12 +127,40 @@ class io:
                     band.append(lines[line*nkpts + point].split())
                 bands.append(band[:-1])
             bands = np.asarray(bands, dtype=np.float64)
-            self.kpath = bands[0][:,0]
+            self.kpath_abs = bands[0][:,0]
             self.band = bands[:,:,1].T
+            
+            #Get fractional kpath
+            with open(seedname + '_band.kpt', "r") as file:
+                lines = file.read().splitlines()
+
+            kpath_frac = []
+            for i in range(1, nkpts):
+                kpath_frac.append(lines[i].split()[:-1])
+            self.kpath_frac = np.asarray(kpath_frac, dtype=np.float64)
                 
         else:
             print('Cannot find the *_band.dat file. Check the path:', seedname + '_band.dat')
-        
+            
+    def read_eig(self, seedname=None):  
+        '''Read the seedname_band.dat and seedname.eig file'''
+        if seedname is None: seedname = self.seedname
+        if check_exist(seedname + '.eig'):
+            with open(seedname + '.eig', "r") as file:
+                lines = file.read().splitlines()
+            
+            eig = []
+            nbands, nkpts = np.int64(lines[-1].split()[:2])
+            for line in lines:
+                eig.append(line.split()[-1])
+            self.eig = np.asarray(eig, dtype=np.float64).reshape(nkpts, nbands)
+        else:
+            print('Cannot find the *.eig file. Check the path:', seedname + '.eig') 
+            
+    def read_wout(self, seedname=None):  
+        '''Read the seedname.win file'''
+        if seedname is None: seedname = self.seedname
+        #TODO: will decide what useful information to be read
 
 
 
