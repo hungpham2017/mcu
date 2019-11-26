@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
       
       
-def plot_band(self, efermi=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
                 figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
     '''Plot band structure
        
@@ -40,7 +40,7 @@ def plot_band(self, efermi=None, spin=0, save=False, band_color=['#007acc','#808
     assert isinstance(band_color,list)
     assert len(band_color) == 3
     
-    band, path, sym_kpoint_coor, label = self._generate_band(efermi, spin)  
+    band, path, sym_kpoint_coor, label = self._generate_band(efermi=efermi, spin=spin, label=label)  
 
     ##----------------------------------------------------------
     ##Plotting:        

@@ -20,7 +20,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import os
 import numpy as np
-from mcu.wannier90 import w90_io
+from mcu.cp2k import cp2k_io
 from mcu.utils import plot
 from mcu.cell import spg_wrapper, cell_io
 from mcu.cell import utils as cell_utils
@@ -28,17 +28,19 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
         
 class main:
-    def __init__(self,  seedname="wannier90"):
+    def __init__(self,  outfile="outfile.out", bsfile=None):
         '''
             path        : the project directory
             vaspruns    : a str or a list of string as names for *.xml files
             outcars     : a str or a list of string as names for OUTCAR files
         '''
-        self.w90_io = w90_io.io(seedname)
-        self.w90_io.read_win()
-        self.cell = self.w90_io.cell
-        self.atom = self.w90_io.atom
-        self.kpts = self.w90_io.kpts
+        self.bsfile = bsfile
+        self.cp2k_io = cp2k_io.io(outfile)
+        self.cp2k_io.read_ouput()
+        self.cell = self.cp2k_io.cell
+        self.atom = self.cp2k_io.atom
+        self.kpts = self.cp2k_io.kpts
+        self.efermi = self.cp2k_io.efermi
         self.band = None
 
 ############ Symmetry #################      
@@ -101,90 +103,90 @@ class main:
         cell_io.write_xsf(cell, filename) 
 
 ############ Plotting ################# 
-    def get_efermi(self, num_vb):
-        '''E_fermi is assumed to be the valence band maximum. This is a reasonable estimation for insulators'''
-        if self.band is None:
-            self.w90_io.read_band()
-            self.band = self.w90_io.band
-        VBM = self.band[:,:num_vb].max()
-        return VBM
-               
-    def get_bandgap(self, efermi=None):
-        '''Get the bandgap'''
-        assert efermi is not None, "you need to provide the Fermi energy or estimate it using the get_efermi function"
-            
-        if self.band is None:
-            self.w90_io.read_band()
-            self.band = self.w90_io.band
-        
-        CBM = None
-        nbands = self.band.shape[1]
-        for bandth in range(nbands):
-            shifted_band = self.band[:,bandth] - efermi
-            if (shifted_band > 0.0).all() == True:
-                CBM = self.band[:, bandth]
-                VBM = self.band[:, bandth -1]                
-                break
-            elif ((shifted_band < 0.0).any() == True) and ((shifted_band > 0.0).any() == True):
-                print("This is a metal")
-                break
-                
-        if CBM is not None:
-            vbm_idx = np.argmax(VBM)
-            cbm_idx = np.argmin(CBM)
-            bandgap = CBM[cbm_idx] - VBM[vbm_idx]
-            direct = False
-            if vbm_idx == cbm_idx: direct = True
-            
-            kpath_frac = self.w90_io.kpath_frac
-            print('E(VBM) = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (VBM[vbm_idx], 
-                                                            kpath_frac[vbm_idx,0], kpath_frac[vbm_idx,1], kpath_frac[vbm_idx,2]))
-            print('E(CBM) = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (CBM[cbm_idx], 
-                                                            kpath_frac[cbm_idx,0], kpath_frac[cbm_idx,1], kpath_frac[cbm_idx,2]))
-            if direct == True: 
-                print('Direct bandgap   : %6.3f' % (bandgap))             
-            else:  
-                print('Indirect bandgap : %6.3f' % (bandgap))              
-                gap1 = CBM[vbm_idx] - VBM[vbm_idx]
-                gap2 = CBM[cbm_idx] - VBM[cbm_idx]
-                if gap1 < gap2: 
-                    direct_gap = gap1
-                else:
-                    direct_gap = gap2
+    def get_efermi(self):
+        '''Return E Fermi'''
+        return self.efermi
 
+    def get_bandgap(self, set_block=-1, efermi=None):
+        '''Get the bandgap'''
+        if efermi is None: efermi = self.efermi
+
+        if self.band is None:
+            self.cp2k_io.read_band(self.bsfile)
+            self.band = self.cp2k_io.band[set_block]
+        
+        nspin, nkpts, nbands = self.band.shape
+        
+        for spin in range(nspin):
+            print('Spin:', spin)  
+            CBM = None
+            for bandth in range(nbands):
+                shifted_band = self.band[spin,:,bandth] - efermi
+                if (shifted_band > 0.0).all() == True:
+                    CBM = self.band[spin,:, bandth]
+                    VBM = self.band[spin,:, bandth -1]                
+                    break
+                elif ((shifted_band < 0.0).any() == True) and ((shifted_band > 0.0).any() == True):
+                    print("This is a metal")
+                    break
                     
-                print('Direct bandgap   : %6.3f' % (direct_gap))
+            if CBM is not None:
+                vbm_idx = np.argmax(VBM)
+                cbm_idx = np.argmin(CBM)
+                bandgap = CBM[cbm_idx] - VBM[vbm_idx]
+                direct = False
+                if vbm_idx == cbm_idx: direct = True
+                
+                kpath_frac = self.cp2k_io.kpath_frac[set_block]
+                print('  E(VBM) = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (VBM[vbm_idx], 
+                                                                kpath_frac[vbm_idx,0], kpath_frac[vbm_idx,1], kpath_frac[vbm_idx,2]))
+                print('  E(CBM) = %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (CBM[cbm_idx], 
+                                                                kpath_frac[cbm_idx,0], kpath_frac[cbm_idx,1], kpath_frac[cbm_idx,2]))
+                if direct == True: 
+                    print('  Direct bandgap   : %6.3f' % (bandgap))             
+                else:  
+                    print('  Indirect bandgap : %6.3f' % (bandgap))              
+                    gap1 = CBM[vbm_idx] - VBM[vbm_idx]
+                    gap2 = CBM[cbm_idx] - VBM[cbm_idx]
+                    if gap1 < gap2: 
+                        direct_gap = gap1
+                    else:
+                        direct_gap = gap2
+                    print('  Direct bandgap   : %6.3f' % (direct_gap))
  
-    def _generate_band(self, efermi=0.0, spin=0, label=None):
+    def _generate_band(self, set_block=-1, efermi=0.0, spin=0, label=None):
         '''Processing/collecting the band data before the plotting function
            TODO: spin != 0 case will be updated later
         '''
         if self.band is None:
-            self.w90_io.read_band()
-            self.band = self.w90_io.band
+            self.cp2k_io.read_band(self.bsfile)
+            self.band = self.cp2k_io.band[set_block]
             
-        assert self.w90_io.klabel is not None, "Cannot find the label for high symmetric k-point in *.win file"
         
-        band = self.w90_io.band - efermi
-        klabel = self.w90_io.klabel
-        label = []
-        frac_kpts = [] 
-        for kpt in klabel:
-            label.append(kpt[0])
-            frac_kpts.append(kpt[1])
+        # Find absolute kpts
+        
+        kpath_frac = np.asarray(self.cp2k_io.kpath_frac[set_block])
+        lattice = self.cell[0]
+        b =  2*np.pi*np.linalg.inv(lattice).T               # Get the reciprocal lattice
+        abs_kpts = kpath_frac.dot(b)                  # From fractional to absolute in A^-1 unit
+        temp_kpts = np.empty_like(abs_kpts)
+        temp_kpts[0] = abs_kpts[0]
+        temp_kpts[1:] = abs_kpts[:-1] 
+        path = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
             
+        band = self.cp2k_io.band[spin] - efermi
         a = self.cell[0]                        # row vectors
         b = 2*np.pi*np.linalg.inv(a).T     # row vectors
-        frac_kpts = np.asarray(frac_kpts)
+        frac_kpts = np.asarray(self.cp2k_io.klabel[set_block])
         abs_kpts = frac_kpts.dot(b)   
         temp_kpts = np.empty_like(abs_kpts)
         temp_kpts[0] = abs_kpts[0]
         temp_kpts[1:] = abs_kpts[:-1] 
         sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
         
-        return band, self.w90_io.kpath_abs, sym_kpoint_coor, label
+        return band, path, sym_kpoint_coor, label
         
-    def plot_band(self, efermi=0.0, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+    def plot_band(self, set_block=-1, efermi=0.0, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
@@ -199,5 +201,5 @@ class main:
         assert isinstance(band_color,list)
         assert len(band_color) == 3
         plot.plot_band(self, efermi=efermi, spin=spin, save=save, band_color=band_color,
-                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
+                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
         

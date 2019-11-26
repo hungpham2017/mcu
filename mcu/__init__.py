@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __version__ = '0.2'
-from . import vasp, cell, wannier90
+from . import vasp, cell, wannier90, cp2k
 
 # Quick shortcuts to VASP tools
 VASP = vasp.vasprun.main
@@ -19,3 +19,6 @@ CELL = cell.main.CELL
 
 # Quick shortcuts to wannier90 tools
 W90 = wannier90.w90.main
+
+# Quick shortcuts to cp2k tools
+CP2K = cp2k.cp2k.main
