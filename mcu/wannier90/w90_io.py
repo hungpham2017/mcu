@@ -69,7 +69,8 @@ class io:
         
         if seedname is None: seedname = self.seedname
         if check_exist(seedname + '.win'):
-            win = open(seedname + '.win', "r").readlines() 
+            with open(seedname + '.win', "r") as file:
+                win = file.read().splitlines()
 
             # Cell information
             lattice = copy_block(win, 'Unit_Cell_Cart', convert_to_float=True)

@@ -402,7 +402,7 @@ class main:
 
         if label is not None and xlim == None:
             nkpts = len(label)
-            assert nkpts == sym_kpoint_coor.shape[0]        # The numbers of label should be match with the # of coordiantes provided
+            assert nkpts == sym_kpoint_coor.shape[0]        # The numbers of label should be match with the number of high-symmetric k provided
             for kpt in range(nkpts):   
                 point = label[kpt]
                 if point == 'G': point = r'$\Gamma$'
