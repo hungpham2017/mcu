@@ -147,12 +147,7 @@ class main:
                 print('Indirect bandgap : %6.3f' % (bandgap))              
                 gap1 = CBM[vbm_idx] - VBM[vbm_idx]
                 gap2 = CBM[cbm_idx] - VBM[cbm_idx]
-                if gap1 < gap2: 
-                    direct_gap = gap1
-                else:
-                    direct_gap = gap2
-
-                    
+                direct_gap = min(gap1, gap2)
                 print('Direct bandgap   : %6.3f' % (direct_gap))
  
     def _generate_band(self, efermi=0.0, spin=0, label=None):

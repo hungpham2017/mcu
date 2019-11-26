@@ -103,9 +103,15 @@ class main:
         cell_io.write_xsf(cell, filename) 
 
 ############ Plotting ################# 
-    def get_efermi(self):
-        '''Return E Fermi'''
-        return self.efermi
+    def get_efermi(self, num_vb, set_block=-1):
+        '''E_fermi is assumed to be the valence band maximum. This is a reasonable estimation for insulators'''
+        if self.band is None:
+            self.cp2k_io.read_band()
+            self.band = self.cp2k_io.band[set_block]
+        
+        nspin, nkpts, nbands = self.band.shape
+        VBM = self.band[:,:,:num_vb].max()
+        return VBM
 
     def get_bandgap(self, set_block=-1, efermi=None):
         '''Get the bandgap'''
@@ -116,7 +122,6 @@ class main:
             self.band = self.cp2k_io.band[set_block]
         
         nspin, nkpts, nbands = self.band.shape
-        
         for spin in range(nspin):
             print('Spin:', spin)  
             CBM = None
@@ -148,10 +153,7 @@ class main:
                     print('  Indirect bandgap : %6.3f' % (bandgap))              
                     gap1 = CBM[vbm_idx] - VBM[vbm_idx]
                     gap2 = CBM[cbm_idx] - VBM[cbm_idx]
-                    if gap1 < gap2: 
-                        direct_gap = gap1
-                    else:
-                        direct_gap = gap2
+                    direct_gap = min(gap1, gap2)
                     print('  Direct bandgap   : %6.3f' % (direct_gap))
  
     def _generate_band(self, set_block=-1, efermi=0.0, spin=0, label=None):
@@ -174,7 +176,7 @@ class main:
         temp_kpts[1:] = abs_kpts[:-1] 
         path = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
             
-        band = self.cp2k_io.band[spin] - efermi
+        band = self.band[spin] - efermi
         a = self.cell[0]                        # row vectors
         b = 2*np.pi*np.linalg.inv(a).T     # row vectors
         frac_kpts = np.asarray(self.cp2k_io.klabel[set_block])
