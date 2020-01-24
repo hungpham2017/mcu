@@ -803,16 +803,22 @@ class main:
             plt.xlabel('k ' + r'($\AA^{-1}$)', size=fontsize+4)
         ax.xaxis.set_label_coords(0.5, -0.08) 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> master
         ax.legend()
         plt.ylabel('Energy (eV)', size=fontsize+4)        
         plt.ylim(ylim)
         plt.tight_layout()
         
+<<<<<<< HEAD
 =======
         plt.ylabel('Energy (eV)', size=fontsize+4)        
         plt.ylim(ylim)
         plt.tight_layout()
 >>>>>>> 1134b73f4259e8cdf54e0f1cd33644175367055b
+=======
+>>>>>>> master
         if save == True: 
             fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
         else:
