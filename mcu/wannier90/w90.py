@@ -150,13 +150,14 @@ class main:
                 direct_gap = min(gap1, gap2)
                 print('Direct bandgap   : %6.3f' % (direct_gap))
  
-    def _generate_band(self, efermi=0.0, spin=0, label=None):
+    def _generate_band(self, efermi=None, spin=0, label=None):
         '''Processing/collecting the band data before the plotting function
            TODO: spin != 0 case will be updated later
         '''
         if self.band is None:
             self.w90_io.read_band()
             self.band = self.w90_io.band
+        if efermi is None: efermi = 0.0
             
         assert self.w90_io.klabel is not None, "Cannot find the label for high symmetric k-point in *.win file"
         
@@ -177,9 +178,9 @@ class main:
         temp_kpts[1:] = abs_kpts[:-1] 
         sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
         
-        return band, self.w90_io.kpath_abs, sym_kpoint_coor, label
+        return band, self.w90_io.proj_kpath, sym_kpoint_coor, label
         
-    def plot_band(self, efermi=0.0, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+    def plot_band(self, efermi=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            

@@ -271,11 +271,11 @@ class main:
         '''
         
         # Get the fermi level
-        if efermi == None: efermi = self.efermi        
+        if efermi is None: efermi = self.efermi        
         
         sym_kpoint_coor = None
         band = None
-        path = None
+        proj_kpath = None            #projected kpath: kpath coordinated projected to 1D
         conventional = False
             
         if isinstance(vasprun,mcu.vasp.vasp_io.vasprun) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
@@ -295,17 +295,17 @@ class main:
             temp_kpts = np.empty_like(abs_kpts)
             temp_kpts[0] = abs_kpts[0]
             temp_kpts[1:] = abs_kpts[:-1] 
-            path = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
+            proj_kpath = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
             band = band - efermi               # Efermi is set at 0 eV
             
             highsym_kpt = vasprun.kpoints['points']
             nkpts = highsym_kpt.shape[0]
             sym_kpoint_coor = [0.0]
             for kpt in range(nkpts-2):
-                idx = ((path.shape[1] + nkpts - 2)//(nkpts-1) - 1) * (kpt+1)
-                coor = path[0,idx]         
+                idx = ((proj_kpath.shape[1] + nkpts - 2)//(nkpts-1) - 1) * (kpt+1)
+                coor = proj_kpath[0,idx]         
                 sym_kpoint_coor.append(coor)
-            sym_kpoint_coor.append(1.0*path.max())   
+            sym_kpoint_coor.append(1.0*proj_kpath.max())   
             sym_kpoint_coor = np.asarray(sym_kpoint_coor)
                      
         else:
@@ -348,7 +348,7 @@ class main:
             temp_kpts = np.empty_like(abs_kpts)
             temp_kpts[0] = abs_kpts[0]
             temp_kpts[1:] = abs_kpts[:-1] 
-            path = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
+            proj_kpath = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
 
             # Find absolute coordinates for high symmetric kpoints  
             if label is not None:
@@ -366,7 +366,7 @@ class main:
                 temp_kpts[1:] = abs_kpts[:-1] 
                 sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
         
-        return band, path, sym_kpoint_coor, label, conventional
+        return band, proj_kpath, sym_kpoint_coor, label, conventional
                 
     def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
@@ -386,7 +386,7 @@ class main:
         assert isinstance(band_color,list)
         assert len(band_color) == 3
         
-        band, path, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label)  
+        band, proj_kpath, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label)  
 
         ##----------------------------------------------------------
         ##Plotting:        
@@ -406,18 +406,18 @@ class main:
             for kpt in range(nkpts):   
                 point = label[kpt]
                 if point == 'G': point = r'$\Gamma$'
-                ax.text(sym_kpoint_coor[kpt]/path.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
+                ax.text(sym_kpoint_coor[kpt]/proj_kpath.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
                         color='black', fontsize=fontsize)    
 
         # Plot bands            
-        ax.plot([0,path.max()],[0,0],color=band_color[2],linewidth=1.0, dashes=[6,3])       # Fermi level
+        ax.plot([0,proj_kpath.max()],[0,0],color=band_color[2],linewidth=1.0, dashes=[6,3])       # Fermi level
         for ith in range(band.shape[1]):
-            ax.plot(path.T,band[:,ith],color=band_color[0],linewidth=1.0)    
+            ax.plot(proj_kpath.T,band[:,ith],color=band_color[0],linewidth=1.0)    
              
         # Graph adjustments             
         ax.tick_params(labelsize=fontsize)
         if xlim == None:
-            plt.xlim([0,path.max()])
+            plt.xlim([0,proj_kpath.max()])
             plt.xticks([])
             plt.xlabel('k', size=fontsize+4)
         else:
@@ -691,7 +691,7 @@ class main:
             band_idx[0] = band_idx[0] -1
             band_idx[1] = band_idx[1] -1     
         
-        band, path, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label)  
+        band, proj_kpath, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label)  
         pband = self._generate_pband(self.vasprun, spin, style, lm)
         
         ##----------------------------------------------------------
@@ -715,17 +715,17 @@ class main:
             for kpt in range(nkpts):   
                 point = label[kpt]
                 if point == 'G': point = r'$\Gamma$'
-                ax.text(sym_kpoint_coor[kpt]/path.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
+                ax.text(sym_kpoint_coor[kpt]/proj_kpath.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
                         color='black', fontsize=fontsize)     
             
         # Plot bands            
-        ax.plot([0, path.max()], [0,0], color=band_color[2], linewidth=1.0, dashes=[6,3])
+        ax.plot([0, proj_kpath.max()], [0,0], color=band_color[2], linewidth=1.0, dashes=[6,3])
         for ith in range(band.shape[1]):
-            ax.plot(path.T, band[:,ith], color=band_color[0],linewidth=1.0)    
+            ax.plot(proj_kpath.T, band[:,ith], color=band_color[0],linewidth=1.0)    
              
         # Plot pbands 
         color_list = ['r','g','b','y','m','c']
-        path = np.array(path).flatten() 
+        proj_kpath = np.array(proj_kpath).flatten() 
         if style == 1 or style == 2:
             pband = 200 * scale * np.power(pband,2)     # The radius of the marker ~ the percent 
             
@@ -766,25 +766,25 @@ class main:
             # Actual plotting
             for lm in range(len(pband)):
                 for ith in range(band_idx[0],band_idx[1]):
-                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm])
+                    ax.scatter(proj_kpath, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm])
                 ith = band_idx[1]
                 if legend == None:
-                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm])
+                    ax.scatter(proj_kpath, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm])
                 else:
-                    ax.scatter(path, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm],label=legend[lm])                    
+                    ax.scatter(proj_kpath, band[:,ith], s=pband[lm][:,ith], facecolors=fcolors[lm], edgecolors=color[lm], alpha=alpha, marker=marker[lm],label=legend[lm])                    
                 
             if legend != None: 
                 lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
                 for i in range(len(pband)): lgnd.legendHandles[i]._sizes = [legend_size*60]
                 
         elif style == 3:
-            path = np.array(path).flatten()
+            proj_kpath = np.array(proj_kpath).flatten()
             if marker == None: 
                 marker = 'o'
             else:
                 assert isinstance(marker,str)
             for ith in range(band_idx[0],band_idx[1]+1):
-                plt.scatter(path, band[:,ith], c=pband[:,ith], s=50*scale, vmin=0.0, vmax=1., cmap=cmap, marker=marker, edgecolor=edgecolor) 
+                plt.scatter(proj_kpath, band[:,ith], c=pband[:,ith], s=50*scale, vmin=0.0, vmax=1., cmap=cmap, marker=marker, edgecolor=edgecolor) 
             cbar = plt.colorbar(ticks=[])
             cbar.outline.set_linewidth(border)
         
@@ -795,36 +795,23 @@ class main:
         ax.spines['bottom'].set_linewidth(border)
         ax.spines['left'].set_linewidth(border)
         if xlim == None:
-            plt.xlim([0,path.max()])
+            plt.xlim([0,proj_kpath.max()])
             plt.xticks([])
             plt.xlabel('k', size=fontsize+4)
         else:
             plt.xlim(xlim)
             plt.xlabel('k ' + r'($\AA^{-1}$)', size=fontsize+4)
         ax.xaxis.set_label_coords(0.5, -0.08) 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> master
         ax.legend()
         plt.ylabel('Energy (eV)', size=fontsize+4)        
         plt.ylim(ylim)
         plt.tight_layout()
-        
-<<<<<<< HEAD
-=======
         plt.ylabel('Energy (eV)', size=fontsize+4)        
         plt.ylim(ylim)
         plt.tight_layout()
->>>>>>> 1134b73f4259e8cdf54e0f1cd33644175367055b
-=======
->>>>>>> master
-=======
         plt.ylabel('Energy (eV)', size=fontsize+4)        
         plt.ylim(ylim)
         plt.tight_layout()
->>>>>>> 1134b73f4259e8cdf54e0f1cd33644175367055b
         if save == True: 
             fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
         else:
@@ -1258,7 +1245,7 @@ class main:
             band_idx[0] = band_idx[0] -1
             band_idx[1] = band_idx[1] -1            
             
-        band, path, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label=None)  
+        band, proj_kpath, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label=None)  
         
         # Get X, Y
         kpoint = vasp_io.KPOINTS()

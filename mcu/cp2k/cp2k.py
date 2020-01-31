@@ -30,9 +30,7 @@ import matplotlib.pyplot as plt
 class main:
     def __init__(self,  outfile="outfile.out", bsfile=None):
         '''
-            path        : the project directory
-            vaspruns    : a str or a list of string as names for *.xml files
-            outcars     : a str or a list of string as names for OUTCAR files
+            Initiate stuff, needed to write ...
         '''
         self.bsfile = bsfile
         self.cp2k_io = cp2k_io.io(outfile)
@@ -179,7 +177,7 @@ class main:
         band = self.band[spin] - efermi
         a = self.cell[0]                        # row vectors
         b = 2*np.pi*np.linalg.inv(a).T     # row vectors
-        frac_kpts = np.asarray(self.cp2k_io.klabel[set_block])
+        frac_kpts = np.asarray(self.cp2k_io.symm_k_coors[set_block])
         abs_kpts = frac_kpts.dot(b)   
         temp_kpts = np.empty_like(abs_kpts)
         temp_kpts[0] = abs_kpts[0]

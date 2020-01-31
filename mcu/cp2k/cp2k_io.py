@@ -154,8 +154,7 @@ class io:
         
         if check_exist(filename):
             with open(filename, "r") as bs_file:
-                klabel = []
-                band = []
+                symm_k_coor = []
                 kpath_frac = []
                 for kpoint_set in SET_MATCH.finditer(bs_file.read()):
                     nkpts = np.int64(kpoint_set.groupdict()['totalpoints'])
@@ -165,7 +164,7 @@ class io:
                         point_dict = point.groupdict()
                         sym_kpoint_coor.append([point_dict['a'], point_dict['b'], point_dict['c']])
                         
-                    klabel.append(np.float64(sym_kpoint_coor))
+                    symm_k_coor.append(np.float64(sym_kpoint_coor))
                     kpts = []
                     band_alpha = []
                     band_beta = []
@@ -178,17 +177,18 @@ class io:
                             kpt = [point_dict['a'], point_dict['b'], point_dict['c']]
                             kpts.append(kpt)
                         else:
+                            spin_polarized = True
                             energies = np.float64(point_dict['values'].split())
                             band_beta.append(energies)  
                         
                     kpath_frac.append(np.float64(kpts))
-                    if band_beta == []:
-                        band.append(np.float64([band_alpha]))
-                    else:
-                        band.append(np.float64([band_alpha, band_beta]))   
+                    band = [band_alpha]
+                    if spin_polarized == True: band.append(band_beta)   
+                    band = np.float64(band)
+                    
 
                 self.band = band
-                self.klabel = klabel
+                self.symm_k_coor = symm_k_coor
                 self.kpath_frac = kpath_frac               
         else:
             print('Cannot find the band structure (.bs) file. Check the path:', filename)  
