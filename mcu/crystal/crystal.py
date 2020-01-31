@@ -35,9 +35,11 @@ class main:
         
 
 ############ Plotting ################# 
-    def get_band(self):
+    def get_band(self, phonon=False, gamma_correct=False, threshold=8.06554):
         '''Make a band from from 
            NOTE: the proj_kpath is computed from the dk and nkp. Due to the round out error in f25, the computed high symmetric k-point coordinates won't be exactly the same as values obtained from *.BAND file.
+           
+           if phonon == True: the phonon band is read. Three small negative acoustic modes at Gamma can be removed by using the gamma_correct keyword and threshold 1 meV = 8.06554 cm^-1  
         '''
         data = crystal_io.read_f25(self.seedname + ".f25")
         temp = []
@@ -54,22 +56,32 @@ class main:
                 shift = path[-1] + dk
                 sym_kpoint_coor.append(path[-1])
         
-        if ihferm == 0:
+        if ihferm == 0 or ihferm == 2:
             band = np.float64([np.vstack(temp)])
             proj_kpath = np.hstack(proj_kpath)
-        elif ihferm == 1:
+        elif ihferm == 1 or ihferm == 3:
             nblock = len(temp) // 2
             band_up = np.vstack(temp[:nblock])            
             band_down = np.vstack(temp[nblock:])  
             band = np.float64([band_up, band_down])
             proj_kpath = np.hstack(proj_kpath[:nblock])
-        else:
-            assert False, "ihferm must be 0 or 1, others have not been implemented"
         sym_kpoint_coor = np.float64(sym_kpoint_coor)
-        band = const.AUTOEV * band
-        efermi = const.AUTOEV * efermi
-        
-        return sym_kpoint_coor, proj_kpath, band, efermi
+        if phonon == True:
+            if gamma_correct == True:
+                # Should be checked first before using the correction to make sure it is really acoustic phonon modes
+                nspin, nkpts, nband = band.shape
+                band = band.flatten()
+                imag_mode_idx = band < 0.0
+                imag_mode = band[imag_mode_idx]
+                imag_mode_idx2 = imag_mode > -threshold
+                imag_mode[imag_mode_idx2] = 0.0
+                band[imag_mode_idx] = imag_mode
+                band = band.reshape(nspin, nkpts, nband)
+        else:
+            band = const.AUTOEV * band
+            efermi = const.AUTOEV * efermi
+            
+        return band, proj_kpath, sym_kpoint_coor, efermi
 
     def get_bandgap(self, efermi=None):
         '''Get the bandgap'''
@@ -117,13 +129,13 @@ class main:
     def _generate_band(self, efermi=None, spin=0, label=None):
         '''Processing/collecting the band data before the plotting function
         '''
-        sym_kpoint_coor, proj_kpath, band, efermi_ = self.get_band()
+        band, proj_kpath, sym_kpoint_coor, efermi_ = self.get_band()
         if efermi is None: efermi = efermi_  
         band = band[spin] - efermi
         
         return band, proj_kpath, sym_kpoint_coor, label
         
-    def plot_band(self, set_block=-1, efermi=None, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+    def plot_band(self, efermi=None, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
@@ -138,5 +150,34 @@ class main:
         assert isinstance(band_color,list)
         assert len(band_color) == 3
         plot.plot_band(self, efermi=efermi, spin=spin, save=save, band_color=band_color,
+                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
+                
+    def _generate_phononband(self, unit="CM", gamma_correct=False, threshold=8.06554, spin=0, label=None):
+        '''Processing/collecting the phnon band (cm^-1) data before the plotting function
+           Unit: CM = CM^-1, THZ = THz, MEV = meV
+        '''
+        band, proj_kpath, sym_kpoint_coor, efermi_ = self.get_band(phonon=True, gamma_correct=gamma_correct, threshold=threshold)        
+        if unit.lower() == "thz":
+            band = const.CMTOTHZ * band
+        elif unit.lower() == "mev":
+            band = const.CMTOMEV * band
+            
+        return band[spin], proj_kpath, sym_kpoint_coor, label
+        
+    def plot_phononband(self, unit="CM", gamma_correct=False, threshold=8.06554, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+                    figsize=(6,6), figname='PHONONBAND', xlim=None, ylim=None, fontsize=18, dpi=600, format='png'):
+        '''Plot band structure
+           
+            Attribute:
+                efermi          : a Fermi level or a list of Fermi levels
+                spin            : 0  for spin unpolarized and LSORBIT = .TRUE.
+                                  0 or 1 for spin polarized
+                color           : a list of three color codes for band curves, high symmetric kpoint grid, and Fermi level
+                                  
+                                  
+        '''
+        assert isinstance(band_color,list)
+        assert len(band_color) == 3
+        plot.plot_phononband(self, unit=unit, gamma_correct=gamma_correct, threshold=threshold, spin=spin, save=save, band_color=band_color,
                 figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
         
