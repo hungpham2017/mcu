@@ -54,7 +54,7 @@ def write_poscar(cell, filename=None):
             f.write('   %15.10f %15.10f %15.10f\n' % (atom[0],atom[1],atom[2]))   
 
 def write_xsf(cell, filename=None):
-    if filename == None: filename = 'mcu'
+    if filename == None: filename = 'structure_mcu'
     comment = misc.date()
     lattice = np.asarray(cell[0])
     positions = np.asarray(cell[1])
@@ -77,17 +77,15 @@ def write_xsf(cell, filename=None):
         for atom in range(natom):
             f.write(' %s  %15.10f  %15.10f  %15.10f\n' % (symbol[atom], abs_positions[atom][0], abs_positions[atom][1], abs_positions[atom][2]))          
       
-def write_cif(cell, spacegroup, equi_atoms, symopt, filename=None):
-    if filename == None: filename = 'mcu'
+def write_cif(cell, space_group, symopt, filename=None):
+    if filename == None: filename = 'structure_mcu'
     comment = misc.date()
-    lattice = np.asarray(cell[0])
-    lattice = cell_utils.convert_lattice(lattice)   
+    lattice_mat = np.asarray(cell[0])
+    lattice = cell_utils.convert_lattice(lattice_mat)   
     positions = np.asarray(cell[1])
     atoms = np.asarray(cell[2])
-    new_atm = [atoms[atm] for atm in np.unique(equi_atoms)]
-    new_pos = [positions[atm] for atm in np.unique(equi_atoms)]
-    natom = len(new_atm)
-    symbol = cell_utils.convert_atomtype(new_atm)
+    natom = len(atoms)
+    symbol = cell_utils.convert_atomtype(atoms)
     nsymopt = len(symopt)
     
     with open(filename + '.cif', 'w') as f:
@@ -100,8 +98,8 @@ def write_cif(cell, spacegroup, equi_atoms, symopt, filename=None):
         f.write('_cell_angle_beta      %15.10f\n' % (lattice[4])) 
         f.write('_cell_angle_gamma     %15.10f\n' % (lattice[5])) 
         f.write('\n')  
-        f.write("_symmetry_space_group_name_H-M     '%s'\n" % (spacegroup[1]))
-        f.write('_symmetry_Int_Tables_number        %s\n' % (spacegroup[0]))
+        f.write("_symmetry_space_group_name_H-M     '%s'\n" % (str(space_group[1])))
+        f.write('_symmetry_Int_Tables_number        %s\n' % (space_group[0]))
         f.write('loop_\n')        
         f.write('_symmetry_equiv_pos_as_xyz\n') 
         for i in range(nsymopt):
@@ -115,7 +113,7 @@ def write_cif(cell, spacegroup, equi_atoms, symopt, filename=None):
         f.write('_atom_site_fract_y\n')
         f.write('_atom_site_fract_z\n')        
         for atom in range(natom):
-            f.write('   %s   %s   %15.10f   %15.10f   %15.10f\n' % (symbol[atom], symbol[atom], new_pos[atom][0], new_pos[atom][1], new_pos[atom][2]))     
+            f.write('   %s   %s   %15.10f   %15.10f   %15.10f\n' % (symbol[atom], symbol[atom], positions[atom][0], positions[atom][1], positions[atom][2]))     
 
             
 ############### Working with CIF file #########################
@@ -130,18 +128,18 @@ class cif:
             print('Cannot find any cif file in the current directory', file)
         else:
             cif_raw = open(file, "r").readlines()
-            self.cif = self.refine_cif(cif_raw)
+            self._cif_data = self.refine_cif(cif_raw)
             self.cell = self.make_cell()
 
     # def write_cif(self, filename='mcu'):
         # '''Write a P1 cif file'''
         # print("Exporting a P1 cif file, the original symmetry is discarded")
-        # spacegroup = ['1','P1']
+        # space_group = ['1','P1']
         # equi_atoms = np.arange(len(self.cell[2]))
         # symopt = spg_wrapper.get_symmetry_from_database(1)
         # rotations, translations = symopt['rotations'], symopt['translations']
         # symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        # write_cif(self.cell, spacegroup, equi_atoms, symopt, filename) 
+        # write_cif(self.cell, space_group, equi_atoms, symopt, filename) 
         
     def make_cell(self):
         '''Read cell information from cif file and return a cell spglib object'''
@@ -152,8 +150,8 @@ class cif:
         alpha = self.extract_line('_cell_angle_alpha', data_type='float')
         beta = self.extract_line('_cell_angle_beta', data_type='float')
         gamma = self.extract_line('_cell_angle_gamma', data_type='float')
-        sg_sym = self.extract_line('_symmetry_space_group_name_H-M', data_type='str')
-        sg_num = self.extract_line('_symmetry_Int_Tables_number', data_type='int') 
+        spg_label = self.extract_line('_symmetry_space_group_name_H-M', data_type='str')
+        spg_number = self.extract_line('_symmetry_Int_Tables_number', data_type='int') 
         irred_symbol, irred_frac = self.extract_coordinate()
         symopt = self.extract_sym_operator()
         rotations, translations = cell_utils.symop_xyz2mat(symopt)
@@ -161,13 +159,13 @@ class cif:
         self.lattice = [a,b,c,alpha,beta,gamma]
         self.lattice = cell_utils.convert_lattice(self.lattice)
         cell = (self.lattice, full_frac, atom_type)
-        self.spg = [sg_sym, sg_num]
+        self.space_group = [spg_number, spg_label.strip()]
         self.irred_atoms = [irred_symbol, irred_frac]
         
         return cell
         
     def refine_cif(self, cif):
-        '''Remove blank lines from self.cif'''
+        '''Remove blank lines from self._cif_data'''
         
         for i, line in enumerate(cif):
             if line.strip() == '': cif.pop(i)
@@ -179,8 +177,8 @@ class cif:
         block_keys = []
         start = 0
         stop = False
-        for i in range(len(self.cif)):
-            line = self.cif[i].strip()
+        for i in range(len(self._cif_data)):
+            line = self._cif_data[i].strip()
             if line.startswith('_atom_site_'):
                 block_keys.append(line.split('_atom_site_')[1].split('\n')[0])
                 start = i + 1
@@ -203,8 +201,8 @@ class cif:
             
         symbol = []
         frac = []
-        for i in range(start, len(self.cif)):
-            line = self.cif[i].strip().split()
+        for i in range(start, len(self._cif_data)):
+            line = self._cif_data[i].strip().split()
             if len(line) == num_keys:
                 symbol.append(line[where_symbol])
                 frac.append([cell_utils.rm_paren(line[where_x]),
@@ -223,15 +221,15 @@ class cif:
         '''Extract the (irreducible) coordinates block'''
         
         start = 0
-        for i in range(len(self.cif)):
-            line = self.cif[i].strip()
+        for i in range(len(self._cif_data)):
+            line = self._cif_data[i].strip()
             if line.startswith('_symmetry_equiv_pos_as_xyz'):
                 start = i + 1
                 break
                 
         sym_operators = []
-        for i in range(start, len(self.cif)):
-            line = self.cif[i].strip()
+        for i in range(start, len(self._cif_data)):
+            line = self._cif_data[i].strip()
             if line == '' or line.startswith("_") or line.startswith("loop_"): 
                 break
                     
@@ -253,7 +251,7 @@ class cif:
     def extract_line(self, key, data_type='str'):
         '''Extract the value after a keyword'''
         out = None
-        for line in self.cif:
+        for line in self._cif_data:
             if line.strip().startswith(key):
                 temp = line.replace(key,'')
                 out = temp.replace("'","")
@@ -268,58 +266,53 @@ class cif:
 ############ Symmetry #################      
     def get_symmetry(self, cell=None, symprec=1e-5, print_atom=False):
         '''Get space group information'''
-        if cell == None: 
+        if cell is None: 
             cell = self.cell
-            is_std, is_prim = spg_wrapper.get_sym(cell, symprec, print_atom)
-            self.cell_type = [is_std, is_prim]
+            spg_wrapper.get_sym(cell, symprec, print_atom)
         else:
-            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
+            spg_wrapper.get_sym(cell, symprec)
         
-    def to_convcell(self, cell=None, symprec=1e-5):
-        '''Transform the unit cell to the standard cell'''
-        if cell == None: 
+    def to_stdcell(self, cell=None, symprec=1e-5):
+        '''Transform the unit cell to the standard conventional cell'''
+        if cell is None: 
             cell = self.cell
             self.cell = spg_wrapper.cell_to_std(cell, symprec)
-            self.cell_type[0] = True
         else:
             return spg_wrapper.cell_to_std(cell, symprec)
             
     def to_primcell(self, cell=None, symprec=1e-5):
         '''Transform the unit cell to the primitive cell'''
-        if cell == None: 
+        if cell is None: 
             cell = self.cell
             self.cell = spg_wrapper.cell_to_prim(cell, symprec)
-            self.cell_type[1] = True
         else:
-            return spg_wrapper.cell_to_prim(cell, symprec)      
+            return spg_wrapper.cell_to_prim(cell, symprec)  
 
+    def get_irred_cell(self, cell=None, symprec=1e-5):
+        if cell is None: cell = self.cell
+        irred_cell, spg_number, spg_label, rotations, translations = spg_wrapper.get_sym(cell, symprec, print_analysis=False)
+        
+        return irred_cell
+
+############ Exporting to different structure format #################  
     def write_poscar(self, cell=None, filename=None):
-        if cell == None: cell = self.cell
+        if cell is None: cell = self.cell
         write_poscar(cell, filename)
         
-    def write_cif(self, cell=None, symprec=1e-5, filename=None, symmetry=True):
-        if cell == None: 
-            cell = self.cell
-            is_std, is_prim = self.cell_type 
-            if is_std and symmetry==True: 
-                cell = self.to_stdcell(cell, symprec) 
-                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
-            elif is_prim and symmetry==True:
-                cell = self.to_primcell(cell, symprec)
-                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
-            else:
-                spacegroup = ['1','P1']
-                equi_atoms = np.arange(len(cell[2]))
-                symopt = spg_wrapper.get_symmetry_from_database(1)
-                rotations, translations = symopt['rotations'], symopt['translations']
+    def write_cif(self, cell=None, symprec=1e-5, filename=None, symmetrize=True):
+        if cell is None: cell = self.cell
+        if symmetrize==True: 
+            cell = self.to_stdcell(cell, symprec)
+            irred_cell, spg_number, spg_label, rotations, translations = spg_wrapper.get_sym(cell, symprec, print_analysis=False)
+            space_group = [spg_number, spg_label]
         else:
-            spacegroup = ['1','P1']
-            equi_atoms = np.arange(len(cell[2]))
+            space_group = [1,'P1']
+            irred_cell = cell
             symopt = spg_wrapper.get_symmetry_from_database(1)
             rotations, translations = symopt['rotations'], symopt['translations']
         symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
+        write_cif(irred_cell, space_group, symopt, filename) 
 
     def write_xsf(self, cell=None, filename=None):
-        if cell == None: cell = self.cell
+        if cell is None: cell = self.cell
         write_xsf(cell, filename) 

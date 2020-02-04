@@ -83,12 +83,10 @@ class main:
             
         return band, proj_kpath, sym_kpoint_coor, efermi
 
-    def get_bandgap(self, efermi=None):
+    def get_bandgap(self):
         '''Get the bandgap'''
         
-        sym_kpoint_coor, proj_kpath, band, efermi_ = self.get_band()
-        if efermi is None: efermi = efermi_  
-        
+        band, proj_kpath, sym_kpoint_coor, efermi = self.get_band() 
         nspin, nkpts, nbands = band.shape
         for spin in range(nspin):
             print('Spin:', spin)  

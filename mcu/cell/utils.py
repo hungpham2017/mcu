@@ -142,8 +142,9 @@ def symop_mat2xyz(rotations, translations):
     return syms
                
 
-def genetate_atoms(irred_symbol, irred_frac, rotations, translations, prec=5):
+def genetate_atoms(irred_symbol, irred_frac, rotations, translations, prec=8):
     '''Operate the R and T operators on irreducible atoms then remove redundant ones'''
+    
     full_Z = []
     full_frac = []
     nsymopt = len(translations)
