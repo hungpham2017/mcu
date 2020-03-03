@@ -633,12 +633,10 @@ class POSCAR:
            TODO: extend it to Selective dynamics
         '''
         if not check_exist(file):
-            print('Cannot find the POSCAR file (optional). Check the path:', file)
-            self.success = False
+            assert False, 'Cannot find the POSCAR file. Check the path: ' + file
         else: 
             self.poscar = open(file, "r").readlines()  
             self.cell = self.get_cell(self.poscar)
-            self.success = True
             
     def get_cell(self, poscar):
         '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
@@ -652,11 +650,9 @@ class LOCPOT:
            TODO: extend it to Selective dynamics
         '''
         if not check_exist(file):
-            print('Cannot find the LOCPOT file. Check the path:', file)
-            self.success = False
+            assert False, 'Cannot find the LOCPOT file. Check the path: ' + file
         else: 
             self.locpot = open(file, "r").readlines()  
-            self.success = True
             self.cell = self.get_cell(self.locpot)
             self.natom = self.cell[2].shape[0]
             self.skip_poscar = self.natom + 9           #skip the POSCAR block in LOCPOT
@@ -711,11 +707,9 @@ class KPOINTS:
            TODO: extend it to Selective dynamics
         '''
         if not check_exist(file):
-            print('Cannot find the KPOINTS file. Check the path:', file)
-            self.success = False
+            assert False, 'Cannot find the KPOINTS file. Check the path: ' + file
         else: 
             self.kpoints = open(file, "r").readlines()  
-            self.success = True
             
     def get_spin_kmesh(self): 
         '''Read the kmesh header'''
@@ -732,11 +726,9 @@ class WAVECAR:
             ref: https://github.com/QijingZheng/VaspBandUnfolding/blob/master/vaspwfc.py)
         '''
         if not check_exist(file):
-            print('Cannot find the WAVECAR file. Check the path:', file)
-            self.success = False
+            assert False, 'Cannot find the WAVECAR file. Check the path: ' + file
         else: 
             self._wavecar = open(file, 'rb')
-            self.success = True
             self.read_header()
             self.get_band()
             

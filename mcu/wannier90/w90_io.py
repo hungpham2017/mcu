@@ -128,7 +128,7 @@ class io:
                     band.append(lines[line*nkpts + point].split())
                 bands.append(band[:-1])
             bands = np.asarray(bands, dtype=np.float64)
-            self.kpath_abs = bands[0][:,0]
+            self.proj_kpath = bands[0][:,0]
             self.band = bands[:,:,1].T
             
             #Get fractional kpath

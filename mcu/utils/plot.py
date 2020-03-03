@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
 =======
 <<<<<<< HEAD
@@ -46,6 +47,9 @@ def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#0
 =======
                 figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
 >>>>>>> 1134b73f4259e8cdf54e0f1cd33644175367055b
+=======
+                figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
+>>>>>>> dev
     '''Plot band structure
        
         Attribute:
@@ -104,3 +108,75 @@ def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#0
         fig.savefig(figname+'.'+format,dpi=dpi,format=format)      
     else:
         plt.show()  
+        
+def plot_phononband(self, unit='CM', gamma_correct=False, threshold=8.06554, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
+                figsize=(6,6), figname='PHONONBAND', xlim=None, ylim=None, fontsize=18, dpi=300, format='png'):
+    '''Plot phnon band structure
+       
+        Attribute:
+            efermi          : a Fermi level or a list of Fermi levels
+            spin            : 0  for spin unpolarized and LSORBIT = .TRUE.
+                              0 or 1 for spin polarized
+            color           : a list of three color codes for band curves, high symmetric kpoint grid, and Fermi level
+                              
+                              
+    '''
+    
+    if ylim is None:
+        if unit.lower() == "cm": ylim = [-100, 600]
+        if unit.lower() == "thz": ylim = [-5, 20]
+        if unit.lower() == "mev": ylim = [-15, 80]        
+        
+    assert isinstance(band_color,list)
+    assert len(band_color) == 3
+    
+    band, path, sym_kpoint_coor, label = self._generate_phononband(unit=unit, gamma_correct=gamma_correct, threshold=threshold, spin=spin, label=label) 
+
+    ##----------------------------------------------------------
+    ##Plotting:        
+    ##----------------------------------------------------------
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    yrange = (-10000,10000)
+               
+    # Plot the high symmetric kpoint grid
+    for kpt in range(sym_kpoint_coor.shape[0]):
+        ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
+                
+    if label is not None and xlim == None:
+        nkpts = len(label)
+        assert nkpts == sym_kpoint_coor.shape[0]        # The numbers of label should be match with the # of coordiantes provided
+        for kpt in range(nkpts):   
+            point = label[kpt]
+            if point == 'G': point = r'$\Gamma$'
+            ax.text(sym_kpoint_coor[kpt]/path.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,
+                    color='black', fontsize=fontsize)    
+
+    # Plot bands            
+    ax.plot([0,path.max()],[0,0],color=band_color[2],linewidth=1.0, dashes=[6,3])       # Fermi level
+    for ith in range(band.shape[1]):
+        ax.plot(path.T,band[:,ith],color=band_color[0],linewidth=1.0)    
+         
+    # Graph adjustments             
+    ax.tick_params(labelsize=fontsize)
+    if xlim == None:
+        plt.xlim([0,path.max()])
+        plt.xticks([])
+        plt.xlabel('Wave vector', size=fontsize+2)
+    else:
+        plt.xlim(xlim)
+        plt.xlabel('Wave vector', size=fontsize+2)
+    ax.xaxis.set_label_coords(0.5, -0.08) 
+    if unit.lower() == 'thz':
+        plt.ylabel('Frequency (THz)', size=fontsize+2)  
+    elif unit.lower() == 'cm':
+        plt.ylabel('Frequency ' + r'(cm$^{-1}$)', size=fontsize+2)  
+    elif unit.lower() == 'mev':
+        plt.ylabel('Frequency (meV)', size=fontsize+2)     
+
+    plt.ylim(ylim)
+    plt.tight_layout()
+    if save == True: 
+        fig.savefig(figname+'.'+format,dpi=dpi,format=format)      
+    else:
+        plt.show() 

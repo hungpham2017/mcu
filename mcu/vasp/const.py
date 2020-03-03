@@ -56,3 +56,7 @@ AUTOA5   = AUTOA3 * AUTOA2
 
 # dipole moment in atomic units to Debye
 AUTDEBYE = 2.541746  
+
+# frequency
+CMTOTHZ = 0.0299792458
+CMTOMEV = 0.12398
