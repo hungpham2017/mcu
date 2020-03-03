@@ -118,8 +118,7 @@ def read_f25(filename):
             print('Cannot find : ' + filename, '. fort.25 is used instead')
             filename = "fort.25"
         else:
-            print('Cannot find the f25 file. Check the path: ' + filename)
-            assert False
+            assert False, "Cannot find the f25 file. Check the path: " + filename
         
     with open(filename, "r") as data_file:
         data = data_file.read().split('\n')

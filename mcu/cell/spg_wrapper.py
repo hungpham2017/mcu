@@ -103,7 +103,6 @@ def get_sym(cell, symprec=1e-5, print_atom=False, print_analysis=True):
         misc.print_msg("Number of irreducible atoms  : %d" % (np.unique(equi_atoms).shape[0]))
         misc.print_msg("Standard cell                : %r" % (is_std))
         misc.print_msg("Primitive cell               : %r" % (is_prim)) 
-        return is_std, is_prim
     else:
         # Return an standard cell object with irreducible atoms
         irred_idx = np.unique(equi_atoms)
