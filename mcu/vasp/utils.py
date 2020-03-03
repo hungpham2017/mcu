@@ -102,30 +102,6 @@ def read_WAVEDERF(file='WAVEDERF'):
                 
     return cder
     
-def read_unk(path='.', spin=0, kpt=1, band=1):
-    '''Export the periodic part of BF in a real space grid for plotting with wannier90
-    '''	
-    spin = spin + 1
-    file = path + '/' + 'UNK' + "%05d" % (kpt) + '.' + str(spin)
-    if not check_exist(file):
-        print('Cannot find the %s file. Check the path:' % file)
-        
-    from scipy.io import FortranFile
-    unk_file = FortranFile(file, 'r')
-    temp = unk_file.read_record(dtype=np.int32)
-    ngrid, kpt, nbands = temp[:3], temp[3], temp[4]
-    assert band <= nbands, 'The band index is larger than the No. of bands in the unk file'
-
-    for i in range(band):
-        temp = unk_file.read_record(dtype=np.complex128)
-        if i == band - 1:
-            unk = temp
-        del temp 
-
-    unk_file.close()
-    
-    return unk.reshape(ngrid, order='F')
-    
 def rm_redundant_band(kpts, band):
     '''Remove redundant kpoints from the band calculations'''
     

@@ -14,11 +14,13 @@ OUTCAR = vasp.vasp_io.OUTCAR
 make_KPOINTS = vasp.utils.get_1Dkpath
 read_WAVEDER = vasp.utils.read_WAVEDER
 read_WAVEDERF = vasp.utils.read_WAVEDERF
-read_unk = vasp.utils.read_unk
+
 CELL = cell.main.CELL
 
 # Quick shortcuts to wannier90 tools
 W90 = wannier90.w90.main
+read_unk = wannier90.utils.read_unk
+read_U_matrix = wannier90.utils.read_U_matrix
 
 # Quick shortcuts to cp2k tools
 CP2K = cp2k.cp2k.main
