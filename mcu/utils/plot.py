@@ -25,31 +25,7 @@ import matplotlib.pyplot as plt
       
       
 def plot_band(self, efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
-=======
-                figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
->>>>>>> 1134b73f4259e8cdf54e0f1cd33644175367055b
-=======
-                figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
->>>>>>> master
-=======
-                figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
->>>>>>> 1134b73f4259e8cdf54e0f1cd33644175367055b
->>>>>>> dev
-=======
-                figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
->>>>>>> 1134b73f4259e8cdf54e0f1cd33644175367055b
-=======
-                figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
->>>>>>> dev
     '''Plot band structure
        
         Attribute:
