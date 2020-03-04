@@ -56,7 +56,7 @@ def read_U_matrix(filename):
     
     with open(filename, "r") as file:
         data = file.read().split('\n')
-        nkpts, nband, nwann =  np.int64(data[1].split())
+        nkpts, nwann, nband =  np.int64(data[1].split())
         temp = data[2:-1]
         block_length = nband*nwann + 2
         kpts = []
@@ -65,7 +65,7 @@ def read_U_matrix(filename):
             Uk = temp[(kpt_th*block_length):(kpt_th*block_length + block_length)]
             kpts.append(np.float64(Uk[1].split()))
             U = np.asarray([np.float64(line.split()[0]) + 1j*np.float64(line.split()[1]) for line in Uk[2:]])
-            U_kpts.append(U.reshape(nband, nwann))
+            U_kpts.append(U.reshape(nwann, nband).T) 
 
         kpts = np.float64(kpts)
         U_kpts = np.asarray(U_kpts)
