@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __version__ = '0.2'
-from . import vasp, cell, wannier90, cp2k, crystal
+from . import cell, cp2k, crystal, utils, vasp, wannier90
 
 # Quick shortcuts to VASP tools
 VASP = vasp.vasprun.main
