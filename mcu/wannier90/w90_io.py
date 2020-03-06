@@ -19,8 +19,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-from mcu.utils.misc import check_exist
-from mcu.cell import utils  
+from ..utils.misc import check_exist
+from ..cell import utils as cell_utils  
 
 #--------------------------------------------------------------------------------------------------------- 
 # USEFUL FUNCTIONS TO MANIPULATE wannier90 files
@@ -82,7 +82,7 @@ class io:
                 atom_sym.append(temp[0])
                 atom_position.append(np.float64(temp[1:]))
             self.atom = atom_sym
-            atom_number = utils.convert_atomtype(self.atom )
+            atom_number = cell_utils.convert_atomtype(self.atom )
             self.cell = (lattice, atom_position, atom_number)
             
             # kmesh info

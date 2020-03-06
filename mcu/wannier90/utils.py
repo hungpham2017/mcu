@@ -23,8 +23,8 @@ Utilities for vasp module
 '''
 
 import numpy as np
-from mcu.utils.misc import check_exist
-from mcu.cell import parameters, utils            
+from ..utils.misc import check_exist
+from ..cell import parameters, utils            
 
     
 def read_unk(path='.', spin=0, kpt=1, band=1):

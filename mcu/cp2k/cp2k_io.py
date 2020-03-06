@@ -21,8 +21,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import numpy as np
 import re
 import argparse
-from mcu.utils.misc import check_exist
-from mcu.cell import utils  
+from ..utils.misc import check_exist
+from ..cell import utils as cell_utils  
 
 #--------------------------------------------------------------------------------------------------------- 
 # USEFUL FUNCTIONS TO MANIPULATE CP2K files
@@ -139,7 +139,7 @@ class io:
 
         atom_type, atom_position = get_atoms(outfile)
         self.atom = atom_type
-        atom_number = utils.convert_atomtype(atom_type)
+        atom_number = cell_utils.convert_atomtype(atom_type)
         self.cell = (lattice, atom_position, atom_number)
 
         self.efermi = get_value(outfile, keyword="Fermi energy")

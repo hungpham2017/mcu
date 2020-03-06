@@ -20,11 +20,10 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import os
 import numpy as np
-import mcu
-from mcu.utils.misc import check_exist
-from mcu.vasp import utils, vasp_io
-from mcu.cell import spg_wrapper, cell_io
-from mcu.cell import utils as cell_utils
+from ..utils.misc import check_exist
+from ..cell import spg_wrapper, cell_io
+from ..cell import utils as cell_utils
+from . import utils, vasp_io
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -157,7 +156,7 @@ class main:
 ############ Plotting #################
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
-        if isinstance(self.vasprun, mcu.vasp.vasp_io.vasprun):
+        if isinstance(self.vasprun, vasp_io.vasprun):
             self.vasprun.get_dos()
             if hasattr(self.vasprun,'efermi'):
                 self.efermi = self.vasprun.efermi
@@ -184,7 +183,7 @@ class main:
         # Get the fermi level
         if efermi == None: efermi = self.efermi
             
-        if isinstance(self.vasprun,mcu.vasp.vasp_io.vasprun):              # For one vasprun.xml file
+        if isinstance(self.vasprun, vasp_io.vasprun):              # For one vasprun.xml file
             assert isinstance(efermi,float) 
             self.vasprun.get_band()
             self.band = self.vasprun.band[:,:,:,0]
@@ -278,7 +277,7 @@ class main:
         proj_kpath = None            #projected kpath: kpath coordinated projected to 1D
         conventional = False
             
-        if isinstance(vasprun,mcu.vasp.vasp_io.vasprun) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
+        if isinstance(vasprun, vasp_io.vasprun) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
             if label is not None:
                 assert isinstance(label,str)     # label needs to be a string in the format,e.g. 'A-B-C-D'
                 label = label.split('-')
@@ -309,7 +308,7 @@ class main:
             sym_kpoint_coor = np.asarray(sym_kpoint_coor)
                      
         else:
-            if isinstance(vasprun,mcu.vasp.vasp_io.vasprun):                       # For one vasprun.xml file
+            if isinstance(vasprun, vasp_io.vasprun):                       # For one vasprun.xml file
                 assert isinstance(efermi,float)
                 vasprun.get_band()
                 band = vasprun.band[spin][:,:,0]
@@ -435,7 +434,7 @@ class main:
         
     def _generate_pband(self, vasprun, spin=0, style=1, lm='spd', lm_label=None):
         '''Processing/collecting the projected band data before the plotting function
-            proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.vasp_io.vasprun.get_projected for more details info
+            proj_wf = [spin,kpt,band,atom,lm] , read vasp_io.vasprun.get_projected for more details info
             
             style = 1   : all atoms are considered
                          lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them
@@ -450,7 +449,7 @@ class main:
        
         
         # Collecting/combining the projected wfn from vasprun.xml
-        if isinstance(vasprun,mcu.vasp.vasp_io.vasprun):                       # For one vasprun.xml file
+        if isinstance(vasprun, vasp_io.vasprun):                       # For one vasprun.xml file
             vasprun.get_projected()
             proj_wf = vasprun.proj_wf[spin] 
             lm_list = vasprun.lm           
@@ -919,14 +918,14 @@ class main:
         '''
         
         if vasprun == None: 
-            if isinstance(self.vasprun,mcu.vasp.vasp_io.vasprun): 
+            if isinstance(self.vasprun, vasp_io.vasprun): 
                 vasprun = self.vasprun
                 if efermi == None: efermi = self.efermi
             if isinstance(self.vasprun,list): 
                 vasprun = self.vasprun[0]  
                 if efermi == None: efermi = self.efermi[0]
         else:
-            assert isinstance(vasprun,mcu.vasp.vasp_io.vasprun)
+            assert isinstance(vasprun, vasp_io.vasprun)
             
         if lm == None: 
             lm = [atom+':s,p,d' for atom in self.atype]  
@@ -1031,13 +1030,13 @@ class main:
             
     def _generate_spin(self, vasprun, lm=None):
         '''Processing/collecting the spin texture data before the plotting function
-            proj_wf = [spin,kpt,band,atom,lm] , read mcu.vasp.vasp_io.vasprun.get_projected for more details info
+            proj_wf = [spin,kpt,band,atom,lm] , read vasp_io.vasprun.get_projected for more details info
             
             lm          : ['Ni:s','C:pz']
         '''      
         
         # Collecting/combining the projected wfn from vasprun.xml
-        if isinstance(vasprun,mcu.vasp.vasp_io.vasprun):                       # For one vasprun.xml file
+        if isinstance(vasprun, vasp_io.vasprun):                       # For one vasprun.xml file
             vasprun.get_projected()
             lm_list = vasprun.lm 
             proj_wfs = []

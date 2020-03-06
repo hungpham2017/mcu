@@ -18,8 +18,9 @@ limitations under the License.
 Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
+
 import numpy as np
-from mcu.vasp import utils, vasp_io
+from . import utils, vasp_io
 import matplotlib as mpl
 import matplotlib.pyplot as plt
     

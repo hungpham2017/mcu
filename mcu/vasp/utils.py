@@ -24,8 +24,8 @@ Utilities for vasp module
 
 import os
 import numpy as np
-from mcu.utils.misc import check_exist
-from mcu.cell import parameters, utils            
+from ..utils.misc import check_exist
+from ..cell import parameters, utils            
             
     
 def str_extract(string, start, end):

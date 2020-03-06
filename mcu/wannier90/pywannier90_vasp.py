@@ -36,8 +36,8 @@ else:
 import numpy as np
 import scipy
 import mcu
-from mcu.vasp import const
-from mcu.cell import utils as cell_utils
+from ..vasp import const
+from ..cell import utils as cell_utils
 
 def angle(v1, v2):
 	'''

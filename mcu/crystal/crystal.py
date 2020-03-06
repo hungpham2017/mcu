@@ -20,9 +20,9 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 
 import numpy as np
-from mcu.crystal import crystal_io
-from mcu.utils import plot
-from mcu.vasp import const
+from ..utils import plot
+from ..vasp import const
+from . import crystal_io
 import matplotlib as mpl
 import matplotlib.pyplot as plt
         

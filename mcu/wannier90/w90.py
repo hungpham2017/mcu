@@ -20,10 +20,10 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import os
 import numpy as np
-from mcu.wannier90 import w90_io
-from mcu.utils import plot
-from mcu.cell import spg_wrapper, cell_io
-from mcu.cell import utils as cell_utils
+from ..wannier90 import w90_io
+from ..utils import plot
+from ..cell import spg_wrapper, cell_io
+from ..cell import utils as cell_utils
 import matplotlib as mpl
 import matplotlib.pyplot as plt
         

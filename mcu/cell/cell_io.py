@@ -20,9 +20,9 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import numpy as np
 import subprocess
-from mcu.utils import misc
-from mcu.cell import utils as cell_utils
-from mcu.cell import spg_wrapper
+from ..utils import misc
+from . import utils as cell_utils
+from . import spg_wrapper
         
         
 ##################### EXPORT CIF, XSF, POSCAR ###########################          

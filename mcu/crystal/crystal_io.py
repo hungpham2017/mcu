@@ -19,7 +19,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-from mcu.utils.misc import check_exist
+from ..utils.misc import check_exist
 
             
 def read_ouput(self, filename=None):  

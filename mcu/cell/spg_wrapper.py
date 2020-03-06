@@ -20,8 +20,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import numpy as np
 import spglib, copy
-from mcu.utils import misc
-from mcu.cell import parameters, utils
+from ..utils import misc
+from . import parameters, utils
 
 
 

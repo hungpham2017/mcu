@@ -19,9 +19,9 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-from mcu.vasp import utils
-from mcu.utils.misc import check_exist
-from mcu.cell import utils as cell_utils
+from ..utils.misc import check_exist
+from ..cell import utils as cell_utils
+from . import utils
 import subprocess
 
 class vasprun:

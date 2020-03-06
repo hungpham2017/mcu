@@ -23,8 +23,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-from mcu.utils.misc import check_exist
-from mcu.vasp import utils, vasp_io, const
+from ..utils.misc import check_exist
+from . import utils, vasp_io, const
 from scipy.fftpack import fftfreq, fftn, ifftn
 
             

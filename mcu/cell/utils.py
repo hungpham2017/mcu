@@ -24,7 +24,7 @@ Utilities for cell
 
 import os, datetime
 import numpy as np
-from mcu.cell import parameters            
+from . import parameters            
 
 
 def convert_atomtype(Z_or_symbol):
