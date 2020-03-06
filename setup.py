@@ -2,8 +2,8 @@ import setuptools
 
 if __name__ == "__main__":
     setuptools.setup(
-        name='mcu',
-        version="0.0.1",
+        name='mcu-hungpham2017',
+        version="0.0.2",
         description='Modeling and Crystallographic Utilities',
         author='Hung Pham',
         author_email='pqh3.14@gmail.com',
@@ -11,10 +11,11 @@ if __name__ == "__main__":
         license='Apache 2.0',
         packages=setuptools.find_packages(),
         install_requires=[
+            'python>=3.*',        
             'numpy>=1.15.2',
             'scipy>=1.1.0',
-            'pytest>=3.6',
             'matplotlib>=3.0.1', 
+            'spglib>=1.12.0',
         ],
         extras_require={
             'docs': [
@@ -42,7 +43,7 @@ if __name__ == "__main__":
         classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Science/Research',
-            'Programming Language :: Python :: 3.6.3',
+            'Programming Language :: Python :: 3.7.6',
         ],
         zip_safe=True,
     )
