@@ -24,25 +24,23 @@ from ..cell import utils as cell_utils
 from . import utils
 import subprocess
 
-class vasprun:
+class XML:
     def __init__(self, file="vasprun.xml"):
         
-        if not check_exist(file):
-            print('Cannot find the vasprun.xml file. Check the path:', file)
-        else:
-            self.vasprun = open(file, "r").readlines()  
+        assert check_exist(file), 'Cannot find the vasprun.xml file. Check the path:' + file
+        self.vasprun = open(file, "r").readlines()  
 
-            # Read parameters:
-            generator = self.copy_block(self.vasprun,'generator', level=1)
-            incar = self.copy_block(self.vasprun,'incar', level=1)       
-            self.generator = self.extract_param(generator)
-            self.incar = self.extract_param(incar)     
-            self.kpoints = self.get_kpoints()
-            self.parameters = self.get_parameters() 
-            self.get_atominfo()         
-            self.get_structure()     
-            self.calculation_block = self.copy_block(self.vasprun,'calculation', level=1)    
-            self.lm = None
+        # Read parameters:
+        generator = self.copy_block(self.vasprun,'generator', level=1)
+        incar = self.copy_block(self.vasprun,'incar', level=1)       
+        self.generator = self.extract_param(generator)
+        self.incar = self.extract_param(incar)     
+        self.kpoints = self.get_kpoints()
+        self.parameters = self.get_parameters() 
+        self.get_atominfo()         
+        self.get_structure()     
+        self.calculation_block = self.copy_block(self.vasprun,'calculation', level=1)    
+        self.lm = None
         
     def get_lm(self):  
         '''Extract lm from either dos block or projected block'''
@@ -584,7 +582,7 @@ class OUTCAR:
     def __init__(self, file="OUTCAR"):
         '''Read additional infomation that cannot be extracted from vasprun.xml'''
         if not check_exist(file):
-            print('Cannot find the OUTCAR file (optional). Check the path:', file)
+            print('Cannot find the OUTCAR file used to get the Fermi level (Optional). Check the path:', file)
             self.success = False
         else: 
             rungrep = subprocess.run(['grep', 'E-fermi', file], stdout=subprocess.PIPE) 

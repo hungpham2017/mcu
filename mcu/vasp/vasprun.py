@@ -39,20 +39,19 @@ class main:
         # Create vasprun object(s)
         if path == None: path = os.getcwd()
         if isinstance(vaspruns, str):                   # For one vasprun.xml file    
-            self.vasprun = vasp_io.vasprun(path + '/' + vaspruns + '.xml')
+            self.vasprun = vasp_io.XML(path + '/' + vaspruns + '.xml')
             self.useOUTCAR = False
             self.outcar = vasp_io.OUTCAR(path + '/' + outcars)
-            if self.outcar.success == True: self.useOUTCAR = True
+            if self.outcar.success == True: 
+                self.useOUTCAR = True
             self.get_info(self.vasprun)
             
         elif isinstance(vaspruns, list):                # For multiple vasprun.xml file
             self.vasprun = []
             for xml in vaspruns:
                 xml_file = path + '/' + xml + '.xml'
-                if not check_exist(xml_file):
-                    print('Cannot find:', xml_file)
-                    break
-                self.vasprun.append(vasp_io.vasprun(xml_file))
+                assert check_exist(xml_file), 'Cannot find the vasprun.xml file. Check the path:' + xml_file
+                self.vasprun.append(vasp_io.XML(xml_file))
 
             self.useOUTCAR = False
             if isinstance(outcars, list):               
@@ -156,7 +155,7 @@ class main:
 ############ Plotting #################
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
-        if isinstance(self.vasprun, vasp_io.vasprun):
+        if isinstance(self.vasprun, vasp_io.XML):
             self.vasprun.get_dos()
             if hasattr(self.vasprun,'efermi'):
                 self.efermi = self.vasprun.efermi
@@ -175,7 +174,8 @@ class main:
                     if self.useOUTCAR == False:
                         print ("Fermi level need to be read from OUTCAR")
                     else:
-                        self.efermi.append(self.outcar[i].efermi)                 
+                        self.efermi.append(self.outcar[i].efermi)   
+        return self.efermi
             
     def get_bandgap(self, efermi=None):
         '''Get the bandgap'''
@@ -183,7 +183,7 @@ class main:
         # Get the fermi level
         if efermi == None: efermi = self.efermi
             
-        if isinstance(self.vasprun, vasp_io.vasprun):              # For one vasprun.xml file
+        if isinstance(self.vasprun, vasp_io.XML):              # For one vasprun.xml file
             assert isinstance(efermi,float) 
             self.vasprun.get_band()
             self.band = self.vasprun.band[:,:,:,0]
@@ -277,7 +277,7 @@ class main:
         proj_kpath = None            #projected kpath: kpath coordinated projected to 1D
         conventional = False
             
-        if isinstance(vasprun, vasp_io.vasprun) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
+        if isinstance(vasprun, vasp_io.XML) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
             if label is not None:
                 assert isinstance(label,str)     # label needs to be a string in the format,e.g. 'A-B-C-D'
                 label = label.split('-')
@@ -308,7 +308,7 @@ class main:
             sym_kpoint_coor = np.asarray(sym_kpoint_coor)
                      
         else:
-            if isinstance(vasprun, vasp_io.vasprun):                       # For one vasprun.xml file
+            if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
                 assert isinstance(efermi,float)
                 vasprun.get_band()
                 band = vasprun.band[spin][:,:,0]
@@ -392,14 +392,14 @@ class main:
         ##----------------------------------------------------------
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot(111)
-        yrange = (-50,50)
+        yrange = (-500,500)
         
         # Plot the high symmetric kpoint grid
-        if conventional == True or label is not None:
+        if conventional is True or label is not None:
             for kpt in range(sym_kpoint_coor.shape[0]):
                 ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
 
-        if label is not None and xlim == None:
+        if label is not None and xlim is None:
             nkpts = len(label)
             assert nkpts == sym_kpoint_coor.shape[0]        # The numbers of label should be match with the number of high-symmetric k provided
             for kpt in range(nkpts):   
@@ -434,7 +434,7 @@ class main:
         
     def _generate_pband(self, vasprun, spin=0, style=1, lm='spd', lm_label=None):
         '''Processing/collecting the projected band data before the plotting function
-            proj_wf = [spin,kpt,band,atom,lm] , read vasp_io.vasprun.get_projected for more details info
+            proj_wf = [spin,kpt,band,atom,lm] , read vasp_io.XML.get_projected for more details info
             
             style = 1   : all atoms are considered
                          lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them
@@ -449,7 +449,7 @@ class main:
        
         
         # Collecting/combining the projected wfn from vasprun.xml
-        if isinstance(vasprun, vasp_io.vasprun):                       # For one vasprun.xml file
+        if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
             vasprun.get_projected()
             proj_wf = vasprun.proj_wf[spin] 
             lm_list = vasprun.lm           
@@ -698,7 +698,7 @@ class main:
         ##----------------------------------------------------------
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot(111)
-        yrange = (-50,50)
+        yrange = (-500,500)
         
         # Customization:
         border = 1.08
@@ -706,7 +706,7 @@ class main:
         # Plot the high symmetric kpoint grid
         if conventional == True or label != None:
             for kpt in range(sym_kpoint_coor.shape[0]):
-                ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
+                ax.plot([sym_kpoint_coor[kpt]]*2,yrange, color=band_color[1], linewidth=1.0)
 
         if label != None and xlim == None:
             nkpts = len(label)
@@ -918,14 +918,14 @@ class main:
         '''
         
         if vasprun == None: 
-            if isinstance(self.vasprun, vasp_io.vasprun): 
+            if isinstance(self.vasprun, vasp_io.XML): 
                 vasprun = self.vasprun
                 if efermi == None: efermi = self.efermi
             if isinstance(self.vasprun,list): 
                 vasprun = self.vasprun[0]  
                 if efermi == None: efermi = self.efermi[0]
         else:
-            assert isinstance(vasprun, vasp_io.vasprun)
+            assert isinstance(vasprun, vasp_io.XML)
             
         if lm == None: 
             lm = [atom+':s,p,d' for atom in self.atype]  
@@ -953,21 +953,21 @@ class main:
         
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot(111)
-        yrange = (-50,50)
+        yrange = (-500,500)
         
         # Plot DOS    
         if style == 1:
             ax.plot(tdos0[:,0], tdos0[:,1], color=color[0],linewidth=1.1,label='TDOS')
             if pdos_exist == True:
                 for orb in range(pdos0.shape[1]): 
-                    ax.plot(tdos0[:,0], pdos0[:,orb], color=color[orb+1],linewidth=1.0,label=legend[orb])
+                    ax.plot(tdos0[:,0], pdos0[:,orb], color=color[orb+1], linewidth=1.0, label=legend[orb])
                     if fill == True: ax.fill(tdos0[:,0], pdos0[:,orb], color=color[orb+1], alpha=alpha)
                 
             if spin == 'updown':
-                ax.plot(tdos0[:,0], tdos1[:,1], color=color[0],linewidth=1.1)
+                ax.plot(tdos0[:,0], tdos1[:,1], color=color[0], linewidth=1.1)
                 if pdos_exist == True:
                     for orb in range(pdos1.shape[1]): 
-                        ax.plot(tdos0[:,0], pdos1[:,orb], color=color[orb+1],linewidth=1.0)
+                        ax.plot(tdos0[:,0], pdos1[:,orb], color=color[orb+1], linewidth=1.0)
                         if fill == True: ax.fill(tdos0[:,0], pdos1[:,orb], color=color[orb+1], alpha=alpha)
         
             # Graph adjustments 
@@ -984,14 +984,14 @@ class main:
             plt.yticks([])
             
         elif style == 2:
-            ax.plot(tdos0[:,1], tdos0[:,0], color=color[0],linewidth=1.1,label='TDOS')
+            ax.plot(tdos0[:,1], tdos0[:,0], color=color[0], linewidth=1.1, label='TDOS')
             if pdos_exist == True:
                 for orb in range(pdos0.shape[1]): 
-                    ax.plot(pdos0[:,orb], tdos0[:,0], color=color[orb+1],linewidth=1.0,label=legend[orb])
+                    ax.plot(pdos0[:,orb], tdos0[:,0], color=color[orb+1], linewidth=1.0,label=legend[orb])
                     if fill == True: ax.fill(pdos0[:,orb], tdos0[:,0], color=color[orb+1], alpha=alpha)
                 
             if spin == 'updown':
-                ax.plot(tdos1[:,1], tdos0[:,0], color=color[0],linewidth=1.1)
+                ax.plot(tdos1[:,1], tdos0[:,0], color=color[0], linewidth=1.1)
                 if pdos_exist == True:
                     for orb in range(pdos1.shape[1]): 
                         ax.plot(pdos1[:,orb], tdos0[:,0], color=color[orb+1],linewidth=1.0)
@@ -1030,13 +1030,13 @@ class main:
             
     def _generate_spin(self, vasprun, lm=None):
         '''Processing/collecting the spin texture data before the plotting function
-            proj_wf = [spin,kpt,band,atom,lm] , read vasp_io.vasprun.get_projected for more details info
+            proj_wf = [spin,kpt,band,atom,lm] , read vasp_io.XML.get_projected for more details info
             
             lm          : ['Ni:s','C:pz']
         '''      
         
         # Collecting/combining the projected wfn from vasprun.xml
-        if isinstance(vasprun, vasp_io.vasprun):                       # For one vasprun.xml file
+        if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
             vasprun.get_projected()
             lm_list = vasprun.lm 
             proj_wfs = []

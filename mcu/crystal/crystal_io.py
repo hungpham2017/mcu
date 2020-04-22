@@ -20,32 +20,6 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 import numpy as np
 from ..utils.misc import check_exist
-
-            
-def read_ouput(self, filename=None):  
-    '''Read the CRYSTAL output file'''
-    if filename is None:
-        if self.seedname is not None: 
-            filename = self.seedname + ".out"
-    assert check_exist(filename), "Cannot find the output. Check the path: " + filename
-    # with open(filename, "r") as file:
-        # outfile = file.read().splitlines()
-        
-    # Cell information
-    # cell_block = copy_block(outfile, "CELL_TOP")
-    # a_vec =cell_block[1].split()[4:7]
-    # b_vec = cell_block[2].split()[4:7]
-    # c_vec = cell_block[3].split()[4:7]           
-    # lattice = np.float64([a_vec, b_vec, c_vec])
-    
-
-    # atom_type, atom_position = get_atoms(outfile)
-    # self.atom = atom_type
-    # atom_number = utils.convert_atomtype(atom_type)
-    # self.cell = (lattice, atom_position, atom_number)
-
-    # self.efermi = get_value(outfile, keyword="Fermi energy")
-    # self.kpts = 0   # kmesh info: TODO: will test the Gamma point case first
            
         
 def read_BAND(filename):
@@ -56,8 +30,7 @@ def read_BAND(filename):
             print('Cannot find : ' + filename, '. BAND.DAT is used instead')
             filename = "BAND.DAT"
         else:
-            print('Cannot find the BAND file. Check the path: ' + filename)
-            assert False
+            assert False, 'Cannot find the BAND file. Check the path: ' + filename
     
     with open(filename, "r") as data_file:
         data = data_file.readlines()
@@ -88,8 +61,7 @@ def read_DOSS(filename):
             print('Cannot find : ' + filename, '. DOSS.DAT is used instead')
             filename = "DOSS.DAT"
         else:
-            print('Cannot find the DOSS file. Check the path: ' + filename)
-            assert False
+            assert False, 'Cannot find the DOSS file. Check the path: ' + filename
 
     with open(filename, "r") as data_file:
         data = data_file.readlines()
@@ -110,15 +82,15 @@ def read_DOSS(filename):
     
     return epts, dos, efermi
         
-def read_f25(filename):
+def read_f25(filename=None):
     '''Read seedname_dat.f25/fort.25 file'''
+    if filename is None: filename = "fort.25"
     
     if not check_exist(filename):
-        if check_exist("fort.25"):
-            print('Cannot find : ' + filename, '. fort.25 is used instead')
-            filename = "fort.25"
-        else:
-            assert False, "Cannot find the f25 file. Check the path: " + filename
+        print('Cannot find : ' + filename, '. Searching for fort.25 ...')
+        assert check_exist("fort.25"), "Cannot find the fort.25 file"
+        print('Found fort.25. Band structure is extracted from fort.25')
+        filename = "fort.25"
         
     with open(filename, "r") as data_file:
         data = data_file.read().split('\n')

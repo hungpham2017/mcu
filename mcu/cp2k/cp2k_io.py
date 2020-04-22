@@ -19,8 +19,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-import re
-import argparse
+import re, argparse
 from ..utils.misc import check_exist
 from ..cell import utils as cell_utils  
 

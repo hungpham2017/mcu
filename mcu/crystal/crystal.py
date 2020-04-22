@@ -23,8 +23,7 @@ import numpy as np
 from ..utils import plot
 from ..vasp import const
 from . import crystal_io
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+
         
 class main:
     def __init__(self,  seedname="outfile"):
@@ -65,7 +64,9 @@ class main:
             band_down = np.vstack(temp[nblock:])  
             band = np.float64([band_up, band_down])
             proj_kpath = np.hstack(proj_kpath[:nblock])
+            
         sym_kpoint_coor = np.float64(sym_kpoint_coor)
+        
         if phonon == True:
             if gamma_correct == True:
                 # Should be checked first before using the correction to make sure it is really acoustic phonon modes
