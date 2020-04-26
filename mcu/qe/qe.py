@@ -23,6 +23,7 @@ import numpy as np
 from ..utils import plot
 from ..utils.misc import check_exist
 from ..vasp import const
+from ..cell import utils as cell_utils
 from . import qe_io
 
         
@@ -34,9 +35,41 @@ class main:
         if prefix is None:
             print("Provide a prefix name for your project, for example, prefix.scf.out, prefix.band.out, etc. Otherwise you would have to specify each output file when performing analysis")
         self.prefix = prefix
+        self.get_info() 
         
+############ General #################
+        
+    def get_info(self):    
+        '''Extract basis information from the vasprun.xml'''
 
-############ Plotting ################# 
+        if check_exist(self.prefix + ".scf.out"):
+            filename = self.prefix + ".scf.out"
+        else:
+            assert 0, "Cannot find any prefix.scf.out file"
+            
+        data = qe_io.read_pw_output(filename)
+        self.nelec = data['nelec']
+        self.nbands = data['nbands']
+        self.soc = data['soc']
+        self.kpts = data['kpts'][:,:3]
+        self.kpts_weight = data['kpts'][:,3]
+        self.nkpts = self.kpts.shape[0] 
+        self.band = data['eigenvals']
+        self.ispin = self.band.shape[0]
+        self.atom  = data['atom']
+        self.natom  = len(self.atom)
+        self.element = [atm[0] for atm in data['species']]
+        
+        # Make a cell object in the spglib format
+        alat = data['alat'] * const.AUTOA
+        lattice = data['crystal axes'] * alat   
+        positions = data['atom_position']
+        numbers = cell_utils.convert_atomtype(self.atom)
+        self.cell_init = (lattice, positions, numbers)
+        self.cell = self.cell_init
+
+############ Plotting #################
+
     def get_efermi(self, data=None):
         '''Get Fermi energy'''
         if data is None:
@@ -163,7 +196,7 @@ class main:
             temp_kpts[1:] = abs_kpts[:-1] 
             sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
                 
-        return band, proj_kpath, sym_kpoint_coor, label
+        return band, proj_kpath, sym_kpoint_coor, label, True # This True is just for compariable with VASP
         
     def plot_band(self, efermi=None, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
@@ -182,5 +215,224 @@ class main:
         plot.plot_band(self, efermi=efermi, spin=spin, save=save, band_color=band_color,
                 figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
                 
+    def _generate_pband(self, filename=None, spin=0, style=1, lm='spd'):
+        '''Processing/collecting the projected band data before the plotting function
+            
+            Note: In QE, each atom has its own set of atomic orbitals to project onto.
+                  For example, Fe has 1s, 2s, p, and d. O only has s and p
+                  Unlike QE, VASP decomposes the band into a common list of atomic orbitals.  
+                  For example, both Fe and O have contributations from s, p, d, .... Hence,
+                  the projected wf is sparser in VASP than in QE
 
+                  proj_wf = [kpts, band, # of orbitals]
+            
+            style = 1   : all atoms are considered
+                         lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them
+                             'sp', 'pd', 'sd', 'spd'  => shortcut
+                             each color is used for each lm
+                             the marker's radius is proportional to the % of lm 
+            style = 2   : considering only a list of orbitals
+                         e.g. orb = ['Ni:s','C:pz']
+            style = 3   : gradient map to show the character transition
+                         lm = 'sp', 'pd', 'sd'                
+        '''      
+       
+        if filename is None:
+            if check_exist(self.prefix + ".projwfc.out"):
+                filename = self.prefix + ".projwfc.out"
+            else:
+                assert 0, "Cannot find any band structure file"
+    
+        data = qe_io.read_projwfc_output(filename)
+        site = data['site']
+        species = data['species']
+        wfc_id = data['wfc']
+        l_list = data['l']
+        m_list = np.int64(data['m'])
+        proj_wf = data['projwfc'][spin] 
+
+        # Create the possible lm list
+        lm_data = {'0': ['s'], '1':['pz', 'px', 'py'], '2':['dz2', 'dxz', 'dyz', 'dx2-y2', 'dxy']}
+        lm_list = []
+        for i, l in enumerate(l_list):
+            lm_list.append(lm_data[l][m_list[i] - 1])
         
+        irred_lm_list = list(dict.fromkeys(lm_list))
+        
+        if style == 1:
+            lm_shortcut = ['p','d','sp','ps','pd','dp','sd','ds','spd','sdp','psd','pds','dsp','dps']
+            # Check if the lm value is appropriate
+            if isinstance(lm,str):
+                if lm not in irred_lm_list and lm not in lm_shortcut:
+                    raise Exception("WARNING:", lm, "is not recognizable. lm must be", irred_lm_list, lm_shortcut)
+                else:
+                    if lm == 'p': 
+                        lm = [['px','py','pz']]
+                    elif lm == 'd': 
+                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2']]
+                    elif lm == 'sp': 
+                        lm = ['s',['px','py','pz']]
+                    elif lm == 'ps': 
+                        lm = [['px','py','pz'],'s']
+                    elif lm == 'sd': 
+                        lm = ['s',['dxy', 'dyz','dz2','dxz','dx2-y2']]
+                    elif lm == 'ds': 
+                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],'s']
+                    elif lm == 'pd': 
+                        lm = [['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2']]
+                    elif lm == 'dp': 
+                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],['px','py','pz']]
+                    elif lm == 'spd':                         
+                        lm = ['s',['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2']]  
+                    elif lm == 'sdp':                         
+                        lm = ['s',['dxy', 'dyz','dz2','dxz','dx2-y2'],['px','py','pz']] 
+                    elif lm == 'psd':                         
+                        lm = [['px','py','pz'],'s',['dxy', 'dyz','dz2','dxz','dx2-y2']]   
+                    elif lm == 'pds':                         
+                        lm = [['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2'],'s']  
+                    elif lm == 'dsp':                         
+                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],'s',['px','py','pz']] 
+                    elif lm == 'dps':                         
+                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],['px','py','pz'],'s']                          
+                    else:
+                        lm = [lm]
+            elif isinstance(lm,list):
+                for each_lm in lm:
+                    if isinstance(each_lm,str):
+                        if each_lm not in irred_lm_list:
+                            raise Exception("WARNING:", lm, "is not recognizable. lm must be one of these", irred_lm_list)
+                    else:
+                        for orb in each_lm:
+                            if orb not in irred_lm_list:
+                                raise Exception("WARNING:", orb , "is not recognizable. lm must be one of these", irred_lm_list)                        
+            else:
+                raise Exception("lm is not recognizable")
+                
+            # Compute pband
+            total = proj_wf.sum(axis=2)       # Sum over the orbitals --> [kpt,band]
+            shape = total.shape
+            idx_zeros = total.flatten() < 0.0001
+            total = total.flatten()
+            total[idx_zeros] = 1.0
+            total = total.reshape(shape)
+            
+            pband = [] 
+            for each_lm in lm:
+                if isinstance(each_lm,str):  
+                    idx_lm = [i for i, x in enumerate(lm_list) if x in each_lm]
+                    proj_val = (proj_wf[:,:,idx_lm]).sum(axis=2) / total
+                else:
+                    proj_val = 0
+                    for orb in each_lm:
+                        idx_lm = [i for i, x in enumerate(lm_list) if x in orb]
+                        proj_val += (proj_wf[:,:,idx_lm]).sum(axis=2) / total
+                pband.append(proj_val)
+ 
+            pband = np.asarray(pband)
+          
+        elif style == 2:
+            if isinstance(lm,str):
+                atom, lm_ = lm.split(':')
+                lm_  = lm_.split(',') 
+                temp = []
+                for i in range(len(lm_)):               
+                    if lm_[i] == 'p': 
+                        for m in ['px','py','pz']: temp.append(m)
+                    elif lm_[i] == 'd': 
+                        for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                    else:
+                        temp.append(lm_[i])
+                lms = [temp]
+                atoms = [atom]
+            elif isinstance(lm,list):
+                atoms = []
+                lms = []   
+                for orb in lm:
+                    atom, lm_ = orb.split(':')
+                    lm_  = lm_.split(',') 
+                    temp = []
+                    for i in range(len(lm_)):               
+                        if lm_[i] == 'p': 
+                            for m in ['px','py','pz']: temp.append(m)
+                        elif lm_[i] == 'd': 
+                            for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                        else:
+                            temp.append(lm_[i])
+                    atoms.append(atom)
+                    lms.append(temp)
+  
+            # Compute pband
+            total = proj_wf.sum(axis=2)       # Sum over the orbitals --> [kpt,band]
+            shape = total.shape
+            idx_zeros = total.flatten() < 0.0001
+            total = total.flatten()
+            total[idx_zeros] = 1.0
+            total = total.reshape(shape)
+            
+            pband = [] 
+            for i, atm in enumerate(atoms):
+                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
+                idx_lm = [idx for idx in idx_atom if lm_list[idx] in lms[i]]
+                proj_val = (proj_wf[:,:,idx_lm]).sum(axis=2)
+                pband.append(proj_val/total)
+            pband = np.asarray(pband)
+            
+        elif style == 3: 
+            lm_shortcut = ['sp', 'sd', 'pd']
+            if isinstance(lm,str):
+                if lm not in lm_shortcut:
+                    raise Exception("WARNING:", lm, "is not recognizable. lm must be", lm_shortcut)
+                else:
+                    if lm == 'sp': 
+                        lm = ['s',['px','py','pz']]
+                    elif lm == 'sd': 
+                        lm = ['s',['dxy', 'dyz','dz2','dxz','dx2-y2']]
+                    elif lm == 'pd': 
+                        lm = [['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2']]
+                    else:
+                        raise Exception("WARNING:", lm, "is not recognizable. lm must be one of these", lm_shortcut, "or a list")
+            elif isinstance(lm,list):
+                assert len(lm) == 2          # Only two orbital 
+                for each_lm in lm:
+                    if isinstance(each_lm,str):
+                        if each_lm not in irred_lm_list:
+                            raise Exception("WARNING:", lm, "is not recognizable. lm must be one of these", irred_lm_list)
+                    else:
+                        for orb in each_lm:
+                            if orb not in irred_lm_list:
+                                raise Exception("WARNING:", orb , "is not recognizable. lm must be one of these", irred_lm_list) 
+            else:
+                raise Exception("lm is not recognizable")
+                
+            # Compute pband
+            pband = [] 
+            for each_lm in lm:                  # only two lm
+                if isinstance(each_lm,str):  
+                    idx_lm = [i for i, x in enumerate(lm_list) if x in each_lm]
+                    proj_val = (proj_wf[:,:,idx_lm]).sum(axis=2)
+                else:
+                    proj_val = 0
+                    for orb in each_lm:
+                        idx_lm = [i for i, x in enumerate(lm_list) if x in orb]
+                        proj_val += (proj_wf[:,:,idx_lm]).sum(axis=2)
+                pband.append(proj_val)
+            pband = np.asarray(pband)
+            pband = pband[0]/(pband.sum(axis=0))
+        else:
+            raise Exception('mcu currently supports only style: 0,1,2')
+        
+        return pband
+                
+                    
+    def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band=None, color=None, band_color=['#007acc','#808080','#808080'],
+                    scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
+                    legend=None, loc="upper right", legend_size=1.0,
+                    save=False, figname='pBAND', figsize=(6,6), xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
+        '''Plot projected band structure
+           Please see mcu.utils.plot.plot_pband for full documents        
+        '''
+        plot.plot_pband(self, efermi=efermi, spin=spin, label=label, style=style, lm=lm, band=band, color=color, band_color=band_color,
+                    scale=scale, alpha=alpha, cmap=cmap, edgecolor=edgecolor, facecolor=facecolor, marker=marker,
+                    legend=legend, loc=loc, legend_size=legend_size,
+                    save=save, figname=figname, figsize=figsize, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
+

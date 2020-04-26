@@ -25,7 +25,8 @@ Utilities for vasp module
 import os
 import numpy as np
 from ..utils.misc import check_exist
-from ..cell import parameters, utils            
+from ..cell import parameters
+from ..cell import utils as cell_utils             
             
     
 def str_extract(string, start, end):
@@ -145,7 +146,7 @@ def get_1Dkpath(kpath, npoint=20):
         line = k_list[path][1] - k_list[path-1][1]
         kpts.append(k_list[path-1][1] + temp*line/npath)
     kpts = np.asarray(kpts).reshape(npath*(npoint+1),-1)
-    kpts = utils.rm_redundant_band(kpts,kpts)[0]
+    kpts = rm_redundant_band(kpts,kpts)[0]
     
     with open('KPOINTS', 'w') as f:
         f.write('Generated mesh by mcu\n')	
@@ -162,5 +163,5 @@ def cell_to_spgcell(cell, atoms):
     
     lattice = np.ndarray.tolist(cell[0])      
     positions = np.ndarray.tolist(cell[2])
-    numbers = utils.convert_atomtype(atoms)
+    numbers = cell_utils.convert_atomtype(atoms)
     return (lattice, positions, numbers)

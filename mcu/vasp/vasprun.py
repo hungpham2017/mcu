@@ -72,7 +72,7 @@ class main:
         '''Get the cell info from vasprun and return the cell in spglib format'''
         self.cell_init  =  utils.cell_to_spgcell(vasprun.cell_init, self.atom)
         self.cell  = utils.cell_to_spgcell(vasprun.cell_final, self.atom)
-        self.cell_type = [None, None]
+        self.cell_type = [None] * 2
 
 ############ General #################
     def get_info(self, vasprun):    
@@ -81,15 +81,14 @@ class main:
         electronic = vasprun.parameters['electronic']
         self.nelec = electronic.general['NELECT']    
         self.nbands = electronic.general['NBANDS']
-        self.lsorbit = electronic.spin['LSORBIT']
+        self.soc = electronic.spin['LSORBIT']
         self.ispin = electronic.spin['ISPIN']    
         self.kpts = vasprun.kpoints['kpointlist']
         self.kpts_weight = vasprun.kpoints['weights']
         self.nkpts = self.kpts.shape[0] 
         self.natom  = vasprun.natom 
         self.atom  = vasprun.atom     
-        self.atm  = vasprun.atm 
-        self.atype = [atom[1] for atom in vasprun.types]
+        self.element = [atom[1] for atom in vasprun.types]
         self.get_cell(vasprun)
         self.get_efermi()
       
@@ -265,9 +264,10 @@ class main:
                 print('  Direct bandgap   : %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (direct_gap, direct_k[0], direct_k[1], direct_k[2]))                   
                 
                 
-    def _generate_band(self, vasprun, efermi=None, spin=0, label=None):
+    def _generate_band(self, vasprun=None, efermi=None, spin=0, label=None):
         '''Processing/collecting the band data before the plotting function
         '''
+        if vasprun is None: vasprun = self.vasprun
         
         # Get the fermi level
         if efermi is None: efermi = self.efermi        
@@ -432,9 +432,9 @@ class main:
             plt.show()            
             
         
-    def _generate_pband(self, vasprun, spin=0, style=1, lm='spd', lm_label=None):
+    def _generate_pband(self, vasprun=None, spin=0, style=1, lm='spd'):
         '''Processing/collecting the projected band data before the plotting function
-            proj_wf = [spin,kpt,band,atom,lm] , read vasp_io.XML.get_projected for more details info
+            proj_wf = [kpt,band,atom,lm] , read vasp_io.XML.get_projected for more details info
             
             style = 1   : all atoms are considered
                          lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them
@@ -446,7 +446,7 @@ class main:
             style = 3   : gradient map to show the character transition
                          lm = 'sp', 'pd', 'sd'                
         '''      
-       
+        if vasprun is None: vasprun = self.vasprun
         
         # Collecting/combining the projected wfn from vasprun.xml
         if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
@@ -554,7 +554,6 @@ class main:
             elif isinstance(lm,list):
                 atoms = []
                 lms = []   
-                atom_list = self.vasprun.atom
                 for orb in lm:
                     atom, lm_ = orb.split(':')
                     lm_  = lm_.split(',') 
@@ -571,9 +570,9 @@ class main:
                 
             # Compute pband
             pband = [] 
-            total = proj_wf.sum(axis=(2,3))       # Sum over the atoms --> [kpt,band,lm]
-            for i in range(len(atoms)):
-                idx_atom = [idx for idx in range(len(self.atom)) if atoms[i] == self.atom[idx]]
+            total = proj_wf.sum(axis=(2,3))       # Sum over the atoms and lm --> [kpt,band]
+            for i, atm in enumerate(atoms):
+                idx_atom = [idx for idx in range(len(self.atom)) if atm == self.atom[idx]]
                 idx_lm = [lm_list.index(lm) for lm in lms[i]] 
                 proj_val_atom = 0
                 proj_val = 0                
@@ -670,14 +669,14 @@ class main:
                 legend      : a list of labels for different group of orbitals (same color) for the style 1 and 2            
         '''
 
-        if style == 2 and lm == 'spd' : lm = [atom+':s,p,d' for atom in self.atype]       
+        if style == 2 and lm == 'spd' : lm = [atom+':s,p,d' for atom in self.element]       
         if style == 3 and lm == 'spd' : lm = 'sp'   
        
         # Check if the band values are reasonable otherwise generate it
         band_idx = band
         if band_idx == None:
             idx_vbm = int(self.nelec)
-            if self.lsorbit == False: idx_vbm = idx_vbm//2               # Estimation for insulator, generally wrong for metal
+            if self.soc == False: idx_vbm = idx_vbm//2               # Estimation for insulator, generally wrong for metal
             first_band = int(idx_vbm - 5)
             last_band = int(idx_vbm + 4)
             if first_band < 0: first_band = 0
@@ -690,8 +689,8 @@ class main:
             band_idx[0] = band_idx[0] -1
             band_idx[1] = band_idx[1] -1     
         
-        band, proj_kpath, sym_kpoint_coor, label, conventional = self._generate_band(self.vasprun, efermi, spin, label)  
-        pband = self._generate_pband(self.vasprun, spin, style, lm)
+        band, proj_kpath, sym_kpoint_coor, label, conventional = self._generate_band(efermi=efermi, spin=spin, label=label)  
+        pband = self._generate_pband(spin=spin, style=style, lm=lm)
         
         ##----------------------------------------------------------
         ##Plotting:        
@@ -862,7 +861,6 @@ class main:
             elif isinstance(lm,list):
                 atoms = []
                 lms = []   
-                atom_list = self.vasprun.atom
                 for orb in lm:
                     atom, lm_ = orb.split(':')
                     lm_  = lm_.split(',') 
@@ -928,7 +926,7 @@ class main:
             assert isinstance(vasprun, vasp_io.XML)
             
         if lm == None: 
-            lm = [atom+':s,p,d' for atom in self.atype]  
+            lm = [atom+':s,p,d' for atom in self.element]  
             legend = lm
         elif lm != None and legend == None:
             legend = lm
@@ -1079,7 +1077,6 @@ class main:
         elif isinstance(lm,list):
             atoms = []
             lms = []   
-            atom_list = self.vasprun.atom
             for orb in lm:
                 atom, lm_ = orb.split(':')
                 lm_  = lm_.split(',') 
@@ -1133,12 +1130,12 @@ class main:
                 legend      : a list of labels for different group of orbitals (same color) for the style 1 and 2            
         '''
 
-        if lm == None : lm = [atom+':s,p,d' for atom in self.atype]         
+        if lm == None : lm = [atom+':s,p,d' for atom in self.element]         
         
         # Check if the band values are reasonable otherwise generate it
         if band == None:
             idx_vbm = int(self.nelec)
-            if self.lsorbit == False: idx_vbm = idx_vbm//2
+            if self.soc == False: idx_vbm = idx_vbm//2
             band = idx_vbm - 1
         else:
             assert (band <= self.nbands) and (band >= 1)  
@@ -1235,7 +1232,7 @@ class main:
         band_idx = band
         if band_idx == None:
             idx_vbm = int(self.nelec)
-            if self.lsorbit == False: idx_vbm = idx_vbm//2               # Estimation for insulator, generally wrong for metal
+            if self.soc == False: idx_vbm = idx_vbm//2               # Estimation for insulator, generally wrong for metal
             band_idx = [idx_vbm-1, idx_vbm]
         else:
             assert band_idx[0] <= band_idx[1]                    # from band[0] to band[1]
