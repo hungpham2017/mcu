@@ -346,3 +346,127 @@ def plot_pband(calculator, efermi=None, spin=0, label=None, style=1, lm='spd', b
         fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
     else:
         plt.show()
+        
+        
+def plot_dos(calculator, style=1, efermi=None, spin=0, lm=None, color=None,
+                legend=None, loc="upper right", fill=True, alpha=0.2,
+                save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
+    '''Plot projected band structure
+        For multiple vasprun.xml, user can choose one of them to plot the DOS. Default: the first vasprun.xml
+
+        Attribute:
+        style           : 1 (horizontal) or 2 (vertical)
+        
+        for VASP only:
+            spin            : spin of DOS.
+                              For LSORBIT == True: spin = 0,1,2,3
+                              For ISPIN = 2      : spin = 0,1
+        spin                : updown, visualize both up and down spin
+                          
+        lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
+    '''
+        
+    if lm is None: 
+        lm = [atom+':s,p,d' for atom in calculator.element]  
+        legend = lm
+    elif lm is not None and legend is None:
+        if isinstance(lm, str):
+            legend = [lm]
+        else:
+            legen = lm
+         
+    if spin == 'updown':
+        if calculator.ispin != 2: raise Exception('ISPIN must be 2 for the up-down DOS plotting')
+        tdos0, pdos0 = calculator._generate_dos(efermi=efermi, spin=0, lm=lm)
+        tdos1, pdos1 = calculator._generate_dos(efermi=efermi, spin=1, lm=lm)
+        tdos1 = -tdos1
+        pdos1 = -pdos1
+        if figsize == (6,3) and style==1 : figsize = (6,5)
+        if figsize == (6,3) and style==2 : figsize = (5,6)
+    else:
+        if figsize == (6,3) and style==2 : figsize = (3,6)
+        tdos0, pdos0 = calculator._generate_dos(efermi=efermi, spin=spin, lm=lm)
+    
+    ##----------------------------------------------------------
+    ##Plotting:        
+    ##----------------------------------------------------------
+    color_list = ['k','r','g','b','y','m','c']
+    if color == None: color = color_list
+    
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    yrange = (-500,500)
+    
+    # Plot DOS    
+    if style == 1:
+        ax.plot(tdos0[:,0], tdos0[:,1], color=color[0],linewidth=1.1,label='TDOS')
+        if pdos0 is not None:
+            for orb in range(pdos0.shape[1]): 
+                ax.plot(tdos0[:,0], pdos0[:,orb], color=color[orb+1], linewidth=1.0, label=legend[orb])
+                if fill == True: ax.fill_between(tdos0[:,0], pdos0[:,orb], color=color[orb+1], alpha=alpha)
+            
+        if spin == 'updown':
+            ax.plot(tdos0[:,0], tdos1[:,1], color=color[0], linewidth=1.1)
+            if pdos1 is not None:
+                for orb in range(pdos1.shape[1]): 
+                    ax.plot(tdos0[:,0], pdos1[:,orb], color=color[orb+1], linewidth=1.0)
+                    if fill == True: ax.fill_between(tdos0[:,0], pdos1[:,orb], color=color[orb+1], alpha=alpha)
+    
+        # Graph adjustments 
+        plt.xlabel('Energy (eV)', size=fontsize+4)   
+        plt.ylabel('DOS', size=fontsize+4)
+        if spin == 'updown':
+            plt.ylim([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale])  
+            ax.plot([0,0], [tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
+            ax.plot([tdos0[:,0].min()*yscale,tdos0[:,0].max()*yscale], [0,0], color=color[0], linewidth=1.0, alpha=alpha) 
+        else:
+            plt.ylim([0, tdos0[:,1].max()*yscale])
+            ax.plot([0,0], [0, tdos0[:,1].max()*yscale], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
+        plt.xlim(elim)
+        plt.yticks([])
+        
+    elif style == 2:
+        ax.plot(tdos0[:,1], tdos0[:,0], color=color[0], linewidth=1.1, label='TDOS')
+        if pdos0 is not None:
+            for orb in range(pdos0.shape[1]): 
+                ax.plot(pdos0[:,orb], tdos0[:,0], color=color[orb+1], linewidth=1.0,label=legend[orb])
+                if fill == True: ax.fill_between(pdos0[:,orb], tdos0[:,0], color=color[orb+1], alpha=alpha)
+            
+        if spin == 'updown':
+            ax.plot(tdos1[:,1], tdos0[:,0], color=color[0], linewidth=1.1)
+            if pdos1 is not None:
+                for orb in range(pdos1.shape[1]): 
+                    ax.plot(pdos1[:,orb], tdos0[:,0], color=color[orb+1],linewidth=1.0)
+                    if fill == True: ax.fill_between(pdos1[:,orb], tdos0[:,0], color=color[orb+1], alpha=alpha)
+
+    
+        # Graph adjustments 
+        plt.xlabel('DOS', size=fontsize+4)   
+        plt.ylabel('Energy (eV)', size=fontsize+4)
+        if spin == 'updown':
+            plt.xlim([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale])  
+            ax.plot([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
+            ax.plot([0,0], [tdos0[:,0].min()*yscale,tdos0[:,0].max()*yscale], color=color[0], linewidth=1.0, alpha=alpha) 
+        else:
+            plt.xlim([0,tdos0[:,1].max()*yscale])
+            ax.plot([0, tdos0[:,1].max()*yscale], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
+        plt.ylim(elim)
+        plt.xticks([])
+        
+    else:   
+        assert 0, "Style must be 1 (horizontal) or 2 (vertical)"
+    # Legend
+    lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
+            
+    # Graph adjustments 
+    border = 1.08        
+    ax.tick_params(labelsize=fontsize, width=border)
+    ax.spines['top'].set_linewidth(border)
+    ax.spines['right'].set_linewidth(border)
+    ax.spines['bottom'].set_linewidth(border)
+    ax.spines['left'].set_linewidth(border)
+    plt.tight_layout()
+    if save == True: 
+        fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
+    else:
+        plt.show() 

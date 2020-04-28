@@ -26,6 +26,7 @@ from ..cell import utils as cell_utils
 from . import utils, vasp_io
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d, Axes3D
 
         
 class main:
@@ -815,7 +816,7 @@ class main:
         else:
             plt.show()
 
-    def _generate_dos(self, vasprun, efermi=None, spin=0, lm=None):
+    def _generate_dos(self, vasprun=None, efermi=None, spin=0, lm=None):
         '''Processing/collecting the DOS data before the plotting function
             Note: unlike plot_band function, only one vasprun.xml is used. Combining vasprun.xml for DOS sounds a bit weird
             and unececessary
@@ -827,22 +828,24 @@ class main:
             lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
         '''
         
-        # Get the fermi level
-        pdos_exist = False
-        lm_list = vasprun.lm
+        if vasprun is None: 
+            if isinstance(self.vasprun, vasp_io.XML): 
+                vasprun = self.vasprun
+                if efermi is None: efermi = self.efermi
+            if isinstance(self.vasprun,list): 
+                vasprun = self.vasprun[0]  
+                if efermi is None: efermi = self.efermi[0]
+        else:
+            assert isinstance(vasprun, vasp_io.XML)
         
         vasprun.get_dos()
         tdos = vasprun.tdos[spin,:,:2]
-        if vasprun.pdos_exist == True: 
-            pdos_data = vasprun.pdos[:,spin,:,:]         # [atom,energy,lm]
-            pdos_exist = True
-        else:
-            pdos = None
-            
-             
-        # Compute pDOS
-        if pdos_exist == True:
+        lm_list = vasprun.lm
+        pdos = None
         
+        # Compute pDOS
+        if vasprun.pdos_exist == True: 
+            pdos_data = vasprun.pdos[:,spin,:,:]
             # Collecting group of lm
             if isinstance(lm,str):
                 atom, lm_ = lm.split(':')
@@ -896,135 +899,18 @@ class main:
             
         # Shift the energy 
         tdos[:,0] = tdos[:,0] - efermi
-                
-        return tdos, pdos_exist, pdos
         
-    def plot_dos(self, vasprun=None, style=1, efermi=None, spin=0, lm=None, color=None,
+        return tdos, pdos
+        
+    def plot_dos(self, style=1, efermi=None, spin=0, lm=None, color=None,
                     legend=None, loc="upper right", fill=True, alpha=0.2,
                     save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
-            For multiple vasprun.xml, user can choose one of them to plot the DOS. Default: the first vasprun.xml
-
-            Attribute:
-            style           : 1 (standard plot) or 2 (vertital plot)
-            
-            spin            : spin of DOS.
-                              For LSORBIT == True: spin = 0,1,2,3
-                              For ISPIN = 2      : spin = 0,1
-                              
-            lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
+           Please see mcu.utils.plot.plot_dos for full documents 
         '''
-        
-        if vasprun == None: 
-            if isinstance(self.vasprun, vasp_io.XML): 
-                vasprun = self.vasprun
-                if efermi == None: efermi = self.efermi
-            if isinstance(self.vasprun,list): 
-                vasprun = self.vasprun[0]  
-                if efermi == None: efermi = self.efermi[0]
-        else:
-            assert isinstance(vasprun, vasp_io.XML)
-            
-        if lm == None: 
-            lm = [atom+':s,p,d' for atom in self.element]  
-            legend = lm
-        elif lm != None and legend == None:
-            legend = lm
-              
-        if spin == 'updown':
-            if self.ispin != 2: raise Exception('ISPIN must be 2 for the up-down DOS plotting')
-            tdos0, pdos_exist, pdos0 = self._generate_dos(vasprun, efermi=efermi, spin=0, lm=lm)
-            tdos1, pdos_exist, pdos1 = self._generate_dos(vasprun, efermi=efermi, spin=1, lm=lm)
-            tdos1 = -tdos1
-            pdos1 = -pdos1
-            if figsize == (6,3) and style==1 : figsize = (6,5)
-            if figsize == (6,3) and style==2 : figsize = (5,6)
-        else:
-            if figsize == (6,3) and style==2 : figsize = (3,6)
-            tdos0, pdos_exist, pdos0 = self._generate_dos(vasprun, efermi=efermi, spin=spin, lm=lm)
-        
-        ##----------------------------------------------------------
-        ##Plotting:        
-        ##----------------------------------------------------------
-        color_list = ['k','r','g','b','y','m','c']
-        if color == None: color = color_list
-        
-        fig = plt.figure(figsize=figsize)
-        ax = fig.add_subplot(111)
-        yrange = (-500,500)
-        
-        # Plot DOS    
-        if style == 1:
-            ax.plot(tdos0[:,0], tdos0[:,1], color=color[0],linewidth=1.1,label='TDOS')
-            if pdos_exist == True:
-                for orb in range(pdos0.shape[1]): 
-                    ax.plot(tdos0[:,0], pdos0[:,orb], color=color[orb+1], linewidth=1.0, label=legend[orb])
-                    if fill == True: ax.fill(tdos0[:,0], pdos0[:,orb], color=color[orb+1], alpha=alpha)
-                
-            if spin == 'updown':
-                ax.plot(tdos0[:,0], tdos1[:,1], color=color[0], linewidth=1.1)
-                if pdos_exist == True:
-                    for orb in range(pdos1.shape[1]): 
-                        ax.plot(tdos0[:,0], pdos1[:,orb], color=color[orb+1], linewidth=1.0)
-                        if fill == True: ax.fill(tdos0[:,0], pdos1[:,orb], color=color[orb+1], alpha=alpha)
-        
-            # Graph adjustments 
-            plt.xlabel('Energy (eV)', size=fontsize+4)   
-            plt.ylabel('DOS', size=fontsize+4)
-            if spin == 'updown':
-                plt.ylim([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale])  
-                ax.plot([0,0], [tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
-                ax.plot([tdos0[:,0].min()*yscale,tdos0[:,0].max()*yscale], [0,0], color=color[0], linewidth=1.0, alpha=alpha) 
-            else:
-                plt.ylim([0, tdos0[:,1].max()*yscale])
-                ax.plot([0,0], [0, tdos0[:,1].max()*yscale], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
-            plt.xlim(elim)
-            plt.yticks([])
-            
-        elif style == 2:
-            ax.plot(tdos0[:,1], tdos0[:,0], color=color[0], linewidth=1.1, label='TDOS')
-            if pdos_exist == True:
-                for orb in range(pdos0.shape[1]): 
-                    ax.plot(pdos0[:,orb], tdos0[:,0], color=color[orb+1], linewidth=1.0,label=legend[orb])
-                    if fill == True: ax.fill(pdos0[:,orb], tdos0[:,0], color=color[orb+1], alpha=alpha)
-                
-            if spin == 'updown':
-                ax.plot(tdos1[:,1], tdos0[:,0], color=color[0], linewidth=1.1)
-                if pdos_exist == True:
-                    for orb in range(pdos1.shape[1]): 
-                        ax.plot(pdos1[:,orb], tdos0[:,0], color=color[orb+1],linewidth=1.0)
-                        if fill == True: ax.fill(pdos1[:,orb], tdos0[:,0], color=color[orb+1], alpha=alpha)
-
-        
-            # Graph adjustments 
-            plt.xlabel('DOS', size=fontsize+4)   
-            plt.ylabel('Energy (eV)', size=fontsize+4)
-            if spin == 'updown':
-                plt.xlim([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale])  
-                ax.plot([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
-                ax.plot([0,0], [tdos0[:,0].min()*yscale,tdos0[:,0].max()*yscale], color=color[0], linewidth=1.0, alpha=alpha) 
-            else:
-                plt.xlim([0,tdos0[:,1].max()*yscale])
-                ax.plot([0, tdos0[:,1].max()*yscale], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
-            plt.ylim(elim)
-            plt.xticks([])
-            
-            
-        # Legend
-        lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
-                
-        # Graph adjustments 
-        border = 1.08        
-        ax.tick_params(labelsize=fontsize, width=border)
-        ax.spines['top'].set_linewidth(border)
-        ax.spines['right'].set_linewidth(border)
-        ax.spines['bottom'].set_linewidth(border)
-        ax.spines['left'].set_linewidth(border)
-        plt.tight_layout()
-        if save == True: 
-            fig.savefig(figname+'.'+format, dpi=dpi, format=format)      
-        else:
-            plt.show() 
+        plot.plot_dos(self, style=style, efermi=efermi, spin=spin, lm=lm, color=color,
+                legend=legend, loc=loc, fill=fill, alpha=alpha,
+                save=save, figname=figname, figsize=figsize, elim=elim, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
             
     def _generate_spin(self, vasprun, lm=None):
         '''Processing/collecting the spin texture data before the plotting function

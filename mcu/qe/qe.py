@@ -436,3 +436,234 @@ class main:
                     legend=legend, loc=loc, legend_size=legend_size,
                     save=save, figname=figname, figsize=figsize, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
 
+    def _generate_dos(self, prefix=None, efermi=None, spin=0, lm=None):
+        '''Processing/collecting the DOS data before the plotting function
+            
+            TDOS dimensions: [spin , [E(eV), tdos(E)]]
+            
+            spin            : spin of DOS.
+            lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
+        '''
+        
+        if prefix is None: prefix = self.prefix
+        tdos_file = prefix + ".dos" 
+        assert check_exist(tdos_file), "Cannot find " + tdos_file
+         
+        # Compute pDOS
+        if check_exist(prefix + ".pdos_tot"):
+            # Collecting group of lm
+            if isinstance(lm,str):
+                atom, lm_ = lm.split(':')
+                lm_  = lm_.split(',') 
+                temp = []
+                for i in range(len(lm_)):               
+                    if lm_[i] == 'p': 
+                        for m in ['px','py','pz']: temp.append(m)
+                    elif lm_[i] == 'd': 
+                        for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                    else:
+                        temp.append(lm_[i])
+                lms = [temp]
+                atoms = [atom]
+                
+            elif isinstance(lm,list):
+                atoms = []
+                lms = []   
+                for orb in lm:
+                    atom, lm_ = orb.split(':')
+                    lm_  = lm_.split(',') 
+                    temp = []
+                    for i in range(len(lm_)):               
+                        if lm_[i] == 'p': 
+                            for m in ['px','py','pz']: temp.append(m)
+                        elif lm_[i] == 'd': 
+                            for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                        else:
+                            temp.append(lm_[i])
+                    atoms.append(atom)
+                    lms.append(temp)
+            
+            # Get total DOS
+            total_pdos_data = qe_io.read_pdos_output(prefix + ".pdos_tot")
+            tdos = total_pdos_data[spin,:,:2]
+            if efermi is None: 
+                efermi = self.get_efermi()
+            
+            # Collect the pdos files
+            data = qe_io.read_projwfc_output(prefix + ".projwfc.out")
+            site = data['site']
+            species = data['species']
+            wfc_id = np.int64(data['wfc'])
+            l_list = data['l']
+            m_list = np.int64(data['m'])
+ 
+            # Create the possible lm list
+            lm_data = {'0': ['s'], '1':['pz', 'px', 'py'], '2':['dz2', 'dxz', 'dyz', 'dx2-y2', 'dxy']}
+            lm_list = []
+            for i, l in enumerate(l_list):
+                lm_list.append(lm_data[l][m_list[i] - 1])
+            
+            irred_lm_list = list(dict.fromkeys(lm_list))
+            pdos_data = []
+            for i, atm in enumerate(self.atom):
+                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
+                wfc_idx = np.unique(wfc_id[idx_atom]) 
+                for wfc in wfc_idx:
+                    filename = prefix + ".pdos_atm#" + str(i + 1) + "(" + atm + ")" + "_wfc#" + str(wfc)
+                    if check_exist(filename + "(s)"): 
+                        filename = filename + "(s)"
+                    elif check_exist(filename + "(p)"):
+                        filename = filename + "(p)"                     
+                    elif check_exist(filename + "(d)"):
+                        filename = filename + "(d)"
+                        
+                    lm_pdos_data = qe_io.read_pdos_output(filename)[spin] 
+                    pdos_data.append(lm_pdos_data[:,2:])
+                    
+            pdos_data = np.hstack(pdos_data)
+            
+            # Compute pDOS
+            pdos = [] 
+            for i, atm in enumerate(atoms):
+                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
+                idx_lm = [idx for idx in idx_atom if lm_list[idx] in lms[i]]
+                proj_val = (pdos_data[:,idx_lm]).sum(axis=1)
+                pdos.append(proj_val)
+            pdos = np.asarray(pdos).T            
+            
+        else:
+            # Get total DOS
+            tdos_data = qe_io.read_tdos_output(tdos_file)      
+            tdos = tdos_data['dos'][spin,:,:2]
+            if efermi is None: 
+                efermi = tdos_data['efermi']
+            else:
+                efermi = 0
+            pdos = None
+            
+            
+        # Shift the energy 
+        tdos[:,0] = tdos[:,0] - efermi 
+          
+        return tdos, pdos
+        
+    def plot_dos(self, style=1, efermi=None, spin=0, lm=None, color=None,
+                    legend=None, loc="upper right", fill=True, alpha=0.2,
+                    save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
+        '''Plot projected band structure
+           Please see mcu.utils.plot.plot_dos for full documents 
+        '''
+        plot.plot_dos(self, style=style, efermi=efermi, spin=spin, lm=lm, color=color,
+                legend=legend, loc=loc, fill=fill, alpha=alpha,
+                save=save, figname=figname, figsize=figsize, elim=elim, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
+        
+    def _generate_kdos(self, prefix=None, efermi=None, spin=0, lm=None):
+        '''Processing/collecting the k-resolved DOS data before the plotting function
+            
+            kDOS dimensions: [spin , kpts, [E(eV), tdos(E)]]
+            
+            spin            : spin of DOS.
+            lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
+        '''
+        
+        if prefix is None: prefix = self.prefix
+        tdos_file = prefix + ".dos" 
+        assert check_exist(tdos_file), "Cannot find " + tdos_file
+         
+        # Compute pDOS
+        if check_exist(prefix + ".pdos_tot"):
+            # Collecting group of lm
+            if isinstance(lm,str):
+                atom, lm_ = lm.split(':')
+                lm_  = lm_.split(',') 
+                temp = []
+                for i in range(len(lm_)):               
+                    if lm_[i] == 'p': 
+                        for m in ['px','py','pz']: temp.append(m)
+                    elif lm_[i] == 'd': 
+                        for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                    else:
+                        temp.append(lm_[i])
+                lms = [temp]
+                atoms = [atom]
+                
+            elif isinstance(lm,list):
+                atoms = []
+                lms = []   
+                for orb in lm:
+                    atom, lm_ = orb.split(':')
+                    lm_  = lm_.split(',') 
+                    temp = []
+                    for i in range(len(lm_)):               
+                        if lm_[i] == 'p': 
+                            for m in ['px','py','pz']: temp.append(m)
+                        elif lm_[i] == 'd': 
+                            for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
+                        else:
+                            temp.append(lm_[i])
+                    atoms.append(atom)
+                    lms.append(temp)
+            
+            # Get total DOS
+            total_pdos_data = qe_io.read_pdos_output(prefix + ".pdos_tot")
+            tdos = total_pdos_data[spin,:,:2]
+            if efermi is None: 
+                efermi = self.get_efermi()
+            
+            # Collect the pdos files
+            data = qe_io.read_projwfc_output(prefix + ".projwfc.out")
+            site = data['site']
+            species = data['species']
+            wfc_id = np.int64(data['wfc'])
+            l_list = data['l']
+            m_list = np.int64(data['m'])
+ 
+            # Create the possible lm list
+            lm_data = {'0': ['s'], '1':['pz', 'px', 'py'], '2':['dz2', 'dxz', 'dyz', 'dx2-y2', 'dxy']}
+            lm_list = []
+            for i, l in enumerate(l_list):
+                lm_list.append(lm_data[l][m_list[i] - 1])
+            
+            irred_lm_list = list(dict.fromkeys(lm_list))
+            pdos_data = []
+            for i, atm in enumerate(self.atom):
+                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
+                wfc_idx = np.unique(wfc_id[idx_atom]) 
+                for wfc in wfc_idx:
+                    filename = prefix + ".pdos_atm#" + str(i + 1) + "(" + atm + ")" + "_wfc#" + str(wfc)
+                    if check_exist(filename + "(s)"): 
+                        filename = filename + "(s)"
+                    elif check_exist(filename + "(p)"):
+                        filename = filename + "(p)"                     
+                    elif check_exist(filename + "(d)"):
+                        filename = filename + "(d)"
+                        
+                    lm_pdos_data = qe_io.read_pdos_output(filename)[spin] 
+                    pdos_data.append(lm_pdos_data[:,2:])
+                    
+            pdos_data = np.hstack(pdos_data)
+            
+            # Compute pDOS
+            pdos = [] 
+            for i, atm in enumerate(atoms):
+                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
+                idx_lm = [idx for idx in idx_atom if lm_list[idx] in lms[i]]
+                proj_val = (pdos_data[:,idx_lm]).sum(axis=1)
+                pdos.append(proj_val)
+            pdos = np.asarray(pdos).T            
+            
+        else:
+            # Get total DOS
+            tdos_data = qe_io.read_tdos_output(tdos_file)      
+            tdos = tdos_data['dos'][spin,:,:2]
+            if efermi is None: 
+                efermi = tdos_data['efermi']
+            else:
+                efermi = 0
+            pdos = None
+            
+            
+        # Shift the energy 
+        tdos[:,0] = tdos[:,0] - efermi 
+          
+        return tdos, pdos
