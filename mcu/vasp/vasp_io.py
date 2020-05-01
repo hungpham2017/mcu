@@ -365,7 +365,7 @@ class XML:
            N(\epsilon_i) = \int_{-infty}^{epsilon_i} n(\epsilon) d\epsilon
             
         #################################################
-           tdos = [atom,spin,epsilon,ith]           
+           pdos = [atom,spin,epsilon,ith]           
                 ith = 0     : epsilon
                 ith = 1-9   : lm =  pz     px    dxy    dyz    dz2    dxz  x2-y2
            

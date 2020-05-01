@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 from . import str_format
       
       
-def plot_band(calculator, efermi=None, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'],
+def plot_band(calculator, efermi=None, spin=0, klabel=None, save=False, band_color=['#007acc','#808080','#808080'],
                 figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
     '''Plot band structure
        
@@ -41,7 +41,7 @@ def plot_band(calculator, efermi=None, spin=0, label=None, save=False, band_colo
     assert isinstance(band_color,list)
     assert len(band_color) == 3
     
-    band, kpath, sym_kpoint_coor, formatted_label, conventional = calculator._generate_band(efermi=efermi, spin=spin, label=label)  
+    band, kpath, sym_kpoint_coor, formatted_label = calculator._generate_band(efermi=efermi, spin=spin, klabel=klabel)  
 
     ##----------------------------------------------------------
     ##Plotting:        
@@ -89,7 +89,7 @@ def plot_band(calculator, efermi=None, spin=0, label=None, save=False, band_colo
         plt.show()  
         
         
-def plot_phononband(calculator, unit='CM', gamma_correct=False, threshold=8.06554, spin=0, label=None, save=False, band_color=['#007acc','#808080','#808080'], figsize=(6,6), figname='PHONONBAND', xlim=None, ylim=None, fontsize=18, dpi=300, format='png'):
+def plot_phononband(calculator, unit='CM', gamma_correct=False, threshold=8.06554, spin=0, klabel=None, save=False, band_color=['#007acc','#808080','#808080'], figsize=(6,6), figname='PHONONBAND', xlim=None, ylim=None, fontsize=18, dpi=300, format='png'):
     '''Plot phnon band structure
        
         Attribute:
@@ -109,7 +109,7 @@ def plot_phononband(calculator, unit='CM', gamma_correct=False, threshold=8.0655
     assert isinstance(band_color,list)
     assert len(band_color) == 3
     
-    band, kpath, sym_kpoint_coor, formatted_label = calculator._generate_phononband(unit=unit, gamma_correct=gamma_correct, threshold=threshold, spin=spin, label=label) 
+    band, kpath, sym_kpoint_coor, formatted_label = calculator._generate_phononband(unit=unit, gamma_correct=gamma_correct, threshold=threshold, spin=spin, klabel=klabel) 
 
     ##----------------------------------------------------------
     ##Plotting:        
@@ -161,14 +161,14 @@ def plot_phononband(calculator, unit='CM', gamma_correct=False, threshold=8.0655
         plt.show() 
         
         
-def plot_pband(calculator, efermi=None, spin=0, label=None, gradient=False, lm=None, band=None, color=None, band_color=['#007acc','#808080','#808080'], scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None, legend=None, loc="upper right", legend_size=1.0, save=False, figname='pBAND', figsize=(6,6), xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
+def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=None, band=None, color=None, band_color=['#007acc','#808080','#808080'], scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None, legend=None, loc="upper right", legend_size=1.0, save=False, figname='pBAND', figsize=(6,6), xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
     '''Plot projected band structure
        
         Attribute:
             efermi      : a Fermi level or a list of Fermi levels, it is automatically extracted frim vasprun.xml or OUTCAR
             spin        : 0  for spin unpolarized and LSORBIT = .TRUE.
                               0 or 1 for spin polarized
-            label       : label for high symmetric points, e.g. 'G-X-L-W-G',
+            klabel       : label for high symmetric points, e.g. 'G-X-L-W-G',
                               if hybridXC=True, the lavel should be a list of labels plus their coordinates
                               
             ########################PLOTTING STYLE###################################
@@ -219,7 +219,7 @@ def plot_pband(calculator, efermi=None, spin=0, label=None, gradient=False, lm=N
         band_idx[0] = band_idx[0] -1
         band_idx[1] = band_idx[1] -1     
     
-    band, kpath, sym_kpoint_coor, formatted_label, conventional = calculator._generate_band(efermi=efermi, spin=spin, label=label)  
+    band, kpath, sym_kpoint_coor, formatted_label = calculator._generate_band(efermi=efermi, spin=spin, klabel=klabel)  
     pband = calculator._generate_pband(spin=spin, gradient=gradient, lm=lm)
     
     ##----------------------------------------------------------
@@ -469,7 +469,7 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
         plt.show() 
         
 
-def plot_kdos(calculator, efermi=None, spin=0, lm=None, plot_band=False, label=None, cmap='Blues', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'], figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
+def plot_kdos(calculator, efermi=None, spin=0, lm=None, plot_band=False, klabel=None, cmap='Blues', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'], figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
     '''Plot k-resolved DOS
        
         Attribute:
@@ -492,7 +492,7 @@ def plot_kdos(calculator, efermi=None, spin=0, lm=None, plot_band=False, label=N
         lm = [atom+':s,p,d' for atom in calculator.element]  
         proj_kdos = False
         
-    tdos, pdos, kpath, sym_kpoint_coor, formatted_label = calculator._generate_kdos(efermi=efermi, spin=spin, lm=lm, label=label)
+    tdos, pdos, kpath, sym_kpoint_coor, formatted_label = calculator._generate_kdos(efermi=efermi, spin=spin, lm=lm, klabel=klabel)
     
     if proj_kdos is True:
         kdos = pdos

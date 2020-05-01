@@ -174,5 +174,27 @@ def format_atom(atom):
         id = int(id)
     return elememnt, id
         
+        
+def format_klabel(klabel):
+    '''Giving a kpath label string, return the label list'''
+    assert isinstance(klabel, str), "Labels for k-point must be a string. Check it!"
+    klabel = klabel.strip()
+    temp = klabel.replace(","," ").replace(";"," ").split()
+    is_digit = sum([item.replace(".","").isdigit() for item in temp])
+    if is_digit == 0:
+        labels = temp
+        coords = None
+    else:
+        assert not np.mod(len(temp),4) , 'Wrong format for the k-point labels. Check it!'
+        nkpt = len(temp) // 4
+        labels = [temp[i] for i in np.arange(nkpt)*4]
+        coords = np.float64([[temp[i + 1], temp[i + 2], temp[i + 3]] for i in np.arange(nkpt)*4]) 
+    return labels, coords
+    
+    
+    
+    
+    
+    
     
     

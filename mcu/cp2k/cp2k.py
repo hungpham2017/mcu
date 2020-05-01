@@ -154,7 +154,7 @@ class main:
                     direct_gap = min(gap1, gap2)
                     print('  Direct bandgap   : %6.3f' % (direct_gap))
  
-    def _generate_band(self, set_block=-1, efermi=0.0, spin=0, label=None):
+    def _generate_band(self, set_block=-1, efermi=0.0, spin=0, klabel=None):
         '''Processing/collecting the band data before the plotting function
            TODO: spin != 0 case will be updated later
         '''
@@ -184,9 +184,9 @@ class main:
         temp_kpts[1:] = abs_kpts[:-1] 
         sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
         
-        return band, path, sym_kpoint_coor, label
+        return band, path, sym_kpoint_coor, klabel
         
-    def plot_band(self, set_block=-1, efermi=0.0, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+    def plot_band(self, set_block=-1, efermi=0.0, klabel=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
@@ -201,5 +201,5 @@ class main:
         assert isinstance(band_color,list)
         assert len(band_color) == 3
         plot.plot_band(self, efermi=efermi, spin=spin, save=save, band_color=band_color,
-                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
+                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, klabel=klabel)
         

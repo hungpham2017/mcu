@@ -24,30 +24,30 @@ from ..utils import plot, str_format
 from ..utils.misc import check_exist
 from ..vasp import const
 from ..cell import utils as cell_utils
+from ..cell import cell
 from . import qe_io
 
         
-class main:
+class main(cell.main):
     def __init__(self,  prefix=None):
         '''
         
         '''
-        if prefix is None:
-            print("Provide a prefix name for your project, for example, prefix.scf.out, prefix.band.out, etc.")
-        else:
-            self.prefix = prefix
-            self.get_info() 
+        assert prefix is not None, "Provide a prefix name for your project, for example, prefix.scf.out, prefix.band.out, etc."
+        self.prefix = prefix
+        self.get_info() 
+        cell.main.__init__(self, self.cell)
         
 ############ General #################
         
-    def get_info(self):    
+    def get_info(self, filename=None):    
         '''Extract basis information from the vasprun.xml'''
-
-        if check_exist(self.prefix + ".scf.out"):
-            filename = self.prefix + ".scf.out"
-        else:
-            assert 0, "Cannot find any prefix.scf.out file"
-            
+        if filename is None:
+            if check_exist(self.prefix + ".scf.out"):
+                filename = self.prefix + ".scf.out"
+            else:
+                assert 0, "Cannot find any prefix.scf.out file"
+                
         data = qe_io.read_pw_output(filename)
         self.nelec = data['nelec']
         self.nbands = data['nbands']
@@ -172,9 +172,9 @@ class main:
                     direct_gap = min(gap1, gap2)
                     print('  Direct bandgap   : %6.3f' % (direct_gap))
  
-    def _generate_band(self, filename=None, efermi=None, spin=0, label=None):
+    def _generate_band(self, filename=None, efermi=None, spin=0, klabel=None):
         '''Processing/collecting the band data before the plotting function
-           label            : a list of labels and corresponding coordinates
+           klabel            : a list of labels and corresponding coordinates for high symmetry k-points
         '''
         band, kpath_frac, proj_kpath, recip_lattice, efermi_ = self.get_band(filename)
         if efermi is None: efermi = efermi_  
@@ -182,24 +182,18 @@ class main:
         
         # Find absolute coordinates for high symmetric kpoints  
         sym_kpoint_coor = None
-        if label is not None:
-            assert isinstance(label,list)           # label needs to be a list of labels and corresponding coordinates
-            temp = []
-            coor_kpts = [] 
-            for kpt in label:
-                temp.append(kpt[0])
-                coor_kpts.append(kpt[1:])
-            label = temp       
-            coor_kpts = np.asarray(coor_kpts)
+        if klabel is not None:
+            klabel, coor_kpts = str_format.format_klabel(klabel)  
+            assert coor_kpts is not None, "You need to provide the coordinates for high symmetric k in the klabel"  
             abs_kpts = coor_kpts.dot(recip_lattice)   
             temp_kpts = np.empty_like(abs_kpts)
             temp_kpts[0] = abs_kpts[0]
             temp_kpts[1:] = abs_kpts[:-1] 
             sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
                 
-        return band, proj_kpath, sym_kpoint_coor, label, True # This True is just for compariable with VASP
+        return band, proj_kpath, sym_kpoint_coor, klabel
         
-    def plot_band(self, efermi=None, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+    def plot_band(self, efermi=None, spin=0, klabel=None, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
@@ -213,8 +207,8 @@ class main:
         '''
         assert isinstance(band_color,list)
         assert len(band_color) == 3
-        plot.plot_band(self, efermi=efermi, spin=spin, save=save, band_color=band_color,
-                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
+        plot.plot_band(self, efermi=efermi, spin=spin, klabel=klabel, save=save, band_color=band_color,
+                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
                 
     def _generate_pband(self, filename=None, spin=0, gradient=False, lm='spd'):
         '''Processing/collecting the projected band data before the plotting function
@@ -225,7 +219,7 @@ class main:
                   For example, both Fe and O have contributations from s, p, d, .... Hence,
                   the projected wf is sparser in VASP than in QE
 
-                  proj_wf = [kpts, band, # of orbitals]
+            proj_wf = [kpts, band, # of orbitals]
                   
             Examples for lm:
                 lm = 'Ni:s ; p ; d'             :   three groups: (1) s of Ni ; (2) all p orbitals ; (3) all d orbitals
@@ -261,8 +255,9 @@ class main:
         formatted_atom, formatted_lm = str_format.general_lm(lm)
         
         if gradient:        
-            assert len(formatted_atom) == 2, "For the gradient plot, you only need to provide two groups of orbitals, for example, lm = 's,p'"
+            assert len(formatted_atom) == 2, "For the gradient plot, you only need to provide two groups of orbitals, for example, lm = 's ; Ni:d' or lm = ['Ni:s', 'O']"
 
+        # Calculate total band and remove zero values
         total = proj_wf.sum(axis=2)
         shape = total.shape
         idx_zeros = total.flatten() < 0.0001
@@ -315,14 +310,14 @@ class main:
 
         return pband
         
-    def plot_pband(self, efermi=None, spin=0, label=None, gradient=False, lm='spd', band=None, color=None, band_color=['#007acc','#808080','#808080'],
+    def plot_pband(self, efermi=None, spin=0, klabel=None, gradient=False, lm='spd', band=None, color=None, band_color=['#007acc','#808080','#808080'],
                     scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
                     legend=None, loc="upper right", legend_size=1.0,
                     save=False, figname='pBAND', figsize=(6,6), xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            Please see mcu.utils.plot.plot_pband for full documents        
         '''
-        plot.plot_pband(self, efermi=efermi, spin=spin, label=label, gradient=gradient, lm=lm, band=band, color=color, band_color=band_color,
+        plot.plot_pband(self, efermi=efermi, spin=spin, klabel=klabel, gradient=gradient, lm=lm, band=band, color=color, band_color=band_color,
                     scale=scale, alpha=alpha, cmap=cmap, edgecolor=edgecolor, facecolor=facecolor, marker=marker,
                     legend=legend, loc=loc, legend_size=legend_size,
                     save=save, figname=figname, figsize=figsize, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
@@ -447,7 +442,7 @@ class main:
                 legend=legend, loc=loc, fill=fill, alpha=alpha,
                 save=save, figname=figname, figsize=figsize, elim=elim, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
         
-    def _generate_kdos(self, prefix=None, efermi=None, spin=0, lm=None, label=None):
+    def _generate_kdos(self, prefix=None, efermi=None, spin=0, lm=None, klabel=None):
         '''Processing/collecting the k-resolved DOS data before the plotting function
            The kDOS will be summed over all the lm  
             
@@ -556,28 +551,22 @@ class main:
         
         # Find absolute coordinates for high symmetric kpoints  
         sym_kpoint_coor = None
-        if label is not None:
-            assert isinstance(label,list)           # label needs to be a list of labels and corresponding coordinates
-            temp = []
-            coor_kpts = [] 
-            for kpt in label:
-                temp.append(kpt[0])
-                coor_kpts.append(kpt[1:])
-            label = temp       
-            coor_kpts = np.asarray(coor_kpts)
+        if klabel is not None:
+            klabel, coor_kpts = str_format.format_klabel(klabel)  
+            assert coor_kpts is not None, "You need to provide the coordinates for high symmetric k in the klabel" 
             abs_kpts = coor_kpts.dot(recip_lattice)   
             temp_kpts = np.empty_like(abs_kpts)
             temp_kpts[0] = abs_kpts[0]
             temp_kpts[1:] = abs_kpts[:-1] 
             sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
           
-        return tdos, pdos, proj_kpath, sym_kpoint_coor, label
+        return tdos, pdos, proj_kpath, sym_kpoint_coor, klabel
    
-    def plot_kdos(self, efermi=None, spin=0, lm=None, plot_band=False, label=None, cmap='afmhot', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'],
+    def plot_kdos(self, efermi=None, spin=0, lm=None, plot_band=False, klabel=None, cmap='afmhot', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'],
                     figsize=(7,6), figname='kDOS', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
         '''Plot k-resolved DOS
            Please see mcu.utils.plot.plot_dos for full documents 
         '''
         
-        plot.plot_kdos(self, efermi=efermi, spin=spin, lm=lm, plot_band=plot_band, label=label, cmap=cmap, save=save, band_color=band_color, figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
+        plot.plot_kdos(self, efermi=efermi, spin=spin, lm=lm, plot_band=plot_band, klabel=klabel, cmap=cmap, save=save, band_color=band_color, figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
                 

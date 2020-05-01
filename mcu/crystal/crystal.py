@@ -125,16 +125,16 @@ class main:
                     direct_gap = min(gap1, gap2)
                     print('  Direct bandgap   : %6.3f' % (direct_gap))
  
-    def _generate_band(self, efermi=None, spin=0, label=None):
+    def _generate_band(self, efermi=None, spin=0, klabel=None):
         '''Processing/collecting the band data before the plotting function
         '''
         band, proj_kpath, sym_kpoint_coor, efermi_ = self.get_band()
         if efermi is None: efermi = efermi_  
         band = band[spin] - efermi
         
-        return band, proj_kpath, sym_kpoint_coor, label
+        return band, proj_kpath, sym_kpoint_coor, klabel
         
-    def plot_band(self, efermi=None, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+    def plot_band(self, efermi=None, klabel=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
@@ -149,9 +149,9 @@ class main:
         assert isinstance(band_color,list)
         assert len(band_color) == 3
         plot.plot_band(self, efermi=efermi, spin=spin, save=save, band_color=band_color,
-                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
+                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, klabel=klabel)
                 
-    def _generate_phononband(self, unit="CM", gamma_correct=False, threshold=8.06554, spin=0, label=None):
+    def _generate_phononband(self, unit="CM", gamma_correct=False, threshold=8.06554, spin=0, klabel=None):
         '''Processing/collecting the phnon band (cm^-1) data before the plotting function
            Unit: CM = CM^-1, THZ = THz, MEV = meV
         '''
@@ -161,9 +161,9 @@ class main:
         elif unit.lower() == "mev":
             band = const.CMTOMEV * band
             
-        return band[spin], proj_kpath, sym_kpoint_coor, label
+        return band[spin], proj_kpath, sym_kpoint_coor, klabel
         
-    def plot_phononband(self, unit="CM", gamma_correct=False, threshold=8.06554, label=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
+    def plot_phononband(self, unit="CM", gamma_correct=False, threshold=8.06554, klabel=None, spin=0, save=False, band_color=['#007acc','#808080','#808080'],
                     figsize=(6,6), figname='PHONONBAND', xlim=None, ylim=None, fontsize=18, dpi=600, format='png'):
         '''Plot band structure
            
@@ -178,5 +178,5 @@ class main:
         assert isinstance(band_color,list)
         assert len(band_color) == 3
         plot.plot_phononband(self, unit=unit, gamma_correct=gamma_correct, threshold=threshold, spin=spin, save=save, band_color=band_color,
-                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
+                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, klabel=klabel)
         
