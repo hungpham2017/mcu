@@ -20,7 +20,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 
 
 import numpy as np
-from ..utils import plot
+from ..utils import plot, str_format
 from ..utils.misc import check_exist
 from ..vasp import const
 from ..cell import utils as cell_utils
@@ -33,9 +33,10 @@ class main:
         
         '''
         if prefix is None:
-            print("Provide a prefix name for your project, for example, prefix.scf.out, prefix.band.out, etc. Otherwise you would have to specify each output file when performing analysis")
-        self.prefix = prefix
-        self.get_info() 
+            print("Provide a prefix name for your project, for example, prefix.scf.out, prefix.band.out, etc.")
+        else:
+            self.prefix = prefix
+            self.get_info() 
         
 ############ General #################
         
@@ -215,26 +216,25 @@ class main:
         plot.plot_band(self, efermi=efermi, spin=spin, save=save, band_color=band_color,
                 figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format, label=label)
                 
-    def _generate_pband(self, filename=None, spin=0, style=1, lm='spd'):
+    def _generate_pband(self, filename=None, spin=0, gradient=False, lm='spd'):
         '''Processing/collecting the projected band data before the plotting function
             
             Note: In QE, each atom has its own set of atomic orbitals to project onto.
                   For example, Fe has 1s, 2s, p, and d. O only has s and p
-                  Unlike QE, VASP decomposes the band into a common list of atomic orbitals.  
+                  Unlike QE, VASP decomposes the band into a list of atomic orbitals.  
                   For example, both Fe and O have contributations from s, p, d, .... Hence,
                   the projected wf is sparser in VASP than in QE
 
                   proj_wf = [kpts, band, # of orbitals]
+                  
+            Examples for lm:
+                lm = 'Ni:s ; p ; d'             :   three groups: (1) s of Ni ; (2) all p orbitals ; (3) all d orbitals
+                lm = ['Ni:s,pd', 'O1:p;O2']     :   two groups: (1) s,p,d of Ni ; (2) all p orbitals of the 1st O  and all otbitals of O2 
+                lm = ['Ni1;O', 'N']             :   two groups: (1) the 1st Ni and all the O atoms ; (2) All N atom
+ 
+            if gradient == True: user has to provide a TWO groups of orbitals  
+                for example, lm = 'Ni:s ; p' or ['Ni:s,pd', 'O1:p;O2']  
             
-            style = 1   : all atoms are considered
-                         lm = 's', 'py', 'pz', 'px', 'dxy', 'dyz','dz2','dxz','dx2-y2' or a list of them
-                             'sp', 'pd', 'sd', 'spd'  => shortcut
-                             each color is used for each lm
-                             the marker's radius is proportional to the % of lm 
-            style = 2   : considering only a list of orbitals
-                         e.g. orb = ['Ni:s','C:pz']
-            style = 3   : gradient map to show the character transition
-                         lm = 'sp', 'pd', 'sd'                
         '''      
        
         if filename is None:
@@ -257,181 +257,72 @@ class main:
         for i, l in enumerate(l_list):
             lm_list.append(lm_data[l][m_list[i] - 1])
         
-        irred_lm_list = list(dict.fromkeys(lm_list))
+        # Generate pband
+        formatted_atom, formatted_lm = str_format.general_lm(lm)
         
-        if style == 1:
-            lm_shortcut = ['p','d','sp','ps','pd','dp','sd','ds','spd','sdp','psd','pds','dsp','dps']
-            # Check if the lm value is appropriate
-            if isinstance(lm,str):
-                if lm not in irred_lm_list and lm not in lm_shortcut:
-                    raise Exception("WARNING:", lm, "is not recognizable. lm must be", irred_lm_list, lm_shortcut)
+        if gradient:        
+            assert len(formatted_atom) == 2, "For the gradient plot, you only need to provide two groups of orbitals, for example, lm = 's,p'"
+
+        total = proj_wf.sum(axis=2)
+        shape = total.shape
+        idx_zeros = total.flatten() < 0.0001
+        total = total.flatten()
+        total[idx_zeros] = 1.0
+        total = total.reshape(shape)
+        
+        pband = []             
+        for i, atoms in enumerate(formatted_atom):  
+            proj_val = 0
+            for j, atom in enumerate(atoms):
+                # Locate the atom
+                if atom is None: 
+                    idx_atom = np.arange(len(species))
                 else:
-                    if lm == 'p': 
-                        lm = [['px','py','pz']]
-                    elif lm == 'd': 
-                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2']]
-                    elif lm == 'sp': 
-                        lm = ['s',['px','py','pz']]
-                    elif lm == 'ps': 
-                        lm = [['px','py','pz'],'s']
-                    elif lm == 'sd': 
-                        lm = ['s',['dxy', 'dyz','dz2','dxz','dx2-y2']]
-                    elif lm == 'ds': 
-                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],'s']
-                    elif lm == 'pd': 
-                        lm = [['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2']]
-                    elif lm == 'dp': 
-                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],['px','py','pz']]
-                    elif lm == 'spd':                         
-                        lm = ['s',['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2']]  
-                    elif lm == 'sdp':                         
-                        lm = ['s',['dxy', 'dyz','dz2','dxz','dx2-y2'],['px','py','pz']] 
-                    elif lm == 'psd':                         
-                        lm = [['px','py','pz'],'s',['dxy', 'dyz','dz2','dxz','dx2-y2']]   
-                    elif lm == 'pds':                         
-                        lm = [['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2'],'s']  
-                    elif lm == 'dsp':                         
-                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],'s',['px','py','pz']] 
-                    elif lm == 'dps':                         
-                        lm = [['dxy', 'dyz','dz2','dxz','dx2-y2'],['px','py','pz'],'s']                          
-                    else:
-                        lm = [lm]
-            elif isinstance(lm,list):
-                for each_lm in lm:
-                    if isinstance(each_lm,str):
-                        if each_lm not in irred_lm_list:
-                            raise Exception("WARNING:", lm, "is not recognizable. lm must be one of these", irred_lm_list)
-                    else:
-                        for orb in each_lm:
-                            if orb not in irred_lm_list:
-                                raise Exception("WARNING:", orb , "is not recognizable. lm must be one of these", irred_lm_list)                        
-            else:
-                raise Exception("lm is not recognizable")
-                
-            # Compute pband
-            total = proj_wf.sum(axis=2)       # Sum over the orbitals --> [kpt,band]
-            shape = total.shape
-            idx_zeros = total.flatten() < 0.0001
-            total = total.flatten()
-            total[idx_zeros] = 1.0
-            total = total.reshape(shape)
-            
-            pband = [] 
-            for each_lm in lm:
-                if isinstance(each_lm,str):  
-                    idx_lm = [i for i, x in enumerate(lm_list) if x in each_lm]
-                    proj_val = (proj_wf[:,:,idx_lm]).sum(axis=2) / total
-                else:
-                    proj_val = 0
-                    for orb in each_lm:
-                        idx_lm = [i for i, x in enumerate(lm_list) if x in orb]
-                        proj_val += (proj_wf[:,:,idx_lm]).sum(axis=2) / total
-                pband.append(proj_val)
- 
-            pband = np.asarray(pband)
-          
-        elif style == 2:
-            if isinstance(lm,str):
-                atom, lm_ = lm.split(':')
-                lm_  = lm_.split(',') 
-                temp = []
-                for i in range(len(lm_)):               
-                    if lm_[i] == 'p': 
-                        for m in ['px','py','pz']: temp.append(m)
-                    elif lm_[i] == 'd': 
-                        for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
-                    else:
-                        temp.append(lm_[i])
-                lms = [temp]
-                atoms = [atom]
-            elif isinstance(lm,list):
-                atoms = []
-                lms = []   
-                for orb in lm:
-                    atom, lm_ = orb.split(':')
-                    lm_  = lm_.split(',') 
-                    temp = []
-                    for i in range(len(lm_)):               
-                        if lm_[i] == 'p': 
-                            for m in ['px','py','pz']: temp.append(m)
-                        elif lm_[i] == 'd': 
-                            for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
-                        else:
-                            temp.append(lm_[i])
-                    atoms.append(atom)
-                    lms.append(temp)
-  
-            # Compute pband
-            total = proj_wf.sum(axis=2)       # Sum over the orbitals --> [kpt,band]
-            shape = total.shape
-            idx_zeros = total.flatten() < 0.0001
-            total = total.flatten()
-            total[idx_zeros] = 1.0
-            total = total.reshape(shape)
-            
-            pband = [] 
-            for i, atm in enumerate(atoms):
-                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
-                idx_lm = [idx for idx in idx_atom if lm_list[idx] in lms[i]]
-                proj_val = (proj_wf[:,:,idx_lm]).sum(axis=2)
-                pband.append(proj_val/total)
-            pband = np.asarray(pband)
-            
-        elif style == 3: 
-            lm_shortcut = ['sp', 'sd', 'pd']
-            if isinstance(lm,str):
-                if lm not in lm_shortcut:
-                    raise Exception("WARNING:", lm, "is not recognizable. lm must be", lm_shortcut)
-                else:
-                    if lm == 'sp': 
-                        lm = ['s',['px','py','pz']]
-                    elif lm == 'sd': 
-                        lm = ['s',['dxy', 'dyz','dz2','dxz','dx2-y2']]
-                    elif lm == 'pd': 
-                        lm = [['px','py','pz'],['dxy', 'dyz','dz2','dxz','dx2-y2']]
-                    else:
-                        raise Exception("WARNING:", lm, "is not recognizable. lm must be one of these", lm_shortcut, "or a list")
-            elif isinstance(lm,list):
-                assert len(lm) == 2          # Only two orbital 
-                for each_lm in lm:
-                    if isinstance(each_lm,str):
-                        if each_lm not in irred_lm_list:
-                            raise Exception("WARNING:", lm, "is not recognizable. lm must be one of these", irred_lm_list)
-                    else:
-                        for orb in each_lm:
-                            if orb not in irred_lm_list:
-                                raise Exception("WARNING:", orb , "is not recognizable. lm must be one of these", irred_lm_list) 
-            else:
-                raise Exception("lm is not recognizable")
-                
-            # Compute pband
-            pband = [] 
-            for each_lm in lm:                  # only two lm
-                if isinstance(each_lm,str):  
-                    idx_lm = [i for i, x in enumerate(lm_list) if x in each_lm]
-                    proj_val = (proj_wf[:,:,idx_lm]).sum(axis=2)
-                else:
-                    proj_val = 0
-                    for orb in each_lm:
-                        idx_lm = [i for i, x in enumerate(lm_list) if x in orb]
-                        proj_val += (proj_wf[:,:,idx_lm]).sum(axis=2)
-                pband.append(proj_val)
-            pband = np.asarray(pband)
+                    atom_, id = str_format.format_atom(atom)
+                    assert atom_ in self.element, "This is wrong: " + atom + ". Check the lm string/list. Atom is must be in the element list: " + " ".join(self.element)
+                    available_atom = [(n, atm) for n, atm in enumerate(self.atom) if atm == atom_]
+                    natom = len(available_atom)
+                    if id is not None:
+                        assert id <= natom, "This is wrong: " + atom + ". Check the lm string/list. Atom id is must be <= " + str(natom) + " for: " + atom_
+                        
+                    idx_atom = []
+                    nspecies = species.count(atom_)
+                    nwfc = nspecies // natom
+                    count = 0
+                    for n, atm in enumerate(species):
+                        if atm == atom_: 
+                            if id is None:
+                                idx_atom.append(n)
+                            elif count // nwfc == id - 1: 
+                                idx_atom.append(n)
+                            count += 1 
+                        
+                # Locate the lm 
+                idx_lm = []
+                for idx in idx_atom:
+                    for each_lm in formatted_lm[i][j]:
+                        if each_lm is None:
+                            idx_lm.append(idx)
+                        elif lm_list[idx] == each_lm:
+                            idx_lm.append(idx)              
+                       
+                proj_val += (proj_wf[:,:,idx_lm]).sum(axis=2)
+            pband.append(proj_val/total)
+        pband = np.asarray(pband)
+        
+        if gradient:  
             pband = pband[0]/(pband.sum(axis=0))
-        else:
-            raise Exception('mcu currently supports only style: 0,1,2')
-        
+
         return pband
-                
-                    
-    def plot_pband(self, efermi=None, spin=0, label=None, style=1, lm='spd', band=None, color=None, band_color=['#007acc','#808080','#808080'],
+        
+    def plot_pband(self, efermi=None, spin=0, label=None, gradient=False, lm='spd', band=None, color=None, band_color=['#007acc','#808080','#808080'],
                     scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
                     legend=None, loc="upper right", legend_size=1.0,
                     save=False, figname='pBAND', figsize=(6,6), xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            Please see mcu.utils.plot.plot_pband for full documents        
         '''
-        plot.plot_pband(self, efermi=efermi, spin=spin, label=label, style=style, lm=lm, band=band, color=color, band_color=band_color,
+        plot.plot_pband(self, efermi=efermi, spin=spin, label=label, gradient=gradient, lm=lm, band=band, color=color, band_color=band_color,
                     scale=scale, alpha=alpha, cmap=cmap, edgecolor=edgecolor, facecolor=facecolor, marker=marker,
                     legend=legend, loc=loc, legend_size=legend_size,
                     save=save, figname=figname, figsize=figsize, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
@@ -451,38 +342,6 @@ class main:
          
         # Compute pDOS
         if check_exist(prefix + ".pdos_tot"):
-            # Collecting group of lm
-            if isinstance(lm,str):
-                atom, lm_ = lm.split(':')
-                lm_  = lm_.split(',') 
-                temp = []
-                for i in range(len(lm_)):               
-                    if lm_[i] == 'p': 
-                        for m in ['px','py','pz']: temp.append(m)
-                    elif lm_[i] == 'd': 
-                        for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
-                    else:
-                        temp.append(lm_[i])
-                lms = [temp]
-                atoms = [atom]
-                
-            elif isinstance(lm,list):
-                atoms = []
-                lms = []   
-                for orb in lm:
-                    atom, lm_ = orb.split(':')
-                    lm_  = lm_.split(',') 
-                    temp = []
-                    for i in range(len(lm_)):               
-                        if lm_[i] == 'p': 
-                            for m in ['px','py','pz']: temp.append(m)
-                        elif lm_[i] == 'd': 
-                            for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
-                        else:
-                            temp.append(lm_[i])
-                    atoms.append(atom)
-                    lms.append(temp)
-            
             # Get total DOS
             total_pdos_data = qe_io.read_pdos_output(prefix + ".pdos_tot")
             tdos = total_pdos_data[spin,:,:2]
@@ -497,13 +356,6 @@ class main:
             l_list = data['l']
             m_list = np.int64(data['m'])
  
-            # Create the possible lm list
-            lm_data = {'0': ['s'], '1':['pz', 'px', 'py'], '2':['dz2', 'dxz', 'dyz', 'dx2-y2', 'dxy']}
-            lm_list = []
-            for i, l in enumerate(l_list):
-                lm_list.append(lm_data[l][m_list[i] - 1])
-            
-            irred_lm_list = list(dict.fromkeys(lm_list))
             pdos_data = []
             for i, atm in enumerate(self.atom):
                 idx_atom = [j for j, atom in enumerate(species) if atom == atm]
@@ -520,17 +372,55 @@ class main:
                     lm_pdos_data = qe_io.read_pdos_output(filename)[spin] 
                     pdos_data.append(lm_pdos_data[:,2:])
                     
-            pdos_data = np.hstack(pdos_data)
+            pdos_data = np.concatenate(pdos_data, axis=1)
             
+            # Create the possible lm list
+            lm_data = {'0': ['s'], '1':['pz', 'px', 'py'], '2':['dz2', 'dxz', 'dyz', 'dx2-y2', 'dxy']}
+            lm_list = []
+            for i, l in enumerate(l_list):
+                lm_list.append(lm_data[l][m_list[i] - 1])
+                
+            formatted_atom, formatted_lm = str_format.general_lm(lm)
             # Compute pDOS
-            pdos = [] 
-            for i, atm in enumerate(atoms):
-                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
-                idx_lm = [idx for idx in idx_atom if lm_list[idx] in lms[i]]
-                proj_val = (pdos_data[:,idx_lm]).sum(axis=1)
+            pdos = []             
+            for i, atoms in enumerate(formatted_atom):  
+                proj_val = 0
+                for j, atom in enumerate(atoms):
+                    # Locate the atom
+                    if atom is None: 
+                        idx_atom = np.arange(len(species))
+                    else:
+                        atom_, id = str_format.format_atom(atom)
+                        assert atom_ in self.element, "This is wrong: " + atom + ". Check the lm string/list. Atom is must be in the element list: " + " ".join(self.element)
+                        available_atom = [(n, atm) for n, atm in enumerate(self.atom) if atm == atom_]
+                        natom = len(available_atom)
+                        if id is not None:
+                            assert id <= natom, "This is wrong: " + atom + ". Check the lm string/list. Atom id is must be <= " + str(natom) + " for: " + atom_
+                            
+                        idx_atom = []
+                        nspecies = species.count(atom_)
+                        nwfc = nspecies // natom
+                        count = 0
+                        for n, atm in enumerate(species):
+                            if atm == atom_: 
+                                if id is None:
+                                    idx_atom.append(n)
+                                elif count // nwfc == id - 1: 
+                                    idx_atom.append(n)
+                                count += 1 
+                                
+                    # Locate the lm 
+                    idx_lm = []
+                    for idx in idx_atom:
+                        for each_lm in formatted_lm[i][j]:
+                            if each_lm is None:
+                                idx_lm.append(idx)
+                            elif lm_list[idx] == each_lm:
+                                idx_lm.append(idx)              
+                    
+                    proj_val += (pdos_data[:,idx_lm]).sum(axis=1)
                 pdos.append(proj_val)
-            pdos = np.asarray(pdos).T            
-            
+            pdos = np.asarray(pdos).T 
         else:
             # Get total DOS
             tdos_data = qe_io.read_tdos_output(tdos_file)      
@@ -539,7 +429,7 @@ class main:
                 efermi = tdos_data['efermi']
             else:
                 efermi = 0
-            pdos = None
+            pdos = None 
             
             
         # Shift the energy 
@@ -547,7 +437,7 @@ class main:
           
         return tdos, pdos
         
-    def plot_dos(self, style=1, efermi=None, spin=0, lm=None, color=None,
+    def plot_dos(self, style='horizontal', efermi=None, spin=0, lm=None, color=None,
                     legend=None, loc="upper right", fill=True, alpha=0.2,
                     save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
@@ -557,8 +447,9 @@ class main:
                 legend=legend, loc=loc, fill=fill, alpha=alpha,
                 save=save, figname=figname, figsize=figsize, elim=elim, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
         
-    def _generate_kdos(self, prefix=None, efermi=None, spin=0, lm=None):
+    def _generate_kdos(self, prefix=None, efermi=None, spin=0, lm=None, label=None):
         '''Processing/collecting the k-resolved DOS data before the plotting function
+           The kDOS will be summed over all the lm  
             
             kDOS dimensions: [spin , kpts, [E(eV), tdos(E)]]
             
@@ -567,103 +458,126 @@ class main:
         '''
         
         if prefix is None: prefix = self.prefix
-        tdos_file = prefix + ".dos" 
-        assert check_exist(tdos_file), "Cannot find " + tdos_file
-         
-        # Compute pDOS
-        if check_exist(prefix + ".pdos_tot"):
-            # Collecting group of lm
-            if isinstance(lm,str):
-                atom, lm_ = lm.split(':')
-                lm_  = lm_.split(',') 
-                temp = []
-                for i in range(len(lm_)):               
-                    if lm_[i] == 'p': 
-                        for m in ['px','py','pz']: temp.append(m)
-                    elif lm_[i] == 'd': 
-                        for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
-                    else:
-                        temp.append(lm_[i])
-                lms = [temp]
-                atoms = [atom]
-                
-            elif isinstance(lm,list):
-                atoms = []
-                lms = []   
-                for orb in lm:
-                    atom, lm_ = orb.split(':')
-                    lm_  = lm_.split(',') 
-                    temp = []
-                    for i in range(len(lm_)):               
-                        if lm_[i] == 'p': 
-                            for m in ['px','py','pz']: temp.append(m)
-                        elif lm_[i] == 'd': 
-                            for m in ['dxy', 'dyz','dz2','dxz','dx2-y2']: temp.append(m)
-                        else:
-                            temp.append(lm_[i])
-                    atoms.append(atom)
-                    lms.append(temp)
+        assert check_exist(prefix + ".pdos_tot"), "Cannot find " + tdos_file
+        
+        formatted_atom, formatted_lm = str_format.general_lm(lm)
+        assert len(formatted_atom) == 1, "For kDOS plot, you only need to provide one groups of orbitals, for example, lm = 'Ni:sp'"
             
-            # Get total DOS
-            total_pdos_data = qe_io.read_pdos_output(prefix + ".pdos_tot")
-            tdos = total_pdos_data[spin,:,:2]
-            if efermi is None: 
-                efermi = self.get_efermi()
+        # Get total kDOS
+        total_kdos_data = qe_io.read_kdos_output(prefix + ".pdos_tot")
+        tdos = total_kdos_data[spin,:,:,:2]
+        if efermi is None: 
+            efermi = self.get_efermi()
             
-            # Collect the pdos files
-            data = qe_io.read_projwfc_output(prefix + ".projwfc.out")
-            site = data['site']
-            species = data['species']
-            wfc_id = np.int64(data['wfc'])
-            l_list = data['l']
-            m_list = np.int64(data['m'])
- 
-            # Create the possible lm list
-            lm_data = {'0': ['s'], '1':['pz', 'px', 'py'], '2':['dz2', 'dxz', 'dyz', 'dx2-y2', 'dxy']}
-            lm_list = []
-            for i, l in enumerate(l_list):
-                lm_list.append(lm_data[l][m_list[i] - 1])
-            
-            irred_lm_list = list(dict.fromkeys(lm_list))
-            pdos_data = []
-            for i, atm in enumerate(self.atom):
-                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
-                wfc_idx = np.unique(wfc_id[idx_atom]) 
-                for wfc in wfc_idx:
-                    filename = prefix + ".pdos_atm#" + str(i + 1) + "(" + atm + ")" + "_wfc#" + str(wfc)
-                    if check_exist(filename + "(s)"): 
-                        filename = filename + "(s)"
-                    elif check_exist(filename + "(p)"):
-                        filename = filename + "(p)"                     
-                    elif check_exist(filename + "(d)"):
-                        filename = filename + "(d)"
-                        
-                    lm_pdos_data = qe_io.read_pdos_output(filename)[spin] 
-                    pdos_data.append(lm_pdos_data[:,2:])
+        
+        # Collect the pdos files
+        projwfc_data = qe_io.read_projwfc_output(prefix + ".projwfc.out")
+        site = projwfc_data['site']
+        species = projwfc_data['species']
+        wfc_id = np.int64(projwfc_data['wfc'])
+        l_list = projwfc_data['l']
+        m_list = np.int64(projwfc_data['m'])
+     
+        pdos_data = []
+        for i, atm in enumerate(self.atom):
+            idx_atom = [j for j, atom in enumerate(species) if atom == atm]
+            wfc_idx = np.unique(wfc_id[idx_atom]) 
+            for wfc in wfc_idx:
+                filename = prefix + ".pdos_atm#" + str(i + 1) + "(" + atm + ")" + "_wfc#" + str(wfc)
+                if check_exist(filename + "(s)"): 
+                    filename = filename + "(s)"
+                elif check_exist(filename + "(p)"):
+                    filename = filename + "(p)"                     
+                elif check_exist(filename + "(d)"):
+                    filename = filename + "(d)"
                     
-            pdos_data = np.hstack(pdos_data)
-            
-            # Compute pDOS
-            pdos = [] 
-            for i, atm in enumerate(atoms):
-                idx_atom = [j for j, atom in enumerate(species) if atom == atm]
-                idx_lm = [idx for idx in idx_atom if lm_list[idx] in lms[i]]
-                proj_val = (pdos_data[:,idx_lm]).sum(axis=1)
-                pdos.append(proj_val)
-            pdos = np.asarray(pdos).T            
-            
-        else:
-            # Get total DOS
-            tdos_data = qe_io.read_tdos_output(tdos_file)      
-            tdos = tdos_data['dos'][spin,:,:2]
-            if efermi is None: 
-                efermi = tdos_data['efermi']
-            else:
-                efermi = 0
-            pdos = None
-            
+                lm_pdos_data = qe_io.read_kdos_output(filename)[spin] 
+                pdos_data.append(lm_pdos_data[:,:,2:])
+                
+        pdos_data = np.concatenate(pdos_data, axis=2)
+        
+        # Create the possible lm list
+        lm_data = {'0': ['s'], '1':['pz', 'px', 'py'], '2':['dz2', 'dxz', 'dyz', 'dx2-y2', 'dxy']}
+        lm_list = []
+        for i, l in enumerate(l_list):
+            lm_list.append(lm_data[l][m_list[i] - 1])
+                
+        # Compute kDOS          
+        for i, atoms in enumerate(formatted_atom):  
+            proj_val = 0
+            for j, atom in enumerate(atoms):
+                # Locate the atom
+                if atom is None: 
+                    idx_atom = np.arange(len(species))
+                else:
+                    atom_, id = str_format.format_atom(atom)
+                    assert atom_ in self.element, "This is wrong: " + atom + ". Check the lm string/list. Atom is must be in the element list: " + " ".join(self.element)
+                    available_atom = [(n, atm) for n, atm in enumerate(self.atom) if atm == atom_]
+                    natom = len(available_atom)
+                    if id is not None:
+                        assert id <= natom, "This is wrong: " + atom + ". Check the lm string/list. Atom id is must be <= " + str(natom) + " for: " + atom_
+                        
+                    idx_atom = []
+                    nspecies = species.count(atom_)
+                    nwfc = nspecies // natom
+                    count = 0
+                    for n, atm in enumerate(species):
+                        if atm == atom_: 
+                            if id is None:
+                                idx_atom.append(n)
+                            elif count // nwfc == id - 1: 
+                                idx_atom.append(n)
+                            count += 1 
+                            
+                # Locate the lm 
+                idx_lm = []
+                for idx in idx_atom:
+                    for each_lm in formatted_lm[i][j]:
+                        if each_lm is None:
+                            idx_lm.append(idx)
+                        elif lm_list[idx] == each_lm:
+                            idx_lm.append(idx)              
+                
+                proj_val += (pdos_data[:,:,idx_lm]).sum(axis=2)
+        pdos = proj_val
             
         # Shift the energy 
-        tdos[:,0] = tdos[:,0] - efermi 
+        tdos[:,:,0] = tdos[:,:,0] - efermi 
           
-        return tdos, pdos
+        # Compute the kpath projected on 1D
+        kpts = projwfc_data['kpts']
+        lattice = self.cell[0]
+        recip_lattice =  2 * np.pi * np.linalg.inv(lattice).T
+        abs_kpts = kpts.dot(recip_lattice)                  # From fractional to absolute in A^-1 unit
+        temp_kpts = np.empty_like(abs_kpts)
+        temp_kpts[0] = abs_kpts[0]
+        temp_kpts[1:] = abs_kpts[:-1] 
+        proj_kpath = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
+        
+        # Find absolute coordinates for high symmetric kpoints  
+        sym_kpoint_coor = None
+        if label is not None:
+            assert isinstance(label,list)           # label needs to be a list of labels and corresponding coordinates
+            temp = []
+            coor_kpts = [] 
+            for kpt in label:
+                temp.append(kpt[0])
+                coor_kpts.append(kpt[1:])
+            label = temp       
+            coor_kpts = np.asarray(coor_kpts)
+            abs_kpts = coor_kpts.dot(recip_lattice)   
+            temp_kpts = np.empty_like(abs_kpts)
+            temp_kpts[0] = abs_kpts[0]
+            temp_kpts[1:] = abs_kpts[:-1] 
+            sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
+          
+        return tdos, pdos, proj_kpath, sym_kpoint_coor, label
+   
+    def plot_kdos(self, efermi=None, spin=0, lm=None, plot_band=False, label=None, cmap='afmhot', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'],
+                    figsize=(7,6), figname='kDOS', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
+        '''Plot k-resolved DOS
+           Please see mcu.utils.plot.plot_dos for full documents 
+        '''
+        
+        plot.plot_kdos(self, efermi=efermi, spin=spin, lm=lm, plot_band=plot_band, label=label, cmap=cmap, save=save, band_color=band_color, figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
+                

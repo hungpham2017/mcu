@@ -388,6 +388,7 @@ def read_kdos_output(filename):
             dos.append(dos_formatted[:,:, [0] + (np.arange(2)*2 + 2).tolist()]) 
             
         else: 
+            
             for lm in [1, 3, 5, 7, 9]:
                 if dos_header == lm_kdos(lm=lm, polarized=False):
                     dos_unformatted = np.float64(' '.join(data[1:]).split()).reshape(-1, 3 + lm)
@@ -396,8 +397,8 @@ def read_kdos_output(filename):
                     nEpts = dos_unformatted.shape[0] // nkpts
             
                     # DOS dimensions: [spin , nkpts, [E(eV), ldos(E), pdos(E) * lm]]
-                    dos_formatted = dos_unformatted.reshape(-1, nkpts, nEpts, 2 + lm)  
-        
+                    dos = dos_unformatted.reshape(-1, nkpts, nEpts, 2 + lm)  
+                    
                 elif dos_header == lm_kdos(lm=lm, polarized=True):
                     dos_unformatted = np.float64(' '.join(data[1:]).split()).reshape(-1, 4 + 2*lm)
                     nkpts = int(dos_unformatted[-1,0])

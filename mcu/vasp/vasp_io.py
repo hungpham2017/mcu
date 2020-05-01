@@ -600,7 +600,7 @@ def get_atominfo(poscar):
     for i in range(2,5):
         lattice.append(np.float64(poscar[i].split()))
     lattice = np.asarray(lattice)                       # Unit: A, row vector format
-    recip_lattice = 2*np.pi*np.linalg.inv(lattice).T      # Unit: A^-1, row vector:   a^T.dot(b) = 2pi 
+    recip_lattice = 2 * np.pi * np.linalg.inv(lattice).T      # Unit: A^-1, row vector:   a^T.dot(b) = 2pi 
     
     atom_type = poscar[5].split()
     natom = np.int64(poscar[6].split())
