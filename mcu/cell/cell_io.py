@@ -27,7 +27,6 @@ from . import spg_wrapper
         
 ##################### EXPORT CIF, XSF, POSCAR ###########################          
 def write_poscar(cell, filename=None):
-    if filename == None: filename = 'POSCAR_mcu'
     comment = misc.date()
     lattice = np.asarray(cell[0])
     positions = np.asarray(cell[1])
@@ -54,7 +53,6 @@ def write_poscar(cell, filename=None):
             f.write('   %15.10f %15.10f %15.10f\n' % (atom[0],atom[1],atom[2]))   
 
 def write_xsf(cell, filename=None):
-    if filename == None: filename = 'structure_mcu'
     comment = misc.date()
     lattice = np.asarray(cell[0])
     positions = np.asarray(cell[1])

@@ -20,24 +20,28 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np        
-
+from itertools import permutations
 
 '''Format orbitals '''
-lm_basis_dict = {'s':['s'], 'p':['px','py','pz'], 'd':['dxy', 'dyz','dz2','dxz','dx2-y2']}
+lm_basis_dict = {'s':['s'], 'p':['px','py','pz'], 'd':['dxy', 'dyz','dz2','dxz','dx2-y2'],  
+                 'f':['fz3', 'fxz2', 'fyz2', 'fz(x2-y2)', 'fxyz', 'fx(x2-3y2)', 'fy(3x2-y2)']}
 lm_basis_list = sum(list(lm_basis_dict.values()),[])
-lm_shortcut = ['p','d','sp','ps','pd','dp','sd','ds','spd','sdp','psd','pds','dsp','dps']
+lm_shortcut = []
+lm_shortcut.append([''.join(i) for i in permutations(['s', 'p', 'd', 'f'], 1)])
+lm_shortcut.append([''.join(i) for i in permutations(['s', 'p', 'd', 'f'], 2)])
+lm_shortcut.append([''.join(i) for i in permutations(['s', 'p', 'd', 'f'], 3)])
+lm_shortcut.append([''.join(i) for i in permutations(['s', 'p', 'd', 'f'], 4)])
+lm_shortcut = sum(lm_shortcut,[])
 
 def basic_lm(lm):
     formatted_lm = []
     if lm in lm_basis_list:
         formatted_lm.append([lm])
-        
     elif lm in lm_shortcut:
         for orb in lm:
             formatted_lm.append(lm_basis_dict[orb])
-            
     else:
-        formatted_lm.append([None])
+        assert 0, "Cannot recognize the following orbital: " + lm
         
     formatted_lm = sum(formatted_lm,[])
 

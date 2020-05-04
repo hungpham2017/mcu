@@ -66,7 +66,9 @@ def convert_frac(frac, err=1.e-5):
         elif abs(frac - 1/6) < err: frac = '1/6' 
         elif abs(frac - 5/6) < err: frac = '5/6'
         elif (abs(frac) < err) or abs(frac - 1) < err: frac = '0'
-        
+        else:
+            frac = False
+            
     return frac
         
         
@@ -134,7 +136,9 @@ def symop_mat2xyz(rotations, translations):
             if translation[i] < 0: sign = '-'
             if translation[i] > 0: sign = '+'
             if abs(translation[i]) < 1.e-8: sign = ''
-            if tran != '0':
+            if tran is False:
+                print("WARNING! Cannot converge the translations of " + str(translation[i]) + " to the fractional value used by CIF. The resulting symmetry operator in CIF is wrong")
+            elif tran != '0':
                 sym = sym + sign + tran
             sym += ","
         syms.append(sym[:-1])

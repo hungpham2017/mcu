@@ -22,7 +22,7 @@ import os
 import numpy as np
 from ..utils import plot, str_format
 from ..utils.misc import check_exist
-from ..cell import spg_wrapper, cell_io
+from ..cell import spg_wrapper, cell_io, cell
 from ..cell import utils as cell_utils
 from . import utils, vasp_io
 import matplotlib as mpl
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 
         
-class main:
+class main(cell.main, plot.main):
     def __init__(self, path=None, vaspruns='vasprun', outcars='OUTCAR'):
         '''
             path        : the project directory
@@ -74,9 +74,7 @@ class main:
         '''Get the cell info from vasprun and return the cell in spglib format'''
         self.cell_init  =  utils.cell_to_spgcell(vasprun.cell_init, self.atom)
         self.cell  = utils.cell_to_spgcell(vasprun.cell_final, self.atom)
-        self.cell_type = [None] * 2
 
-############ General #################
     def get_info(self, vasprun):    
         '''Extract basis information from the vasprun.xml'''
 
@@ -92,66 +90,7 @@ class main:
         self.atom  = vasprun.atom     
         self.element = [atom[1] for atom in vasprun.types]
         self.get_cell(vasprun)
-        self.get_efermi()
-      
-############ Symmetry #################      
-    def get_symmetry(self, cell=None, symprec=1e-5, print_atom=False):
-        '''Get space group information'''
-        if cell == None: 
-            cell = self.cell
-            is_std, is_prim = spg_wrapper.get_sym(cell, symprec, print_atom)
-            self.cell_type = [is_std, is_prim]
-        else:
-            is_std, is_prim = spg_wrapper.get_sym(cell, symprec)
-        
-    def to_convcell(self, cell=None, symprec=1e-5):
-        '''Transform the unit cell to the standard cell'''
-        if cell == None: 
-            cell = self.cell
-            self.cell = spg_wrapper.cell_to_std(cell, symprec)
-            self.cell_type[0] = True
-        else:
-            return spg_wrapper.cell_to_std(cell, symprec)
-            
-    def to_primcell(self, cell=None, symprec=1e-5):
-        '''Transform the unit cell to the primitive cell'''
-        if cell == None: 
-            cell = self.cell
-            self.cell = spg_wrapper.cell_to_prim(cell, symprec)
-            self.cell_type[1] = True
-        else:
-            return spg_wrapper.cell_to_prim(cell, symprec)      
-
-    def write_poscar(self, cell=None, filename=None):
-        if cell == None: cell = self.cell
-        cell_io.write_poscar(cell, filename)
-        
-    def write_cif(self, cell=None, symprec=1e-5, filename=None, symmetry=True):
-        if cell == None: 
-            cell = self.cell
-            is_std, is_prim = self.cell_type 
-            if is_std and symmetry==True: 
-                cell = self.to_stdcell(cell, symprec) 
-                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
-            elif is_prim and symmetry==True:
-                cell = self.to_primcell(cell, symprec)
-                spacegroup, equi_atoms, rotations, translations = spg_wrapper.get_sym(cell, symprec, export_operator=True)
-            else:
-                spacegroup = ['1','P1']
-                equi_atoms = np.arange(len(cell[2]))
-                symopt = spg_wrapper.get_symmetry_from_database(1)
-                rotations, translations = symopt['rotations'], symopt['translations']
-        else:
-            spacegroup = ['1','P1']
-            equi_atoms = np.arange(len(cell[2]))
-            symopt = spg_wrapper.get_symmetry_from_database(1)
-            rotations, translations = symopt['rotations'], symopt['translations']
-        symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        cell_io.write_cif(cell, spacegroup, equi_atoms, symopt, filename) 
-
-    def write_xsf(self, cell=None, filename=None):
-        if cell == None: cell = self.cell
-        cell_io.write_xsf(cell, filename) 
+        self.get_efermi()      
 
 ############ Plotting #################
     def get_efermi(self):
@@ -281,6 +220,7 @@ class main:
         if isinstance(vasprun, vasp_io.XML) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
             if klabel is not None:
                 klabel, coor_kpts = str_format.format_klabel(klabel)
+                assert len(klabel) == len(sym_kpoint_coor), "The number of k label must be " + str(len(sym_kpoint_coor))
             assert isinstance(efermi,float)
             vasprun.get_band()
             band = vasprun.band[spin][:,:,0]
@@ -305,7 +245,6 @@ class main:
                 sym_kpoint_coor.append(coor)
             sym_kpoint_coor.append(1.0*proj_kpath.max())   
             sym_kpoint_coor = np.asarray(sym_kpoint_coor)
-                     
         else:
             if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
                 assert isinstance(efermi,float)
@@ -360,23 +299,6 @@ class main:
         
         return band, proj_kpath, sym_kpoint_coor, klabel
                 
-    def plot_band(self, efermi=None, spin=0, klabel=None, save=False, band_color=['#007acc','#808080','#808080'],
-                    figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
-        '''Plot band structure
-           
-            Attribute:
-                efermi          : a Fermi level or a list of Fermi levels
-                spin            : 0  for spin unpolarized and LSORBIT = .TRUE.
-                                  0 or 1 for spin polarized
-                color           : a list of three color codes for band curves, high symmetric kpoint grid, and Fermi level
-                                  
-                                  
-        '''
-        assert isinstance(band_color,list)
-        assert len(band_color) == 3
-        plot.plot_band(self, efermi=efermi, spin=spin, klabel=klabel, save=save, band_color=band_color,
-                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)          
-            
     def _generate_pband(self, vasprun=None, spin=0, gradient=False, lm='spd'):
         '''Processing/collecting the projected band data before the plotting function
             proj_wf = [kpt,band,atom,lm] , read vasp_io.XML.get_projected for more details info
@@ -472,18 +394,6 @@ class main:
 
         return pband   
                 
-    def plot_pband(self, efermi=None, spin=0, klabel=None, gradient=False, lm='spd', band=None, color=None, band_color=['#007acc','#808080','#808080'],
-                    scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
-                    legend=None, loc="upper right", legend_size=1.0,
-                    save=False, figname='pBAND', figsize=(6,6), xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
-        '''Plot projected band structure
-           Please see mcu.utils.plot.plot_pband for full documents        
-        '''
-        plot.plot_pband(self, efermi=efermi, spin=spin, klabel=klabel, gradient=gradient, lm=lm, band=band, color=color, band_color=band_color,
-                    scale=scale, alpha=alpha, cmap=cmap, edgecolor=edgecolor, facecolor=facecolor, marker=marker,
-                    legend=legend, loc=loc, legend_size=legend_size,
-                    save=save, figname=figname, figsize=figsize, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
-
     def _generate_dos(self, vasprun=None, efermi=None, spin=0, lm=None):
         '''Processing/collecting the DOS data before the plotting function
             Note: unlike plot_band function, only one vasprun.xml is used. Combining vasprun.xml for DOS sounds a bit weird
@@ -496,7 +406,9 @@ class main:
                               
             lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
         '''
-        
+        if lm is None: 
+            lm = [atom+':s,p,d' for atom in self.element] 
+            
         if vasprun is None: 
             if isinstance(self.vasprun, vasp_io.XML): 
                 vasprun = self.vasprun
@@ -506,7 +418,7 @@ class main:
                 if efermi is None: efermi = self.efermi[0]
         else:
             assert isinstance(vasprun, vasp_io.XML)
-        
+            
         vasprun.get_dos()
         tdos = vasprun.tdos[spin,:,:2]
         lm_list = vasprun.lm
@@ -560,16 +472,6 @@ class main:
         
         return tdos, pdos
         
-    def plot_dos(self, style='horizontal', efermi=None, spin=0, lm=None, color=None,
-                    legend=None, loc="upper right", fill=True, alpha=0.2,
-                    save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
-        '''Plot projected band structure
-           Please see mcu.utils.plot.plot_dos for full documents 
-        '''
-        plot.plot_dos(self, style=style, efermi=efermi, spin=spin, lm=lm, color=color,
-                legend=legend, loc=loc, fill=fill, alpha=alpha,
-                save=save, figname=figname, figsize=figsize, elim=elim, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
-            
     def _generate_spin(self, vasprun, lm=None):
         '''Processing/collecting the spin texture data before the plotting function
         

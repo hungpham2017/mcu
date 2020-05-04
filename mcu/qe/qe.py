@@ -28,15 +28,11 @@ from ..cell import cell
 from . import qe_io
 
         
-class main(cell.main):
+class main(cell.main, plot.main):
     def __init__(self,  prefix=None):
-        '''
-        
-        '''
         assert prefix is not None, "Provide a prefix name for your project, for example, prefix.scf.out, prefix.band.out, etc."
         self.prefix = prefix
         self.get_info() 
-        cell.main.__init__(self, self.cell)
         
 ############ General #################
         
@@ -193,23 +189,6 @@ class main(cell.main):
                 
         return band, proj_kpath, sym_kpoint_coor, klabel
         
-    def plot_band(self, efermi=None, spin=0, klabel=None, save=False, band_color=['#007acc','#808080','#808080'],
-                    figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
-        '''Plot band structure
-           
-            Attribute:
-                efermi          : a Fermi level or a list of Fermi levels
-                spin            : 0  for spin unpolarized and LSORBIT = .TRUE.
-                                  0 or 1 for spin polarized
-                color           : a list of three color codes for band curves, high symmetric kpoint grid, and Fermi level
-                                  
-                                  
-        '''
-        assert isinstance(band_color,list)
-        assert len(band_color) == 3
-        plot.plot_band(self, efermi=efermi, spin=spin, klabel=klabel, save=save, band_color=band_color,
-                figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
-                
     def _generate_pband(self, filename=None, spin=0, gradient=False, lm='spd'):
         '''Processing/collecting the projected band data before the plotting function
             
@@ -300,7 +279,7 @@ class main(cell.main):
                             idx_lm.append(idx)
                         elif lm_list[idx] == each_lm:
                             idx_lm.append(idx)              
-                       
+
                 proj_val += (proj_wf[:,:,idx_lm]).sum(axis=2)
             pband.append(proj_val/total)
         pband = np.asarray(pband)
@@ -310,18 +289,6 @@ class main(cell.main):
 
         return pband
         
-    def plot_pband(self, efermi=None, spin=0, klabel=None, gradient=False, lm='spd', band=None, color=None, band_color=['#007acc','#808080','#808080'],
-                    scale=1.0, alpha=0.5, cmap='bwr', edgecolor='none', facecolor=None, marker=None,
-                    legend=None, loc="upper right", legend_size=1.0,
-                    save=False, figname='pBAND', figsize=(6,6), xlim=None, ylim=[-6,6], fontsize=18, dpi=600, format='png'):
-        '''Plot projected band structure
-           Please see mcu.utils.plot.plot_pband for full documents        
-        '''
-        plot.plot_pband(self, efermi=efermi, spin=spin, klabel=klabel, gradient=gradient, lm=lm, band=band, color=color, band_color=band_color,
-                    scale=scale, alpha=alpha, cmap=cmap, edgecolor=edgecolor, facecolor=facecolor, marker=marker,
-                    legend=legend, loc=loc, legend_size=legend_size,
-                    save=save, figname=figname, figsize=figsize, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
-
     def _generate_dos(self, prefix=None, efermi=None, spin=0, lm=None):
         '''Processing/collecting the DOS data before the plotting function
             
@@ -330,7 +297,9 @@ class main(cell.main):
             spin            : spin of DOS.
             lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
         '''
-        
+        if lm is None: 
+            lm = [atom+':s,p,d' for atom in self.element] 
+            
         if prefix is None: prefix = self.prefix
         tdos_file = prefix + ".dos" 
         assert check_exist(tdos_file), "Cannot find " + tdos_file
@@ -431,16 +400,6 @@ class main(cell.main):
         tdos[:,0] = tdos[:,0] - efermi 
           
         return tdos, pdos
-        
-    def plot_dos(self, style='horizontal', efermi=None, spin=0, lm=None, color=None,
-                    legend=None, loc="upper right", fill=True, alpha=0.2,
-                    save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
-        '''Plot projected band structure
-           Please see mcu.utils.plot.plot_dos for full documents 
-        '''
-        plot.plot_dos(self, style=style, efermi=efermi, spin=spin, lm=lm, color=color,
-                legend=legend, loc=loc, fill=fill, alpha=alpha,
-                save=save, figname=figname, figsize=figsize, elim=elim, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
         
     def _generate_kdos(self, prefix=None, efermi=None, spin=0, lm=None, klabel=None):
         '''Processing/collecting the k-resolved DOS data before the plotting function
@@ -560,13 +519,4 @@ class main(cell.main):
             temp_kpts[1:] = abs_kpts[:-1] 
             sym_kpoint_coor = np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum() 
           
-        return tdos, pdos, proj_kpath, sym_kpoint_coor, klabel
-   
-    def plot_kdos(self, efermi=None, spin=0, lm=None, plot_band=False, klabel=None, cmap='afmhot', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'],
-                    figsize=(7,6), figname='kDOS', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
-        '''Plot k-resolved DOS
-           Please see mcu.utils.plot.plot_dos for full documents 
-        '''
-        
-        plot.plot_kdos(self, efermi=efermi, spin=spin, lm=lm, plot_band=plot_band, klabel=klabel, cmap=cmap, save=save, band_color=band_color, figsize=figsize, figname=figname, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
-                
+        return tdos, pdos, proj_kpath, sym_kpoint_coor, klabel 

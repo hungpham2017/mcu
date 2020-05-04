@@ -108,89 +108,78 @@ POINTS_MATCH = re.compile(r'''
 )
 ''', re.VERBOSE)
 
-#--------------------------------------------------------------------------------------------------------- 
-# MAIN CLASS
-#---------------------------------------------------------------------------------------------------------
-class io:
-    def __init__(self, filename=None):
-        '''output file is required when initiate the class
-        '''
-        if filename is not None:
-            self.output = filename
-        else:
-            print("Please provide the output file")
-            
-    def read_ouput(self, filename=None):  
-        '''Read the cp2k output file'''
-        if filename is None: filename = self.output
         
-        assert check_exist(filename), "Cannot find the output. Check the path: " + filename
-        with open(filename, "r") as file:
-            outfile = file.read().splitlines()
-            
-        # Cell information
-        cell_block = copy_block(outfile, "CELL_TOP")
-        a_vec =cell_block[1].split()[4:7]
-        b_vec = cell_block[2].split()[4:7]
-        c_vec = cell_block[3].split()[4:7]           
-        lattice = np.float64([a_vec, b_vec, c_vec])
+def read_ouput(filename):  
+    '''Read the cp2k output file'''
+    
+    assert check_exist(filename), "Cannot find " + filename
+    with open(filename, "r") as file:
+        outfile = file.read().splitlines()
         
+    # Cell information
+    cell_block = copy_block(outfile, "CELL_TOP")
+    a_vec =cell_block[1].split()[4:7]
+    b_vec = cell_block[2].split()[4:7]
+    c_vec = cell_block[3].split()[4:7]           
+    lattice = np.float64([a_vec, b_vec, c_vec])
+    atom_type, atom_position = get_atoms(outfile)
+    atom_number = cell_utils.convert_atomtype(atom_type)
+    cell = (lattice, atom_position, atom_number)
+    
+    out = {}
+    out['atom'] = atom_type
+    out['cell'] = cell
+    out['efermi'] = get_value(outfile, keyword="Fermi energy")
+    out['kpts'] = 0 # kmesh info: TODO: will test the Gamma point case first
 
-        atom_type, atom_position = get_atoms(outfile)
-        self.atom = atom_type
-        atom_number = cell_utils.convert_atomtype(atom_type)
-        self.cell = (lattice, atom_position, atom_number)
-
-        self.efermi = get_value(outfile, keyword="Fermi energy")
-        self.kpts = 0   # kmesh info: TODO: will test the Gamma point case first
-  
-                           
-            
-    def read_band(self, filename=None):
-        '''Read the cp2k *.bs file'''
-        if filename is None: 
-            filename = self.output.split(".")[0] + ".bs"
+    return out     
         
-        if check_exist(filename):
-            with open(filename, "r") as bs_file:
-                symm_k_coor = []
-                kpath_frac = []
-                for kpoint_set in SET_MATCH.finditer(bs_file.read()):
-                    nkpts = np.int64(kpoint_set.groupdict()['totalpoints'])
-                    set_content = kpoint_set.group('content')
-                    sym_kpoint_coor = []
-                    for point in SPOINTS_MATCH.finditer(set_content):
-                        point_dict = point.groupdict()
-                        sym_kpoint_coor.append([point_dict['a'], point_dict['b'], point_dict['c']])
-                        
-                    symm_k_coor.append(np.float64(sym_kpoint_coor))
-                    kpts = []
-                    band_alpha = []
-                    band_beta = []
-                    for point in POINTS_MATCH.finditer(set_content):
-                        point_dict = point.groupdict()
-                        spin = point_dict['spin']
-                        if spin == '1':
-                            energies = np.float64(point_dict['values'].split())
-                            band_alpha.append(energies)
-                            kpt = [point_dict['a'], point_dict['b'], point_dict['c']]
-                            kpts.append(kpt)
-                        else:
-                            spin_polarized = True
-                            energies = np.float64(point_dict['values'].split())
-                            band_beta.append(energies)  
-                        
-                    kpath_frac.append(np.float64(kpts))
-                    band = [band_alpha]
-                    if spin_polarized == True: band.append(band_beta)   
-                    band = np.float64(band)
-                    
+def read_bs(filename):
+    '''Read the cp2k *.bs file'''
+    assert check_exist(filename), "Cannot find " + filename
 
-                self.band = band
-                self.symm_k_coor = symm_k_coor
-                self.kpath_frac = kpath_frac               
-        else:
-            print('Cannot find the band structure (.bs) file. Check the path:', filename)  
+    with open(filename, "r") as bs_file:
+        symm_k_coor = []
+        kpath_frac = []
+        bands = []
+        for kpoint_set in SET_MATCH.finditer(bs_file.read()):
+            nkpts = np.int64(kpoint_set.groupdict()['totalpoints'])
+            set_content = kpoint_set.group('content')
+            sym_kpoint_coor = []
+            for point in SPOINTS_MATCH.finditer(set_content):
+                point_dict = point.groupdict()
+                sym_kpoint_coor.append([point_dict['a'], point_dict['b'], point_dict['c']])
+                
+            symm_k_coor.append(np.float64(sym_kpoint_coor))
+            kpts = []
+            band_alpha = []
+            band_beta = []
+            for point in POINTS_MATCH.finditer(set_content):
+                point_dict = point.groupdict()
+                spin = point_dict['spin']
+                if spin == '1':
+                    spin_polarized = False
+                    energies = np.float64(point_dict['values'].split())
+                    band_alpha.append(energies)
+                    kpt = [point_dict['a'], point_dict['b'], point_dict['c']]
+                    kpts.append(kpt)
+                else:
+                    spin_polarized = True
+                    energies = np.float64(point_dict['values'].split())
+                    band_beta.append(energies)  
+            band_alpha
+            kpath_frac.append(np.float64(kpts))
+            band = [band_alpha]
+            if spin_polarized is True: 
+                band.append(band_beta)   
+            bands.append(np.asarray(band))
+    
+    out = {}
+    out['band'] = bands
+    out['symm_k_coor'] = symm_k_coor
+    out['kpath_frac'] = kpath_frac 
 
+    return out     
+        
 
         

@@ -25,44 +25,26 @@ from . import parameters, utils
 
 
 
-def compare_cells(cell1, cell2, prec=1e-5):
+def compare_cells(cell_1, cell_2, prec=1e-5):
     '''Compare two spglib cell if they are the same'''
     
     # spglib only work with tuple
-    cell1 = tuple(cell1)
-    cell2 = tuple(cell2)    
+    lattice_1, coord_1, atom_1 = tuple(cell_1)
+    lattice_2, coord_2, atom_2 = tuple(cell_2)     
+    is_the_same = True
     
-    lattice_diff = np.linalg.norm(np.asarray(cell1[0]) - np.asarray(cell2[0]))
-    
-    is_the_same = False
-    if lattice_diff < prec:
-        pos1 = np.asarray(cell1[1])
-        pos2 = np.asarray(cell2[1]) 
-        if pos1.shape[0] == pos2.shape[0]:
-            if len(cell1[2]) == len(cell2[2]):
-                atom_type = cell1[2].sort() == cell2[2].sort()
-                if atom_type == True:
-                    sym1 = spglib.get_symmetry(cell1, prec)
-                    sym2 = spglib.get_symmetry(cell2, prec) 
-                    rota1 = np.asarray(sym1['rotations'])
-                    trans1 = np.asarray(sym1['translations'])
-                    rota2 = np.asarray(sym2['rotations']) 
-                    trans2 = np.asarray(sym2['translations'])
-                    equi1 = np.asarray(sym1['equivalent_atoms'])
-                    equi2 = np.asarray(sym2['equivalent_atoms'])                    
-                    if rota1.shape[0] == rota2.shape[0]: 
-                        diff_rotation = np.linalg.norm(rota1 - rota2) < prec
-                        if diff_rotation and (trans1.shape[0] == trans2.shape[0]):
-                            diff_translation = np.linalg.norm(trans1 - trans2) < prec
-                            if diff_translation and (equi1.shape[0] == equi2.shape[0]):
-                                diff_equi = np.linalg.norm(equi1 - equi2) < prec
-                                if diff_equi:
-                                    is_the_same = True
-                                
+    # Check volume of the unit cell
+    volume_1 = np.linalg.det(lattice_1)
+    volume_2 = np.linalg.det(lattice_2)
+    if abs(volume_1 - volume_2) > prec:
+        is_the_same = False
+    if len(atom_1) != len(atom_2):
+        is_the_same = False
+            
     return is_the_same
 
 def get_sym(cell, symprec=1e-5, print_atom=False, print_analysis=True):
-    '''Giving a cell, return symmetry analysis'''
+    '''Giving a spglib cell, return symmetry analysis'''
     
     # spglib only work with tuple
     cell = tuple(cell)
@@ -74,25 +56,26 @@ def get_sym(cell, symprec=1e-5, print_atom=False, print_analysis=True):
     sym = spglib.get_symmetry(cell, symprec)
     rotations = sym['rotations'] 
     translations = sym['translations'] 
-    equi_atoms = sym['equivalent_atoms'] 
-    
-    is_std = is_prim = False
-    std_cell = spglib.refine_cell(cell, symprec)
-    prim_cell = spglib.find_primitive(cell, symprec)    
-    if compare_cells(cell, std_cell): is_std = True
-    if compare_cells(cell, prim_cell): is_prim = True
-    
+    equi_atoms = sym['equivalent_atoms']  
     atoms = utils.convert_atomtype(cell[2])
-    if print_analysis == True:
+    
+    if print_analysis is True:
         #Cell info
         std_cell = spglib.refine_cell(cell, symprec)
         prim_cell = spglib.find_primitive(cell, symprec)
-        
+        if compare_cells(cell, std_cell) and compare_cells(cell, prim_cell):
+            misc.print_msg("This is a standard/primitive unit cell")
+        elif compare_cells(cell, std_cell):
+            misc.print_msg("This is a standard unit cell")
+        elif compare_cells(cell, prim_cell):
+            misc.print_msg("This is a primitive cell") 
+            
+            
         #Print
         misc.print_msg("Spacegroup  number           : %s" % (spg_number))
         misc.print_msg("Short International symbol   : %s" % (spg_label))
         misc.print_msg("Schoenflies symbol           : %s" % (Schoenflies_label))
-        if print_atom == True:
+        if print_atom is True:
             misc.print_msg("Atoms list (No. - Sym - Symbol):")
             for i, atom in enumerate(atoms):
                 misc.print_msg("%3d   %3d   %s" %(i+1, equi_atoms[i]+1, atom))
@@ -101,45 +84,40 @@ def get_sym(cell, symprec=1e-5, print_atom=False, print_analysis=True):
                 coord = cell[1][index]
                 misc.print_msg("%3d  %3s    %7f5 %7f5 %7f5" %(i+1, atoms[index], coord[0], coord[1], coord[2]))
         misc.print_msg("Number of irreducible atoms  : %d" % (np.unique(equi_atoms).shape[0]))
-        misc.print_msg("Standard cell                : %r" % (is_std))
-        misc.print_msg("Primitive cell               : %r" % (is_prim)) 
     else:
         # Return an standard cell object with irreducible atoms
+        
         irred_idx = np.unique(equi_atoms)
         lattice = cell[0]
         irred_coord = cell[1][irred_idx,:]
         irred_label = np.array(cell[2])[irred_idx]
         irred_cell= (lattice, irred_coord, irred_label)  
-        
-        return irred_cell, int(spg_number), spg_label, rotations, translations
+        spacegroup = [int(spg_number), spg_label]
+        return spacegroup, irred_cell, rotations, translations
     
 def cell_to_std(cell, symprec=1e-5):
     '''Convert a cell to a standard cell'''
     
     # spglib only work with tuple
     cell = tuple(cell)
-
     std_cell = spglib.refine_cell(cell, symprec) 
     if compare_cells(cell, std_cell):
-        print('Unit cell is already a standard cell. Nothing changes')
-        return cell
+        print('The unit cell was a standard cell. However, the standard cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
     else:
-        print('Unit cell was transformed to a standard cell')  
-        return std_cell
+        print('The unit cell was transformed to a standard cell')  
+    return std_cell
 
 def cell_to_prim(cell, symprec=1e-5):
     '''Convert a cell to a primitive cell'''
     
     # spglib only work with tuple
     cell = tuple(cell)
-    
-    prim_cell = spglib.find_primitive(cell, symprec)   
+    prim_cell = spglib.find_primitive(cell, symprec) 
     if compare_cells(cell, prim_cell):
-        print('Unit cell is already a primitive cell. Nothing changes') 
-        return cell        
+        print('The unit cell was a primitive cell. However, the primitive cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
     else:
-        print('Unit cell was transformed to a primitive cell')
-        return prim_cell
+        print('The unit cell was transformed to a primitive cell') 
+    return prim_cell
 
 get_symmetry_from_database = spglib.get_symmetry_from_database       
 
