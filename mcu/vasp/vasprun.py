@@ -220,7 +220,7 @@ class main(cell.main, plot.main):
         if isinstance(vasprun, vasp_io.XML) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
             if klabel is not None:
                 klabel, coor_kpts = str_format.format_klabel(klabel)
-                assert len(klabel) == len(sym_kpoint_coor), "The number of k label must be " + str(len(sym_kpoint_coor))
+                
             assert isinstance(efermi,float)
             vasprun.get_band()
             band = vasprun.band[spin][:,:,0]
@@ -245,6 +245,8 @@ class main(cell.main, plot.main):
                 sym_kpoint_coor.append(coor)
             sym_kpoint_coor.append(1.0*proj_kpath.max())   
             sym_kpoint_coor = np.asarray(sym_kpoint_coor)
+            if klabel is not None:
+                assert len(klabel) == len(sym_kpoint_coor), "The number of k label must be " + str(len(sym_kpoint_coor))
         else:
             if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
                 assert isinstance(efermi,float)

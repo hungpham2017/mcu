@@ -298,9 +298,8 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
         
         # legend    
         if legend is not None:
-            assert isinstance(legend,list) or isinstance(legend,str)
-            if isinstance(legend,str): legend = [legend]
-            assert len(legend) == len(pband)
+            legend = str_format.format_legend(legend)
+            assert len(legend) == len(pband), "You need " + str(len(pband)) + " legends for your plot"
             
         # Actual plotting
         for lm in range(len(pband)):
@@ -347,7 +346,9 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
         plt.show()
         
         
-def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color=None, legend=None, loc="upper right", fill=True, alpha=0.2, save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
+def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color=None, legend=None, loc="upper right", 
+            fill=True, alpha=0.2, save=False, figname='DOS', figsize=None, elim=(-6,6), yaxis_position='left', xaxis_position='bottom',
+            yscale=1.0, fontsize=18, dpi=600, format='png'):
     '''Plot projected band structure
         For multiple vasprun.xml, user can choose one of them to plot the DOS. Default: the first vasprun.xml
 
@@ -362,22 +363,85 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
                           
         lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
     '''
-    
-    if legend is None:
-        legend = ['PDOS-' + str(i) for i in range(100)]
-         
-    if spin == 'updown':
+      
+    if spin == 'both':
         if calculator.ispin != 2: raise Exception('ISPIN must be 2 for the up-down DOS plotting')
         tdos0, pdos0 = calculator._generate_dos(efermi=efermi, spin=0, lm=lm)
         tdos1, pdos1 = calculator._generate_dos(efermi=efermi, spin=1, lm=lm)
-        tdos1 = -tdos1
-        pdos1 = -pdos1
-        if figsize == (6,3) and style=='horizontal' : figsize = (6,5)
-        if figsize == (6,3) and style=='vertical' : figsize = (5,6)
+        tdos_max_density = max([tdos0[:,1].max() , tdos1[:,1].max()])
+        ndos = 1
+        if pdos0 is not None: ndos = pdos0.shape[1] + 1
+        if figsize is None:
+            if 'horizontal' in style and 'multi' in style: figsize = (6,2*ndos) 
+            elif 'vertical' in style and 'multi' in style: figsize = (2*ndos,6)
+            elif 'horizontal' in style: figsize = (6,5)
+            elif 'vertical' in style: figsize = (5,6)
+                   
+        shifts = []
+        if 'multi' in style:
+            shift = (2 * ndos - 1) * tdos_max_density
+            shifts.append(shift)
+            tdos0[:,1] = tdos0[:,1] * yscale + shift 
+            tdos1[:,1] = - tdos1[:,1] * yscale + shift 
+            if pdos0 is not None: 
+                for pdos_th in range(ndos - 1):
+                    shift = (2 * pdos_th + 1) * tdos_max_density
+                    shifts.append(shift)
+                    pdos0[:,pdos_th] = pdos0[:,pdos_th] * yscale + shift
+                    pdos1[:,pdos_th] = - pdos1[:,pdos_th] * yscale + shift
+            max_density = 2 * tdos_max_density * ndos
+        else:
+            shift = tdos_max_density  
+            shifts.append(shift)
+            tdos0[:,1] = tdos0[:,1] * yscale + shift
+            tdos1[:,1] = - tdos1[:,1] * yscale + shift
+            if pdos0 is not None: 
+                for pdos_th in range(ndos - 1):
+                    shift = tdos_max_density
+                    shifts.append(shift)
+                    pdos0[:,pdos_th] = pdos0[:,pdos_th] * yscale + shift
+                    pdos1[:,pdos_th] = - pdos1[:,pdos_th] * yscale + shift
+            max_density = 2 * tdos_max_density  
     else:
-        if figsize == (6,3) and style=='vertical' : figsize = (3,6)
         tdos0, pdos0 = calculator._generate_dos(efermi=efermi, spin=spin, lm=lm)
-    
+        tdos_max_density = tdos0[:,1].max()
+        ndos = 1
+        if pdos0 is not None: ndos = pdos0.shape[1] + 1
+        if figsize is None:
+            if 'horizontal' in style and 'multi' in style: figsize = (6,2*ndos) 
+            elif 'vertical' in style and 'multi' in style: figsize = (2*ndos,6)
+            elif 'horizontal' in style: figsize = (6,3)
+            elif 'vertical' in style: figsize = (3,6)
+                   
+        shifts = [] 
+        if 'multi' in style:
+            shift = (ndos - 1) * tdos_max_density 
+            shifts.append(shift)
+            tdos0[:,1] = tdos0[:,1] * yscale + shift
+            if pdos0 is not None: 
+                for pdos_th in range(ndos - 1):
+                    shift = pdos_th * tdos_max_density
+                    shifts.append(shift)
+                    pdos0[:,pdos_th] = pdos0[:,pdos_th] * yscale + shift
+            max_density = tdos_max_density * ndos
+        else:
+            shift = 0.0
+            shifts.append(shift)
+            tdos0[:,1] = tdos0[:,1] * yscale 
+            if pdos0 is not None: 
+                for pdos_th in range(ndos - 1):
+                    shift = 0.0
+                    shifts.append(shift)
+                    pdos0[:,pdos_th] = pdos0[:,pdos_th] * yscale
+            max_density = tdos_max_density  
+                    
+    if legend is None:
+        legend = ['TDOS'] + ['PDOS-' + str(i) for i in range(100)]
+    else:
+        legend = str_format.format_legend(legend)
+        assert len(legend) == (pdos0.shape[1] + 1), "You need " + str(pdos0.shape[1] + 1) + " legends for your plot"
+            
+        
     ##----------------------------------------------------------
     ##Plotting:        
     ##----------------------------------------------------------
@@ -387,70 +451,135 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111)
     yrange = (-500,500)
+    border = 1.1 
     
     # Plot DOS    
-    if style == 'horizontal':
-        ax.plot(tdos0[:,0], tdos0[:,1], color=color[0],linewidth=1.1,label='TDOS')
+    if 'horizontal' in style:
+        ax.plot(tdos0[:,0], tdos0[:,1], color=color[0],linewidth=1.1,label=legend[0])
+        if fill: 
+            curve1 = tdos0[:,1]
+            curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
+            ax.fill_between(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha)
         if pdos0 is not None:
-            for orb in range(pdos0.shape[1]): 
-                ax.plot(tdos0[:,0], pdos0[:,orb], color=color[orb+1], linewidth=1.0, label=legend[orb])
-                if fill == True: ax.fill_between(tdos0[:,0], pdos0[:,orb], color=color[orb+1], alpha=alpha)
-            
-        if spin == 'updown':
+            for pdos_th in range(pdos0.shape[1]): 
+                ax.plot(tdos0[:,0], pdos0[:,pdos_th], color=color[pdos_th+1], linewidth=1.0, label=legend[pdos_th + 1])
+                if fill: 
+                    curve1 = pdos0[:,pdos_th]
+                    curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[pdos_th + 1]
+                    ax.fill_between(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
+
+        if spin == 'both':
             ax.plot(tdos0[:,0], tdos1[:,1], color=color[0], linewidth=1.1)
+            if fill: 
+                curve1 = tdos1[:,1]
+                curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
+                ax.fill_between(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha)
+            
             if pdos1 is not None:
-                for orb in range(pdos1.shape[1]): 
-                    ax.plot(tdos0[:,0], pdos1[:,orb], color=color[orb+1], linewidth=1.0)
-                    if fill == True: ax.fill_between(tdos0[:,0], pdos1[:,orb], color=color[orb+1], alpha=alpha)
+                for pdos_th in range(pdos1.shape[1]): 
+                    ax.plot(tdos0[:,0], pdos1[:,pdos_th], color=color[pdos_th+1], linewidth=1.0)
+                    if fill: 
+                        curve1 = pdos1[:,pdos_th]
+                        curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[pdos_th + 1]
+                        ax.fill_between(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
     
         # Graph adjustments 
         plt.xlabel('Energy (eV)', size=fontsize+4)   
         plt.ylabel('DOS', size=fontsize+4)
-        if spin == 'updown':
-            plt.ylim([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale])  
-            ax.plot([0,0], [tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
-            ax.plot([tdos0[:,0].min()*yscale,tdos0[:,0].max()*yscale], [0,0], color=color[0], linewidth=1.0, alpha=alpha) 
+        ax.plot([0,0], [0, max_density], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha)  # Fermi level
+        plt.ylim(0, max_density)
+        
+        if spin == 'both':
+            if 'multi' in style:
+                for panel in range(ndos - 1):
+                    ax.plot([elim[0], elim[1]], [2*(panel + 1)*tdos_max_density, 2*(panel + 1)*tdos_max_density], color='k', linewidth=border)
+                for panel in range(ndos):
+                    ax.plot([elim[0], elim[1]], [(2*panel + 1)*tdos_max_density, (2*panel + 1)*tdos_max_density], color='k', linewidth=1.0, alpha=alpha) 
+            else:
+                ax.plot([elim[0], elim[1]], [tdos_max_density, tdos_max_density], color='k', linewidth=1.0, alpha=alpha) 
+                    
         else:
-            plt.ylim([0, tdos0[:,1].max()*yscale])
-            ax.plot([0,0], [0, tdos0[:,1].max()*yscale], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
+            if 'multi' in style:
+                for panel in range(ndos - 1):
+                    ax.plot([elim[0], elim[1]], [(panel + 1)*tdos_max_density, (panel + 1)*tdos_max_density], color='k', linewidth=border)
+            
         plt.xlim(elim)
         plt.yticks([])
         
-    elif style == 'vertical':
-        ax.plot(tdos0[:,1], tdos0[:,0], color=color[0], linewidth=1.1, label='TDOS')
+    elif 'vertical' in style:
+        ax.plot(tdos0[:,1], tdos0[:,0], color=color[0], linewidth=1.1, label=legend[0])
+        if fill: 
+            curve1 = tdos0[:,1]
+            curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
+            ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha)
+        
         if pdos0 is not None:
-            for orb in range(pdos0.shape[1]): 
-                ax.plot(pdos0[:,orb], tdos0[:,0], color=color[orb+1], linewidth=1.0,label=legend[orb])
-                if fill == True: ax.fill_between(pdos0[:,orb], tdos0[:,0], color=color[orb+1], alpha=alpha)
-            
-        if spin == 'updown':
-            ax.plot(tdos1[:,1], tdos0[:,0], color=color[0], linewidth=1.1)
-            if pdos1 is not None:
-                for orb in range(pdos1.shape[1]): 
-                    ax.plot(pdos1[:,orb], tdos0[:,0], color=color[orb+1],linewidth=1.0)
-                    if fill == True: ax.fill_between(pdos1[:,orb], tdos0[:,0], color=color[orb+1], alpha=alpha)
+            for pdos_th in range(pdos0.shape[1]): 
+                ax.plot(pdos0[:,pdos_th], tdos0[:,0], color=color[pdos_th+1], linewidth=1.0,label=legend[pdos_th + 1])
+                if fill: 
+                    curve1 = pdos0[:,pdos_th]
+                    curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[pdos_th+1]
+                    ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
 
+        if spin == 'both':
+            ax.plot(tdos1[:,1], tdos0[:,0], color=color[0], linewidth=1.1) 
+            if fill: 
+                curve1 = tdos1[:,1]
+                curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
+                ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha)
+            
+            if pdos1 is not None:
+                for pdos_th in range(pdos1.shape[1]): 
+                    ax.plot(pdos1[:,pdos_th], tdos0[:,0], color=color[pdos_th+1],linewidth=1.0)
+                    if fill: 
+                        curve1 = pdos1[:,pdos_th]
+                        curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[pdos_th+1]
+                        ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
     
         # Graph adjustments 
         plt.xlabel('DOS', size=fontsize+4)   
         plt.ylabel('Energy (eV)', size=fontsize+4)
-        if spin == 'updown':
-            plt.xlim([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale])  
-            ax.plot([tdos1[:,1].min()*yscale, tdos0[:,1].max()*yscale], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
-            ax.plot([0,0], [tdos0[:,0].min()*yscale,tdos0[:,0].max()*yscale], color=color[0], linewidth=1.0, alpha=alpha) 
+        ax.plot([0, max_density], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha)  # Fermi level
+        plt.xlim([0, max_density])
+        if spin == 'both':
+            if 'multi' in style:
+                for panel in range(ndos - 1):
+                    ax.plot([2*(panel + 1)*tdos_max_density, 2*(panel + 1)*tdos_max_density], [elim[0], elim[1]], color='k', linewidth=border)
+                for panel in range(ndos):
+                    ax.plot([(2*panel + 1)*tdos_max_density, (2*panel + 1)*tdos_max_density], [elim[0], elim[1]], color='k', linewidth=1.0, alpha=alpha) 
+            else:
+                ax.plot([tdos_max_density, tdos_max_density], [elim[0], elim[1]], color='k', linewidth=1.0, alpha=alpha) 
+                    
         else:
-            plt.xlim([0,tdos0[:,1].max()*yscale])
-            ax.plot([0, tdos0[:,1].max()*yscale], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha) 
+            if 'multi' in style:
+                for panel in range(ndos - 1):
+                    ax.plot([(panel + 1)*tdos_max_density, (panel + 1)*tdos_max_density], [elim[0], elim[1]], color='k', linewidth=border)
+ 
         plt.ylim(elim)
-        plt.xticks([])
+        plt.xticks()
         
     else:   
-        assert 0, "Style must be 'horizontal' or 2 'vertical'"
+        assert 0, "Style must be: horizontal, vertical, multi-horizontal, multi-vertical"
     # Legend
-    lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
+    lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)    
+        
+    # Axis and sticks location
+    if xaxis_position == 'top':
+        ax.xaxis.set_label_position("top")
+        ax.xaxis.tick_top()
+    elif xaxis_position == 'bottom':
+        ax.xaxis.set_label_position("bottom")
+        ax.xaxis.tick_bottom()
+        
+    if yaxis_position == 'right':
+        ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
+        print('haha')
+    elif yaxis_position == 'left':
+        ax.yaxis.set_label_position("left")
+        ax.yaxis.tick_left()
             
-    # Graph adjustments 
-    border = 1.08        
+    # Graph adjustments        
     ax.tick_params(labelsize=fontsize, width=border)
     ax.spines['top'].set_linewidth(border)
     ax.spines['right'].set_linewidth(border)
@@ -589,13 +718,14 @@ class main:
 
     def plot_dos(self, style='horizontal', efermi=None, spin=0, lm=None, color=None,
                     legend=None, loc="upper right", fill=True, alpha=0.2,
-                    save=False, figname='DOS', figsize=(6,3), elim=(-6,6), yscale=1.1, fontsize=18, dpi=600, format='png'):
+                    save=False, figname='DOS', figsize=None, elim=(-6,6), yaxis_position='left', xaxis_position='bottom', 
+                    yscale=1.0, fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            Please see mcu.utils.plot.plot_dos for full documents 
         '''
         plot_dos(self, style=style, efermi=efermi, spin=spin, lm=lm, color=color,
                 legend=legend, loc=loc, fill=fill, alpha=alpha,
-                save=save, figname=figname, figsize=figsize, elim=elim, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
+                save=save, figname=figname, figsize=figsize, elim=elim, yaxis_position=yaxis_position, xaxis_position=xaxis_position, yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
         
     def plot_kdos(self, efermi=None, spin=0, lm=None, plot_band=False, klabel=None, cmap='afmhot', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'],
                     figsize=(7,6), figname='kDOS', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):

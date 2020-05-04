@@ -178,12 +178,14 @@ def format_atom(atom):
         id = int(id)
     return elememnt, id
         
-        
 def format_klabel(klabel):
-    '''Giving a kpath label string, return the label list'''
+    '''Giving a kpath label string, return the label list
+        Each k is separated by ";" or "-"
+        '''
     assert isinstance(klabel, str), "Labels for k-point must be a string. Check it!"
+    
     klabel = klabel.strip()
-    temp = klabel.replace(","," ").replace(";"," ").split()
+    temp = klabel.replace(";"," ").replace("-"," ").split()
     is_digit = sum([item.replace(".","").isdigit() for item in temp])
     if is_digit == 0:
         labels = temp
@@ -195,10 +197,16 @@ def format_klabel(klabel):
         coords = np.float64([[temp[i + 1], temp[i + 2], temp[i + 3]] for i in np.arange(nkpt)*4]) 
     return labels, coords
     
-    
-    
-    
-    
-    
-    
-    
+def format_legend(legend):
+    '''Giving a legend string, return the label list'''
+    if isinstance(legend, list):
+        for item in legend:
+            assert isinstance(item, str), "Legend needs to be a list of string or a string"
+        return legend
+    elif isinstance(legend, str):    
+        legend = legend.strip()
+        temp = legend.split(";")
+        out = [label.strip() for label in temp]
+        return out
+    else:
+        assert 0, "Legend needs to be a list of string or a string"
