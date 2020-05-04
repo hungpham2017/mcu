@@ -3,7 +3,7 @@ import setuptools
 if __name__ == "__main__":
     setuptools.setup(
         name='mcu',
-        version="0.3.2",
+        version="0.9.0",
         description='Modeling and Crystallographic Utilities',
         author='Hung Pham',
         author_email='pqh3.14@gmail.com',

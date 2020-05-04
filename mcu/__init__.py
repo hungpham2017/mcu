@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__version__ = '0.9'
+__version__ = '0.9.0'
 from . import utils
 from . import cell
 from . import vasp, cp2k, crystal, qe, wannier90
