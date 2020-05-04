@@ -12,7 +12,7 @@ A package for periodic wavefunction and crystallography analysis. **mcu** is des
 <img src="https://github.com/hungpham2017/mcu/blob/gh-pages/docs/image/quicklook.png" width="800" align="middle">
 
 ## New:
--  MCU now supports Quantum espresso, VASP, CRYSTAL, CP2K, Wannier90. More calculators to comes soon!!!
+- MCU now supports Quantum espresso, VASP, CRYSTAL, CP2K, Wannier90. More calculators coming soon!!!
 - Flexible syntax for orbital selection in projected BAND/DOS plotting
 - Offere a simple way to choose orbitals and generate input (d3) for CRYSTAL calculation. Projected DOS by CRYSTAL is easier to do than ever
 
