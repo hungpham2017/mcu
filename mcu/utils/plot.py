@@ -347,7 +347,7 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
         
         
 def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color=None, legend=None, loc="upper right", 
-            fill=True, alpha=0.2, save=False, figname='DOS', figsize=None, elim=(-6,6), yaxis_position='left', xaxis_position='bottom',
+            fill=True, alpha=0.5, save=False, figname='DOS', figsize=None, elim=(-6,6), yaxis_position='left', xaxis_position='bottom',
             yscale=1.0, fontsize=18, dpi=600, format='png'):
     '''Plot projected band structure
         For multiple vasprun.xml, user can choose one of them to plot the DOS. Default: the first vasprun.xml
@@ -455,7 +455,7 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
     
     # Plot DOS    
     if 'horizontal' in style:
-        ax.plot(tdos0[:,0], tdos0[:,1], color=color[0],linewidth=1.1,label=legend[0])
+        ax.plot(tdos0[:,0], tdos0[:,1], color=color[0],linewidth=1.0,label=legend[0])
         if fill: 
             curve1 = tdos0[:,1]
             curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
@@ -469,19 +469,19 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
                     ax.fill_between(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
 
         if spin == 'both':
-            ax.plot(tdos0[:,0], tdos1[:,1], color=color[0], linewidth=1.1)
+            ax.plot(tdos0[:,0], tdos1[:,1], color=color[0], linewidth=1.0, linestyle='dotted')
             if fill: 
                 curve1 = tdos1[:,1]
                 curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
-                ax.fill_between(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha)
+                ax.fill_between(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha * 0.5)
             
             if pdos1 is not None:
                 for pdos_th in range(pdos1.shape[1]): 
-                    ax.plot(tdos0[:,0], pdos1[:,pdos_th], color=color[pdos_th+1], linewidth=1.0)
+                    ax.plot(tdos0[:,0], pdos1[:,pdos_th], color=color[pdos_th+1], linewidth=1.0, linestyle='dotted')
                     if fill: 
                         curve1 = pdos1[:,pdos_th]
                         curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[pdos_th + 1]
-                        ax.fill_between(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
+                        ax.fill_between(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha * 0.5)
     
         # Graph adjustments 
         plt.xlabel('Energy (eV)', size=fontsize+4)   
@@ -507,7 +507,7 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
         plt.yticks([])
         
     elif 'vertical' in style:
-        ax.plot(tdos0[:,1], tdos0[:,0], color=color[0], linewidth=1.1, label=legend[0])
+        ax.plot(tdos0[:,1], tdos0[:,0], color=color[0], linewidth=1.0, label=legend[0])
         if fill: 
             curve1 = tdos0[:,1]
             curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
@@ -522,19 +522,19 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
                     ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
 
         if spin == 'both':
-            ax.plot(tdos1[:,1], tdos0[:,0], color=color[0], linewidth=1.1) 
+            ax.plot(tdos1[:,1], tdos0[:,0], color=color[0], linewidth=1.0, linestyle='dotted') 
             if fill: 
                 curve1 = tdos1[:,1]
                 curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[0]
-                ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha)
+                ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[0],alpha=alpha * 0.5)
             
             if pdos1 is not None:
                 for pdos_th in range(pdos1.shape[1]): 
-                    ax.plot(pdos1[:,pdos_th], tdos0[:,0], color=color[pdos_th+1],linewidth=1.0)
+                    ax.plot(pdos1[:,pdos_th], tdos0[:,0], color=color[pdos_th+1],linewidth=1.0, linestyle='dotted')
                     if fill: 
                         curve1 = pdos1[:,pdos_th]
                         curve2 = np.ones(tdos0[:,1].shape[0]) * shifts[pdos_th+1]
-                        ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha)
+                        ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha * 0.5)
     
         # Graph adjustments 
         plt.xlabel('DOS', size=fontsize+4)   
@@ -717,7 +717,7 @@ class main:
                     save=save, figname=figname, figsize=figsize, xlim=xlim, ylim=ylim, fontsize=fontsize, dpi=dpi, format=format)
 
     def plot_dos(self, style='horizontal', efermi=None, spin=0, lm=None, color=None,
-                    legend=None, loc="upper right", fill=True, alpha=0.2,
+                    legend=None, loc="upper right", fill=True, alpha=0.5,
                     save=False, figname='DOS', figsize=None, elim=(-6,6), yaxis_position='left', xaxis_position='bottom', 
                     yscale=1.0, fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure

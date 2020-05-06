@@ -3,7 +3,7 @@
 __version__ = '0.9.0'
 from . import utils
 from . import cell
-from . import vasp, cp2k, crystal, qe, wannier90
+from . import vasp, cp2k, crystal, pscf, qe, wannier90
 
 # Quick shortcuts to VASP tools
 VASP = vasp.vasprun.main
@@ -32,3 +32,6 @@ CRYSTAL = crystal.crystal.main
 
 # Quick shortcuts to QE tools
 QE = qe.qe.main
+
+# Quick shortcuts to QE tools
+PYSCF = pscf.pscf.main
