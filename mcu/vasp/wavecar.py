@@ -37,7 +37,7 @@ class main:
             print('Cannot find the WAVECAR file. Check the path:', file)
             self.success = False
         else: 
-            self._wavecar = open(file, 'rb')
+            self._wavecar = open(file, 'r')
             self._lsorbit = lsorbit
             self.success = True
             self.read_header()

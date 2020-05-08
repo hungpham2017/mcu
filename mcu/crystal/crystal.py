@@ -103,8 +103,9 @@ class main(cell.main, plot.main):
                 else:
                     atom_, id = str_format.format_atom(atom)
                     available_orbs = crystal_utils.basis_short2long(self.basis)[atom_]
+                
                 available_orbs = list(dict.fromkeys(['None'] + available_orbs))
-                print(atom_, available_orbs) 
+                
                 for atm_idx in idx_atom:
                     print(atm_idx, formatted_lm[i][j])  
                     for orb in formatted_lm[i][j]:
@@ -115,6 +116,7 @@ class main(cell.main, plot.main):
             proj_orbs.sort()
             pDOS_orb_idx.append(proj_orbs)
 
+        # Export d3 file using pDOS_orb_idx list
         nDOS = len(pDOS_orb_idx)
         npoints = 1000
         first_band = self.nelec_core//2 + 1
@@ -122,7 +124,6 @@ class main(cell.main, plot.main):
         store_dos = 1
         legendre = 14
         printing = 0
-        # Export d3 file using pDOS_orb_idx list
         with open(filename, 'w') as f:
             f.write('NEWK\n')
             f.write('12 12\n')

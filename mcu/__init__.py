@@ -7,16 +7,19 @@ from . import vasp, cp2k, crystal, pscf, qe, wannier90
 
 # Quick shortcuts to VASP tools
 VASP = vasp.vasprun.main
+
+# TODO: The following syntax looks confusing and messing, make it simpler!!!
 LOCPOT = vasp.locpot.main
 POSCAR = vasp.poscar.main
 WAVECAR = vasp.wavecar.main
-CIF = cell.cell_io.cif
 vasprun = vasp.vasp_io.XML
 OUTCAR = vasp.vasp_io.OUTCAR
 make_KPOINTS = vasp.utils.get_1Dkpath
 read_WAVEDER = vasp.utils.read_WAVEDER
 read_WAVEDERF = vasp.utils.read_WAVEDERF
 
+
+# Quick shortcuts to cell tools
 CELL = cell.cell.main
 
 # Quick shortcuts to wannier90 tools

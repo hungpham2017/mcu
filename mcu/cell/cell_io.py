@@ -19,13 +19,244 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-import subprocess
+import re, textwrap
 from ..utils import misc
 from . import utils as cell_utils
 from . import spg_wrapper
+
+
+'''=======================================       
+ I/O for CIF
+=======================================''' 
+
+def get_value(data, key):
+    '''Giving a keyword, return the value next to it'''
+    key = key.strip()
+    keyword_MATCH = re.compile(r'''[\w\W]* ''' + key + ''' [ ]* (?P<value>\S+)''', re.VERBOSE)
+    match = keyword_MATCH.match(data)
+    if match is None:
+        return match
+    else:
+        return match['value']
+
+
+symmetry1_loop_MATCH = re.compile(r'''
+[\w\W]* loop_  [ ]* [\n]* [ ]* _symmetry_equiv_pos_as_xyz 
+(?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|_|loop_)  # match everything until next blank line or EOL
+)
+''', re.VERBOSE)
+
+symmetry2_loop_MATCH = re.compile(r'''
+[\w\W]* loop_  [ ]* [\n]* [ ]* _symmetry_equiv_pos_site_id [\n]* _symmetry_equiv_pos_as_xyz 
+(?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|_|loop_)  # match everything until next blank line or EOL
+)
+''', re.VERBOSE)
+
+def find_atom_site_string(data):
+    temp = data.split()
+    nitems = len(temp)
+    if '_atom_site_fract_x' in temp:
+        fract_x_idx = temp.index('_atom_site_fract_x')
+        left_list = []
+        for i in range(fract_x_idx, 0, -1):
+            if '_atom_site_' in temp[i]:
+                left_list.append(temp[i])
+            else:
+                break
+        right_list = []
+        for i in range(fract_x_idx, nitems, 1):
+            if '_atom_site_' in temp[i]:
+                right_list.append(temp[i])
+            else:
+                break
+        left_list.reverse()
+        return  left_list[:-1] + right_list
+    else:
+        None
+           
+def read_cif(filename):  
+    '''Read cif file'''
+
+    assert misc.check_exist(filename), 'Cannot find : ' + filename
+    with open(filename, 'r') as data_file:
+        data = data_file.read()
+        
+        # get lattice constans
+        a = get_value(data, '_cell_length_a').replace("(","").replace(")","")
+        b = get_value(data, '_cell_length_b').replace("(","").replace(")","")
+        c = get_value(data, '_cell_length_c').replace("(","").replace(")","")     
+        alpha = get_value(data, '_cell_angle_alpha').replace("(","").replace(")","")
+        beta = get_value(data, '_cell_angle_beta').replace("(","").replace(")","")        
+        gamma = get_value(data, '_cell_angle_gamma').replace("(","").replace(")","")        
+        lattice = np.float64([a, b, c, alpha, beta, gamma])
         
         
-##################### EXPORT CIF, XSF, POSCAR ###########################          
+        # Get symmetry
+        space_group_name = get_value(data, '_symmetry_space_group_name_H-M')
+        if space_group_name is not None: 
+            space_group_name = space_group_name.replace("'","")
+        if space_group_name is not None: 
+            space_group_name = space_group_name.strip().replace("'","")  
+            if space_group_name == "?": space_group_name = None
+            
+        space_group_number = get_value(data, '_symmetry_Int_Tables_number')
+        cell_setting = get_value(data, '_symmetry_cell_setting')
+        
+        symmetry_operatator = None
+        if symmetry1_loop_MATCH.match(data) is not None:
+            symmetry_loop = symmetry1_loop_MATCH.match(data)
+            if "'" in symmetry_loop['content']:
+                temp = re.findall(r"""'(.*?)'""", symmetry_loop['content'])
+                symmetry_operatator = [item.replace(" ","") for item in temp]
+            else:
+                symmetry_operatator = symmetry_loop['content'].split()
+            
+        elif symmetry2_loop_MATCH.match(data) is not None:
+            symmetry_loop = symmetry2_loop_MATCH.match(data)
+            if "'" in symmetry_loop['content']:
+                temp = re.findall(r"""'(.*?)'""", symmetry_loop['content'])
+                symmetry_operatator = [item.replace(" ","") for item in temp]
+            else:
+                temp = symmetry_loop['content'].split()
+                symmetry_operatator = [temp[2*item + 1] for item in range(len(temp)//2)]
+         
+        # Get atom positions and labels
+        
+        found_atoms = False
+        atom_site_keys = find_atom_site_string(data)
+
+        atom_loop = None
+        if atom_site_keys is not None:
+            atom_site_string = "[ ]* [\n]* [ ]*".join(atom_site_keys)
+            atom_loop_MATCH = re.compile(r'''
+            [\w\W]* loop_ [ ]* [\n]* [ ]* ''' + atom_site_string +''' 
+            (?P<content>
+              [\s\S]*?(?=\n.*?[ ] $|$|loop_) 
+            )
+            ''', re.VERBOSE)
+            atom_loop = atom_loop_MATCH.match(data)
+
+        fract_xyz = None
+        if atom_loop is not None:
+            found_atoms = True
+            x_idx = atom_site_keys.index('_atom_site_fract_x')  
+            y_idx = atom_site_keys.index('_atom_site_fract_y')
+            z_idx = atom_site_keys.index('_atom_site_fract_z')
+            
+            # Check all the atom_site keyword
+            if '_atom_site_label' in atom_site_keys: 
+                label_idx = atom_site_keys.index('_atom_site_label')
+            else:
+                label_idx = None
+                
+            if '_atom_site_type_symbol' in atom_site_keys: 
+                symbol_idx = atom_site_keys.index('_atom_site_type_symbol') 
+            else:
+                symbol_idx = None
+                
+            if '_atom_site_occupancy' in atom_site_keys: 
+                occupancy_idx = atom_site_keys.index('_atom_site_occupancy') 
+            else:
+                occupancy_idx = None
+
+            symbols = []
+            labels = []
+            fract_xyz = []
+            occupancy = []
+            atom_content = atom_loop['content']
+            atom_string = "".join(['[\n]* [ ]* (?P<value%d>\S+) [ ]* '% (i) for i in np.arange(len(atom_site_keys))]) 
+            atom_MATCH = re.compile(atom_string, re.VERBOSE)
+            for i, atom in enumerate(atom_MATCH.finditer(atom_content)):
+                atom_dict = atom.groupdict()
+
+                x_string = atom_dict['value' + str(x_idx)].replace("(","").replace(")","")
+                y_string = atom_dict['value' + str(y_idx)].replace("(","").replace(")","")
+                z_string = atom_dict['value' + str(z_idx)].replace("(","").replace(")","")
+                
+                def is_float(string):
+                    return string.replace(".","").replace("-","").isdigit()
+                    
+                if is_float(x_string) and is_float(y_string) and is_float(z_string):
+                    x = float(x_string)
+                    y = float(y_string)
+                    z = float(z_string)
+                else:    
+                    break
+                
+                fract_xyz.append([x, y, z])
+                
+                if symbol_idx is None:
+                    symbols.append(None)
+                else:    
+                    symbols.append(atom_dict['value' + str(symbol_idx)].capitalize())
+                
+                if label_idx is None:
+                    labels.append(None)
+                else:    
+                    labels.append(atom_dict['value' + str(label_idx)])
+                    
+                if occupancy_idx is None:
+                    occupancy.append(1.0)
+                else:    
+                    occ = atom_dict['value' + str(occupancy_idx)].replace("(","").replace(")","")
+                    occupancy.append(float(occ))
+                    
+            if occupancy_idx is not None:
+                for i, occ in enumerate(occupancy):
+                    if abs(occ - 1.0) > 1.e-4:
+                        print("WARNING! {0:6s} {1:4s} has a fractional occupancy of {2:2.4f}".format(str(labels[i]), str(symbols[i]), occ))
+                    
+            fract_xyz = np.float64(fract_xyz)
+        
+        out = {}
+        out['lattice parameters'] = lattice
+        out['spg number'] = space_group_number
+        out['spg name'] = space_group_name
+        out['symmetry operators'] = symmetry_operatator
+        out['cell_setting'] = cell_setting
+        if found_atoms:
+            out['fract_xyz'] = fract_xyz
+            out['symbols'] = symbols    # Must be an elemenent name
+            out['labels'] = labels      # Can be any string
+            out['occupancy'] = occupancy 
+        else:
+            out['fract_xyz'] = None
+            out['symbols'] = None       # Must be an elemenent name
+            out['labels'] = None        # Can be any string
+            out['occupancy'] = None
+        return out
+
+
+def cif2cell(filename):
+    '''Read a cif file and return a cell spglib object'''
+    assert misc.check_exist(filename), "Cannot find : " + filename
+    
+    out = read_cif(filename)
+    lattice = cell_utils.convert_lattice(out['lattice parameters'])
+    assert out['fract_xyz'] is not None, "The provided CIF does not have atom information. Check your CIF: " + filename
+    irred_symbol = out['symbols']
+    irred_frac = out['fract_xyz']
+    irred_occupancy = out['occupancy'] 
+    if int(sum(irred_occupancy)) != len(irred_occupancy):
+        print("WARNING! Cannot simply convert a disordered CIF to a cell object. Refine your CIF")
+        return None
+    else:
+        symopt = out['symmetry operators']
+        rotations, translations = cell_utils.symop_xyz2mat(symopt)
+        full_symbol, full_frac = cell_utils.atoms_irred2full(lattice, irred_symbol, irred_frac, rotations, translations)
+        if full_symbol is None:
+            print("WARNING! Cannot simply convert a disordered CIF to a cell object. Refine your CIF")
+            return None
+        else:
+            atom_type = cell_utils.convert_atomtype(full_symbol)
+            return (lattice, full_frac, atom_type)
+
+ 
+'''=======================================       
+ EXPORT: CIF, XSF, POSCAR 
+======================================='''         
 def write_poscar(cell, filename=None):
     comment = misc.date()
     lattice = np.asarray(cell[0])
@@ -114,203 +345,4 @@ def write_cif(cell, space_group, symopt, filename=None):
             f.write('   %s   %s   %15.10f   %15.10f   %15.10f\n' % (symbol[atom], symbol[atom], positions[atom][0], positions[atom][1], positions[atom][2]))     
 
             
-############### Working with CIF file #########################
-class cif:
-    def __init__(self, file=None):
-    
-        if file == None:        # The 1st 
-            proc = subprocess.Popen('/bin/ls *.cif', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = proc.communicate()
-            file = str(out).split("'")[1].split("\\")[0]
-        if not misc.check_exist(file):
-            print('Cannot find any cif file in the current directory', file)
-        else:
-            cif_raw = open(file, "r").readlines()
-            self._cif_data = self.refine_cif(cif_raw)
-            self.cell = self.make_cell()
 
-    # def write_cif(self, filename='mcu'):
-        # '''Write a P1 cif file'''
-        # print("Exporting a P1 cif file, the original symmetry is discarded")
-        # space_group = ['1','P1']
-        # equi_atoms = np.arange(len(self.cell[2]))
-        # symopt = spg_wrapper.get_symmetry_from_database(1)
-        # rotations, translations = symopt['rotations'], symopt['translations']
-        # symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        # write_cif(self.cell, space_group, equi_atoms, symopt, filename) 
-        
-    def make_cell(self):
-        '''Read cell information from cif file and return a cell spglib object'''
-        
-        a = self.extract_line('_cell_length_a', data_type='float')
-        b = self.extract_line('_cell_length_b', data_type='float')
-        c = self.extract_line('_cell_length_c', data_type='float')
-        alpha = self.extract_line('_cell_angle_alpha', data_type='float')
-        beta = self.extract_line('_cell_angle_beta', data_type='float')
-        gamma = self.extract_line('_cell_angle_gamma', data_type='float')
-        spg_label = self.extract_line('_symmetry_space_group_name_H-M', data_type='str')
-        spg_number = self.extract_line('_symmetry_Int_Tables_number', data_type='int') 
-        irred_symbol, irred_frac = self.extract_coordinate()
-        symopt = self.extract_sym_operator()
-        rotations, translations = cell_utils.symop_xyz2mat(symopt)
-        atom_type, full_frac = cell_utils.genetate_atoms(irred_symbol, irred_frac, rotations, translations)
-        self.lattice = [a,b,c,alpha,beta,gamma]
-        self.lattice = cell_utils.convert_lattice(self.lattice)
-        cell = (self.lattice, full_frac, atom_type)
-        self.space_group = [spg_number, spg_label.strip()]
-        self.irred_atoms = [irred_symbol, irred_frac]
-        
-        return cell
-        
-    def refine_cif(self, cif):
-        '''Remove blank lines from self._cif_data'''
-        
-        for i, line in enumerate(cif):
-            if line.strip() == '': cif.pop(i)
-        return cif
-        
-    def extract_coordinate(self):
-        '''Extract the (irreducible) coordinates block'''
-        out = None
-        block_keys = []
-        start = 0
-        stop = False
-        for i in range(len(self._cif_data)):
-            line = self._cif_data[i].strip()
-            if line.startswith('_atom_site_'):
-                block_keys.append(line.split('_atom_site_')[1].split('\n')[0])
-                start = i + 1
-                stop = True
-            elif stop == True:
-                break
-                
-        num_keys = len(block_keys)
-
-        where_symbol = block_keys.index('type_symbol')
-        where_x = block_keys.index('fract_x')
-        where_y = block_keys.index('fract_y')
-        where_z = block_keys.index('fract_z')
-        if 'label' in block_keys: 
-            where_label = block_keys.index('label')
-            label = []
-        if 'occupancy' in block_keys:
-            where_occ = block_keys.index('occupancy')
-            occupancy = []
-            
-        symbol = []
-        frac = []
-        for i in range(start, len(self._cif_data)):
-            line = self._cif_data[i].strip().split()
-            if len(line) == num_keys:
-                symbol.append(line[where_symbol])
-                frac.append([cell_utils.rm_paren(line[where_x]),
-                             cell_utils.rm_paren(line[where_y]),
-                             cell_utils.rm_paren(line[where_z])])
-                if 'label' in block_keys: label.append(line[where_label])
-                if 'occupancy' in block_keys: occupancy.append(line[where_occ])                
-            else:
-                break
-
-        frac = np.float64(frac)
-        
-        return symbol, frac
-        
-    def extract_sym_operator(self):
-        '''Extract the (irreducible) coordinates block'''
-        
-        start = 0
-        for i in range(len(self._cif_data)):
-            line = self._cif_data[i].strip()
-            if line.startswith('_symmetry_equiv_pos_as_xyz'):
-                start = i + 1
-                break
-                
-        sym_operators = []
-        for i in range(start, len(self._cif_data)):
-            line = self._cif_data[i].strip()
-            if line == '' or line.startswith("_") or line.startswith("loop_"): 
-                break
-                    
-            if "'" in line:
-                line = line.split("'")[1]
-            else:
-                line = line.split()
-                if len(line) == 2:
-                    line = line[1]
-                elif len(line) == 3:
-                    line = line[0] + line[1] + line[2]
-                else:
-                    line = line[0]
-            sym_operators.append(line)
-            
-        return sym_operators
-                
-                
-    def extract_line(self, key, data_type='str'):
-        '''Extract the value after a keyword'''
-        out = None
-        for line in self._cif_data:
-            if line.strip().startswith(key):
-                temp = line.replace(key,'')
-                out = temp.replace("'","")
-                if data_type != 'str':
-                    out = cell_utils.rm_paren(''.join(out.split()))
-                if data_type == 'float': out = float(out)
-                elif data_type == 'int': out = int(out)
-                break
-            
-        return out
-        
-############ Symmetry #################      
-    def get_symmetry(self, cell=None, symprec=1e-5, print_atom=False):
-        '''Get space group information'''
-        if cell is None: 
-            cell = self.cell
-            spg_wrapper.get_sym(cell, symprec, print_atom)
-        else:
-            spg_wrapper.get_sym(cell, symprec)
-        
-    def to_stdcell(self, cell=None, symprec=1e-5):
-        '''Transform the unit cell to the standard conventional cell'''
-        if cell is None: 
-            cell = self.cell
-            self.cell = spg_wrapper.cell_to_std(cell, symprec)
-        else:
-            return spg_wrapper.cell_to_std(cell, symprec)
-            
-    def to_primcell(self, cell=None, symprec=1e-5):
-        '''Transform the unit cell to the primitive cell'''
-        if cell is None: 
-            cell = self.cell
-            self.cell = spg_wrapper.cell_to_prim(cell, symprec)
-        else:
-            return spg_wrapper.cell_to_prim(cell, symprec)  
-
-    def get_irred_cell(self, cell=None, symprec=1e-5):
-        if cell is None: cell = self.cell
-        irred_cell, spg_number, spg_label, rotations, translations = spg_wrapper.get_sym(cell, symprec, print_analysis=False)
-        
-        return irred_cell
-
-############ Exporting to different structure format #################  
-    def write_poscar(self, cell=None, filename=None):
-        if cell is None: cell = self.cell
-        write_poscar(cell, filename)
-        
-    def write_cif(self, cell=None, symprec=1e-5, filename=None, symmetrize=True):
-        if cell is None: cell = self.cell
-        if symmetrize==True: 
-            cell = self.to_stdcell(cell, symprec)
-            irred_cell, spg_number, spg_label, rotations, translations = spg_wrapper.get_sym(cell, symprec, print_analysis=False)
-            space_group = [spg_number, spg_label]
-        else:
-            space_group = [1,'P1']
-            irred_cell = cell
-            symopt = spg_wrapper.get_symmetry_from_database(1)
-            rotations, translations = symopt['rotations'], symopt['translations']
-        symopt = cell_utils.symop_mat2xyz(rotations, translations)
-        write_cif(irred_cell, space_group, symopt, filename) 
-
-    def write_xsf(self, cell=None, filename=None):
-        if cell is None: cell = self.cell
-        write_xsf(cell, filename) 

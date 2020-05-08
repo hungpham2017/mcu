@@ -108,7 +108,7 @@ basis_function_MATCH = re.compile(r'''
 def read_out(filename):
     '''Read prefix.out file'''
  
-    with open(filename, "r") as data_file:
+    with open(filename, 'r') as data_file:
         data = data_file.read()
         
         # Get the primitive lattice
@@ -184,7 +184,7 @@ def read_BAND(filename):
         else:
             assert False, 'Cannot find the BAND file. Check the path: ' + filename
     
-    with open(filename, "r") as data_file:
+    with open(filename, 'r') as data_file:
         data = data_file.readlines()
         nkpt, nband, nspin = np.int64([data[0].split()[i] for i in [2,4,6]])
         npath = int(data[1].split()[2])
@@ -215,7 +215,7 @@ def read_DOSS(filename):
         else:
             assert False, 'Cannot find the DOSS file. Check the path: ' + filename
 
-    with open(filename, "r") as data_file:
+    with open(filename, 'r') as data_file:
         data = data_file.readlines()
         nepts, nproj, nspin = np.int64([data[0].split()[i] for i in [2,4,6]]) 
         block_length = nepts + 2
@@ -258,7 +258,7 @@ f25_DOSS_MATCH = re.compile(r'''
         
 def read_f25(filename):
     '''Read prefix.f25/fort.25 file'''
-    with open(filename, "r") as data_file:
+    with open(filename, 'r') as data_file:
         data = data_file.read()
         
         # Get BAND

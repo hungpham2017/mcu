@@ -22,6 +22,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 # source: https://www.science.co.il/elements/
 ELEMENTS = {
 'H':[1,1.008],
+'D':[1,2.014],
 'He':[2,4.003],
 'Li':[3,6.941],
 'Be':[4,9.012],

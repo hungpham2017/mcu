@@ -24,6 +24,7 @@ from ..utils.misc import check_exist
 from ..cell import utils as cell_utils
 from ..cell import cell
 from ..vasp import const
+from . import utils as pscf_utils
 
         
 class main(cell.main, plot.main):
@@ -38,6 +39,8 @@ class main(cell.main, plot.main):
                 
         self.nelec = self.pyscf_cell.nelectron
         self.nao = self.pyscf_cell.nao
+        self.nbands = self.nao
+        self.soc = False
         
         # Make a cell object in the spglib format
         atom = []
@@ -72,14 +75,44 @@ class main(cell.main, plot.main):
         return frac_kpts       
         
     def get_band(self, band=None, kpts=None):
+        '''Processing band structure info'''
         if band is None: 
-            assert self.band is not None, "You need to set mcu.bands"
+            assert self.band is not None, "You need to provide bands calculated by PySCF kks.get_bands function"
             band = np.asarray(self.band[0])
             nkpts = band.shape[-2]
             nband = band.shape[-1]
             band = band.reshape(-1, nkpts, nband) * const.AUTOEV
         if kpts is None: 
-            assert self.kpts is not None, "You need to set mcu.kpts"
+            assert self.kpts is not None, "You need to provide kpts used in the PySCF kks.get_bands function"
+            kpath_frac = self.kpts     
+        
+        # Find absolute kpts and shift the band
+        lattice = self.cell[0]
+        recip_lattice = 2 * np.pi * np.linalg.inv(lattice).T # Get the reciprocal lattice in the row vector format
+        abs_kpts = kpath_frac.dot(recip_lattice)                  # From fractional to absolute
+        temp_kpts = np.empty_like(abs_kpts)
+        temp_kpts[0] = abs_kpts[0]
+        temp_kpts[1:] = abs_kpts[:-1] 
+        proj_kpath = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
+            
+        # Determine efermi
+        nelectron = nkpts * self.nelec
+        nocc = nelectron // 2       #TODO: uhf is considered 
+        energy = band.flatten()
+        idx = energy.argsort()
+        efermi = energy[idx][:nocc].max()
+        
+        return band, kpath_frac, proj_kpath, recip_lattice, efermi
+        
+    def get_pband(self, band=None, kpts=None):
+        if band is None: 
+            assert self.band is not None, "You need to provide bands calculated by PySCF kks.get_bands function"
+            mo_coeff = np.asarray(self.band[1])
+            nkpts = band.shape[-2]
+            nband = band.shape[-1]
+            band = band.reshape(-1, nkpts, nband) * const.AUTOEV
+        if kpts is None: 
+            assert self.kpts is not None, "You need to provide kpts used in the PySCF kks.get_bands function"
             kpts = self.kpts     
             
         kpath_frac = kpts
@@ -162,3 +195,81 @@ class main(cell.main, plot.main):
                     direct_gap = min(gap1, gap2)
                     print('  Direct bandgap   : %6.3f' % (direct_gap))
  
+    def _generate_pband(self, band=None, spin=0, gradient=False, lm='spd'):
+        '''Processing/collecting the projected band data before the plotting function
+            
+            Note: 
+            proj_wf = [kpts, band, # of orbitals]
+                  
+            Examples for lm:
+                lm = 'Ni:s ; p ; d'             :   three groups: (1) s of Ni ; (2) all p orbitals ; (3) all d orbitals
+                lm = ['Ni:s,pd', 'O1:p;O2']     :   two groups: (1) s,p,d of Ni ; (2) all p orbitals of the 1st O  and all otbitals of O2 
+                lm = ['Ni1;O', 'N']             :   two groups: (1) the 1st Ni and all the O atoms ; (2) All N atom
+ 
+            if gradient == True: user has to provide a TWO groups of orbitals  
+                for example, lm = 'Ni:s ; p' or ['Ni:s,pd', 'O1:p;O2']  
+            
+        '''      
+
+        if band is None: 
+            assert self.band is not None, "You need to provide bands calculated by PySCF kks.get_bands function"
+            mo_coeff = np.asarray(self.band[1])         
+            nkpts = mo_coeff.shape[-3]
+            mo_coeff = mo_coeff.reshape(-1, nkpts, self.nao, self.nao) # dimension [spin, kpts, ao_th, band]
+            mo_coeff = mo_coeff.transpose(0,1,3,2)  # dimension [spin, kpts, band, ao_th]
+        
+        proj_wf = np.absolute(mo_coeff[spin])
+        species, lm_list =  pscf_utils.make_basis_dict(self.pyscf_cell)
+        
+
+        # Generate pband
+        formatted_atom, formatted_lm = str_format.general_lm(lm)
+        if gradient:        
+            assert len(formatted_atom) == 2, "For the gradient plot, you only need to provide two groups of orbitals, for example, lm = 's,p'"
+
+        # Calculate total band and pband
+        total = proj_wf.sum(axis=2)     # sum over all orbitals, dimension now is [kpts, band]
+        pband = []             
+        for i, atoms in enumerate(formatted_atom):  
+            proj_val = 0
+            for j, atom in enumerate(atoms):
+                # Locate the atom
+                if atom is None: 
+                    idx_atom = np.arange(len(species))
+                else:
+                    atom_, id = str_format.format_atom(atom)
+                    assert atom_ in self.element, "This is wrong: " + atom + ". Check the lm string/list. Atom is must be in the element list: " + " ".join(self.element)
+                    available_atom = [(n, atm) for n, atm in enumerate(self.atom) if atm == atom_]
+                    natom = len(available_atom)
+                    if id is not None:
+                        assert id <= natom, "This is wrong: " + atom + ". Check the lm string/list. Atom id is must be <= " + str(natom) + " for: " + atom_
+                        
+                    idx_atom = []
+                    nspecies = species.count(atom_)
+                    nwfc = nspecies // natom
+                    count = 0
+                    for n, atm in enumerate(species):
+                        if atm == atom_: 
+                            if id is None:
+                                idx_atom.append(n)
+                            elif count // nwfc == id - 1: 
+                                idx_atom.append(n)
+                            count += 1 
+                        
+                # Locate the lm 
+                idx_lm = []
+                for idx in idx_atom:
+                    for each_lm in formatted_lm[i][j]:
+                        if each_lm is None:
+                            idx_lm.append(idx)
+                        elif lm_list[idx] == each_lm:
+                            idx_lm.append(idx)              
+
+                proj_val += (proj_wf[:,:,idx_lm]).sum(axis=2)
+            pband.append(proj_val/total)
+        pband = np.asarray(pband)
+        
+        if gradient:  
+            pband = pband[0]/(pband.sum(axis=0))
+
+        return pband   

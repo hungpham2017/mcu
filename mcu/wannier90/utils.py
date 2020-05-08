@@ -54,7 +54,7 @@ def read_U_matrix(filename):
     '''Read seedname_u.mat file
     '''	
     
-    with open(filename, "r") as file:
+    with open(filename, "rb") as file:
         data = file.read().split('\n')
         nkpts, nwann, nband =  np.int64(data[1].split())
         temp = data[2:-1]

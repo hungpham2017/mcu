@@ -69,7 +69,7 @@ class io:
         
         if seedname is None: seedname = self.seedname
         if check_exist(seedname + '.win'):
-            with open(seedname + '.win', "r") as file:
+            with open(seedname + '.win', 'r') as file:
                 win = file.read().splitlines()
 
             # Cell information
@@ -109,7 +109,7 @@ class io:
         '''Read the seedname_band.dat and seedname_band.kpt file'''
         if seedname is None: seedname = self.seedname
         if check_exist(seedname + '_band.dat'):
-            with open(seedname + '_band.dat', "r") as file:
+            with open(seedname + '_band.dat', 'r') as file:
                 lines = file.read().splitlines()
             
             band = []
@@ -132,7 +132,7 @@ class io:
             self.band = bands[:,:,1].T
             
             #Get fractional kpath
-            with open(seedname + '_band.kpt', "r") as file:
+            with open(seedname + '_band.kpt', 'r') as file:
                 lines = file.read().splitlines()
 
             kpath_frac = []
@@ -147,7 +147,7 @@ class io:
         '''Read the seedname_band.dat and seedname.eig file'''
         if seedname is None: seedname = self.seedname
         if check_exist(seedname + '.eig'):
-            with open(seedname + '.eig', "r") as file:
+            with open(seedname + '.eig', 'r') as file:
                 lines = file.read().splitlines()
             
             eig = []

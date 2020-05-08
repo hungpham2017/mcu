@@ -25,7 +25,7 @@ from . import parameters, utils
 
 
 
-def compare_cells(cell_1, cell_2, prec=1e-5):
+def compare_cells(cell_1, cell_2, prec=1e-3):
     '''Compare two spglib cell if they are the same'''
     
     # spglib only work with tuple
@@ -43,7 +43,7 @@ def compare_cells(cell_1, cell_2, prec=1e-5):
             
     return is_the_same
 
-def get_sym(cell, symprec=1e-5, print_atom=False, print_analysis=True):
+def get_sym(cell, symprec=1e-3, print_atom=False, print_analysis=True):
     '''Giving a spglib cell, return symmetry analysis'''
     
     # spglib only work with tuple
@@ -95,7 +95,7 @@ def get_sym(cell, symprec=1e-5, print_atom=False, print_analysis=True):
         spacegroup = [int(spg_number), spg_label]
         return spacegroup, irred_cell, rotations, translations
     
-def cell_to_std(cell, symprec=1e-5):
+def cell_to_std(cell, symprec=1e-3):
     '''Convert a cell to a standard cell'''
     
     # spglib only work with tuple
@@ -107,7 +107,7 @@ def cell_to_std(cell, symprec=1e-5):
         print('The unit cell was transformed to a standard cell')  
     return std_cell
 
-def cell_to_prim(cell, symprec=1e-5):
+def cell_to_prim(cell, symprec=1e-3):
     '''Convert a cell to a primitive cell'''
     
     # spglib only work with tuple

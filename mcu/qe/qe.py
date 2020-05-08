@@ -217,9 +217,7 @@ class main(cell.main, plot.main):
                 assert 0, "Cannot find any band structure file"
     
         data = qe_io.read_projwfc_output(filename)
-        site = data['site']
         species = data['species']
-        wfc_id = data['wfc']
         l_list = data['l']
         m_list = np.int64(data['m'])
         proj_wf = data['projwfc'][spin] 
@@ -314,7 +312,6 @@ class main(cell.main, plot.main):
             
             # Collect the pdos files
             data = qe_io.read_projwfc_output(prefix + ".projwfc.out")
-            site = data['site']
             species = data['species']
             wfc_id = np.int64(data['wfc'])
             l_list = data['l']

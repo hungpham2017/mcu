@@ -28,7 +28,7 @@ from . import parameters
 
 
 def convert_atomtype(Z_or_symbol):
-    '''Convert atom from Z to symbol and vice versa''' 
+    '''Convert atom from itsZ to its symbol and vice versa''' 
     
     # Z to symbol
     if not isinstance(Z_or_symbol[0], str):
@@ -86,8 +86,7 @@ def symop_xyz2mat(sym_operators):
         for i in range(3):  # loop over rows of rotation mat
             temp = opt[i].strip()
             vec = []
-            axes = ['x','y','z']
-            for axis in axes: # loop over axis of row vector
+            for axis in ['x','y','z']: # loop over x, y, z
                 if axis in temp:
                     idx = temp.index(axis)
                     if idx == 0:
@@ -146,43 +145,61 @@ def symop_mat2xyz(rotations, translations):
     return syms
                
 
-def genetate_atoms(irred_symbol, irred_frac, rotations, translations, prec=8):
-    '''Operate the R and T operators on irreducible atoms then remove redundant ones'''
-    
-    full_Z = []
-    full_frac = []
-    nsymopt = len(translations)
-    
-    irred_Z = convert_atomtype(irred_symbol)
-    # Operate R and T on the irreducible atoms
-    for i, Z in enumerate(irred_Z):
-        new_atoms = np.einsum('iab,b->ia', rotations, irred_frac[i]) + translations
-        full_Z.extend([Z]*nsymopt)
-        full_frac.extend(new_atoms)
+def atoms_irred2full(lattice, irred_symbol, irred_frac_coors, rotations, translations, prec=1e-4):
+    '''Giving a list of irreducible atoms, generate all the other atoms
+    Input:
+    =====
+        - lattice matrix
+        - irreducible atoms symbol
+        - irreducible atoms fractional coordinates 
+        - Rotation and translation operators in matrix form
+        - prec in Angstrom
+    '''
 
-    natoms = len(full_frac)
-    full_frac = np.asarray(full_frac) - np.int64(full_frac)
-    full_frac = full_frac.flatten()
-    full_frac[np.where(full_frac<0)[0]] = full_frac[np.where(full_frac<0)[0]] + 1.0
-    full_frac = full_frac.reshape(natoms,3)
+    full_atom_Z = []
+    full_frac_coors = []
+    ntrans = len(translations)
+    irred_atom_Z = convert_atomtype(irred_symbol)
+    
+    # Operate R and T on the irreducible atoms to get a redudant list of atoms
+    for i, symbol in enumerate(irred_atom_Z):
+        new_atoms = np.einsum('iab,b->ia', rotations, irred_frac_coors[i]) + translations
+        full_atom_Z.extend([symbol]*ntrans)
+        full_frac_coors.extend(new_atoms)
+
+    # After the symmetry operation, the coordination may be outside the unit cell, i.e., <0 or > 1
+    # Here all the atoms are transformed to the unit cell
+    natoms = len(full_frac_coors)
+    full_frac_coors_inside_cell = np.asarray(full_frac_coors) - np.int64(full_frac_coors)           # Transform >1 to [0,1]
+    full_frac_coors = full_frac_coors_inside_cell.flatten()
+    negative_coords_idx = np.where(full_frac_coors<0)[0]                                                  # locate negative coordinates
+    full_frac_coors[negative_coords_idx] = full_frac_coors[negative_coords_idx] + 1.0                           # Transform <0 to [0,1]
+    full_frac_coors = full_frac_coors.reshape(natoms,3)
+
+    # Remove redundant atoms BUT leave the disosdered ones with a Warning for the user
     atoms = np.empty([natoms,4])
-    atoms[:,0] = np.asarray(full_Z)
-    atoms[:,1:] = full_frac
-    atoms = np.unique(atoms.round(prec), axis=0)
-    full_Z = np.ndarray.tolist(np.int64(atoms[:,0]))
-    full_frac = atoms[:,1:]
-
-    return full_Z, full_frac
+    atoms[:,0] = np.asarray(full_atom_Z)
+    atoms[:,1:] = full_frac_coors @ lattice             # Use absolute coordinates to check the redudancy
+    atoms = np.unique(atoms.round(int(abs(np.log10(prec)))), axis=0)
     
-def rm_paren(string):
-    return string.replace("(","").replace(")","")
+    # Check disodered atoms:
+    num_irredundant_atom = atoms.shape[0]
+    coords = np.unique(atoms[:,1:].round(int(abs(np.log10(prec)))), axis=0)
+    if coords.shape[0] < num_irredundant_atom:
+        print("WARNING! Your CIF may contain disordered atoms (Atoms that are too close to each other)")
+        return None,  None
+    else:    
+        irredundant_atom_symbol = convert_atomtype(np.int64(atoms[:,0]))
+        irredundant_abs_coors = atoms[:,1:]
+        irredundant_frac_coors =  irredundant_abs_coors @ np.linalg.inv(lattice)
+
+        return irredundant_atom_symbol, irredundant_frac_coors
     
     
 def convert_lattice(lattice):
-    '''Convert a lattice matrix to cif file format cell and vice versa'''
-    
+    '''Convert a lattice matrix to lattice parameters (a, b, c, alpha, beta, gamma) and vice versa'''
     lattice = np.asarray(lattice)
-    if lattice.shape[0] == 3:
+    if lattice.shape[0] == 3:           # lattice matrix to lattice parameters
         a, b, c = np.linalg.norm(lattice, axis=1)
         cos_alpha = lattice[1].dot(lattice[2])/np.linalg.norm(lattice[1])/np.linalg.norm(lattice[2])
         alpha = np.arccos(cos_alpha)*180/np.pi
@@ -193,7 +210,7 @@ def convert_lattice(lattice):
         
         return np.asarray([a,b,c,alpha,beta,gamma])
         
-    elif lattice.shape[0] == 6:
+    elif lattice.shape[0] == 6:         # lattice parameters to lattice matrix
         a,b,c,alpha,beta,gamma = lattice
         vec1 = [a, 0.0, 0.0]    # a aligns along x
         vec2 = [b*np.cos(gamma*np.pi/180), b*np.sin(gamma*np.pi/180), 0.0]    # b is in the xy plane  

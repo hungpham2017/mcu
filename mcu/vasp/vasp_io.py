@@ -726,7 +726,7 @@ class WAVECAR:
         if not check_exist(file):
             assert False, 'Cannot find the WAVECAR file. Check the path: ' + file
         else: 
-            self._wavecar = open(file, 'rb')
+            self._wavecar = open(file, 'r')
             self.read_header()
             self.get_band()
             
