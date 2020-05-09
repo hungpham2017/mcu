@@ -19,3 +19,8 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
+
+
+def save_band(band):
+    return 0
+    

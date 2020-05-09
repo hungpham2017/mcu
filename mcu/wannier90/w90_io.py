@@ -19,150 +19,116 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
+import re, textwrap
 from ..utils.misc import check_exist
 from ..cell import utils as cell_utils  
 
-#--------------------------------------------------------------------------------------------------------- 
-# USEFUL FUNCTIONS TO MANIPULATE wannier90 files
-#---------------------------------------------------------------------------------------------------------
-def copy_block(blocks, keyword, convert_to_float=False):
-    ''' copy info in a block'''
-    start_key = ('begin ' + keyword).lower()
-    end_key = ('end '+ keyword).lower()  
-    block = []
-    copy = False
-    for line in blocks:
-        if end_key == line[:len(end_key)].lower():            
-            copy = False   
-            
-        if copy == True: 
-            line = line.replace('\n','')
-            if convert_to_float == True:
-                line = np.float64(line.split())
-            block.append(line)
-        else:
-            if start_key == line[:len(start_key)].lower(): copy = True
-            
-    return block 
-    
-def extract_parameter(blocks, keyword):
-    '''Get the parameter after a keyword'''
-    value = None
-    for line in blocks:
-        if keyword.lower() in line.lower():  
-            return line.split()[2:]
-            
 
-    
-#--------------------------------------------------------------------------------------------------------- 
-# MAIN CLASS
-#---------------------------------------------------------------------------------------------------------
-class io:
-    def __init__(self, seedname="wannier90"):
-        '''
-            seedname can contain the path as well if the wannier90 files are not in the working directory
-        '''
-        self.seedname = seedname
 
-    def read_win(self, seedname=None):  
-        '''Read the seedname.win file'''
+def get_info_from_block(data, key):
+    '''Provide data and a key, return info from the block indicated by key'''
+    block_MATCH = re.compile(r'''
+    [\w\W]*
+      (?i)begin [ ]* ''' + key.strip() + '''
+    (?P<content>
+      [\s\S]*?(?=\n.*?[ ] $|(?i)end)  # match everything until next blank line or EOL
+    )
+    ''', re.VERBOSE)
+    match = block_MATCH.match(data)
+    if match is not None:
+        return match['content']
+    else:
+        return match
+
+def get_info_after_key(data, key):
+    '''Provide data and a key, return info from the block indicated by key'''
+    key_MATCH = re.compile(r'''
+    [\w\W]* ''' + key.strip() + ''' [ ]* [:=]+''' + '''(?P<value>[\s\S]*?(?=\n.*?[ ] $|[\n]))''', re.VERBOSE)
+    match = key_MATCH.match(data)
+    if match is not None:
+        return match['value']
+    else:
+        return match
+
+def read_win(filename):
+    '''Read seedname.win'''
+
+    assert check_exist(filename), 'Cannot find : ' + filename
+    with open(filename, 'r') as data_file:
+        data = data_file.read()
         
-        if seedname is None: seedname = self.seedname
-        if check_exist(seedname + '.win'):
-            with open(seedname + '.win', 'r') as file:
-                win = file.read().splitlines()
-
-            # Cell information
-            lattice = copy_block(win, 'Unit_Cell_Cart', convert_to_float=True)
-            atom_block = copy_block(win, 'atoms_cart')
-            atom_sym = []
-            atom_position = []
-            for atm in atom_block:
-                temp = atm.split()
-                atom_sym.append(temp[0])
-                atom_position.append(np.float64(temp[1:]))
-            self.atom = atom_sym
-            atom_number = cell_utils.convert_atomtype(self.atom )
-            self.cell = (lattice, atom_position, atom_number)
-            
-            # kmesh info
-            self.kpts = np.asarray(copy_block(win, 'kpoints', convert_to_float=True))
-            self.klabel = None
-            kpoint_path = copy_block(win, 'kpoint_path')
-            if kpoint_path is not []:
-                num_kpoint = len(kpoint_path)
-                high_sym_kpoints = []
-                for i, kpoint in enumerate(kpoint_path):
-                    if i == (num_kpoint - 1):
-                        temp = kpoint.split()
-                        high_sym_kpoints.append([temp[0], np.float64(temp[1:4])])
-                        high_sym_kpoints.append([temp[4], np.float64(temp[5:])])
-                    else:
-                        temp = kpoint.split()
-                        high_sym_kpoints.append([temp[0], np.float64(temp[1:4])])
-                self.klabel = high_sym_kpoints
-            
-        else:
-            print('Cannot find the *.win file. Check the path:', seedname + '.win')       
+        unit_cell = get_info_from_block(data, 'Unit_Cell_Cart')
+        unit_cell = np.float64(unit_cell.split()).reshape(3,3)
         
-    def read_band(self, seedname=None):  
-        '''Read the seedname_band.dat and seedname_band.kpt file'''
-        if seedname is None: seedname = self.seedname
-        if check_exist(seedname + '_band.dat'):
-            with open(seedname + '_band.dat', 'r') as file:
-                lines = file.read().splitlines()
+        abs_coords = None  
+        atoms_cart = get_info_from_block(data, 'atoms_cart')
+        if atoms_cart is not None:
+            atoms_cart = atoms_cart.split()
+            natom = len(atoms_cart) // 4
+            atom = [atoms_cart[4*i] for i in range(natom)]
+            abs_coords = np.float64([atoms_cart[4*i + 1 : 4*i + 4] for i in range(natom)])
             
-            band = []
-            for i, line in enumerate(lines):
-                if line == '  ':
-                    nkpts = i + 1
-                    break
-                else:
-                    band.append(np.float64(line.split()))
-                    
-            nbands = len(lines) // nkpts
-            bands = [band]
-            for line in range(1,nbands):
-                band = []
-                for point in range(nkpts):
-                    band.append(lines[line*nkpts + point].split())
-                bands.append(band[:-1])
-            bands = np.asarray(bands, dtype=np.float64)
-            self.proj_kpath = bands[0][:,0]
-            self.band = bands[:,:,1].T
+        frac_coords = None    
+        atoms_frac = get_info_from_block(data, 'atoms_frac')
+        if atoms_frac is not None:
+            atoms_frac = atoms_frac.split()
+            natom = len(atoms_car) // 4
+            atom = [atoms_frac[4*i] for i in range(natom)]
+            frac_coords = np.float64([atoms_frac[4*i + 1 : 4*i + 4] for i in range(natom)])            
+        
+        mp_grid = np.int64(get_info_after_key(data, 'mp_grid').split()).tolist()
+        
+        kpoint_path = get_info_from_block(data, 'kpoint_path')
+        kpath = None
+        if kpoint_path is not None:
+            kpoint_path_MATCH = re.compile(r'''
+            [ ]* 
+            (?P<k1>\S+) [ ]* (?P<k1x>\S+) [ ]* (?P<k1y>\S+) [ ]* (?P<k1z>\S+) [ ]* (?P<k2>\S+) [ ]* (?P<k2x>\S+) [ ]* (?P<k2y>\S+) [ ]* (?P<k2z>\S+)
+            ''', re.VERBOSE)
+            kpath = []
+            for kpoint in kpoint_path_MATCH.finditer(kpoint_path):
+                content = kpoint.groupdict()
+                k1 = [content['k1'], np.float64([content['k1x'], content['k1y'], content['k1z']])]
+                k2 = [content['k2'], np.float64([content['k2x'], content['k2y'], content['k2z']])]
+                kpath.append([k1, k2])
             
-            #Get fractional kpath
-            with open(seedname + '_band.kpt', 'r') as file:
-                lines = file.read().splitlines()
+        kpts = None 
+        kpts_data = get_info_from_block(data, 'kpoints')
+        kpts = np.float64(kpts_data.split()).reshape(-1, 3)
 
-            kpath_frac = []
-            for i in range(1, nkpts):
-                kpath_frac.append(lines[i].split()[:-1])
-            self.kpath_frac = np.asarray(kpath_frac, dtype=np.float64)
-                
-        else:
-            print('Cannot find the *_band.dat file. Check the path:', seedname + '_band.dat')
-            
-    def read_eig(self, seedname=None):  
-        '''Read the seedname_band.dat and seedname.eig file'''
-        if seedname is None: seedname = self.seedname
-        if check_exist(seedname + '.eig'):
-            with open(seedname + '.eig', 'r') as file:
-                lines = file.read().splitlines()
-            
-            eig = []
-            nbands, nkpts = np.int64(lines[-1].split()[:2])
-            for line in lines:
-                eig.append(line.split()[-1])
-            self.eig = np.asarray(eig, dtype=np.float64).reshape(nkpts, nbands)
-        else:
-            print('Cannot find the *.eig file. Check the path:', seedname + '.eig') 
-            
-    def read_wout(self, seedname=None):  
-        '''Read the seedname.win file'''
-        if seedname is None: seedname = self.seedname
-        #TODO: will decide what useful information to be read
+        out = {}
+        out['unit_cell'] = unit_cell
+        out['atom'] = atom
+        out['abs_coords'] = abs_coords
+        out['frac_coords'] = frac_coords
+        out['mp_grid'] = mp_grid
+        out['kpath'] = kpath
+        out['kpts'] = kpts
+        
+        return out  
 
 
+def read_band(filename):
+    '''Read seedname_band.dat'''
+    assert check_exist(filename), 'Cannot find : ' + filename
+    with open(filename, 'r') as data_file:
+        data = data_file.read()
+        temp = data.split('\n  \n')[:-1]
+        bands = []
+        for i, band in enumerate(temp):
+            formatted_band = np.float64(band.split()).reshape(-1, 2)    
+            if i == 0: proj_kpath = formatted_band[:,0]
+            bands.append(formatted_band[:,1])
 
+        return proj_kpath, np.asarray(bands).T
+
+def read_kpt(filename):
+    '''Read seedname_kpt.dat'''
+    assert check_exist(filename), 'Cannot find : ' + filename
+    with open(filename, 'r') as data_file:
+        data = data_file.read()
+        temp = data.split()
+        nkpts = int(temp[0])
+        kpath_frac = np.float64(temp[1:]).reshape(-1, 4)
+        return kpath_frac
         

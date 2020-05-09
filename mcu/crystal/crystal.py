@@ -35,7 +35,6 @@ class main(cell.main, plot.main):
         self.get_info() 
         
 ############ General #################
-        
     def get_info(self, filename=None):    
         '''Extract basis information from the vasprun.xml'''
         if filename is None:
