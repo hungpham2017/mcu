@@ -57,9 +57,9 @@ def plot_band(calculator, efermi=None, spin=0, klabel=None, save=False, band_col
             ax.plot([sym_kpoint_coor[kpt]]*2,yrange,color=band_color[1],linewidth=1.0)
                 
     if formatted_label is not None and xlim is None:
-        nkpts = len(formatted_label)
-        assert nkpts == sym_kpoint_coor.shape[0]        # The numbers of label should be match with the # of coordiantes provided
-        for kpt in range(nkpts):   
+        num_high_sym_k = len(formatted_label)
+        assert num_high_sym_k == sym_kpoint_coor.shape[0], "Please provide only " + str(sym_kpoint_coor.shape[0]) + " labels for the high-symmetric k-point"
+        for kpt in range(num_high_sym_k):   
             point = formatted_label[kpt]
             if point == 'G': point = r'$\Gamma$'
             ax.text(sym_kpoint_coor[kpt]/kpath.max()+0.015, -0.065, point, verticalalignment='bottom', horizontalalignment='right',transform=ax.transAxes,

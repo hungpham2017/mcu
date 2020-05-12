@@ -25,7 +25,7 @@ from ..cell import utils as cell_utils
 from ..cell import cell
 from ..vasp import const
 from . import utils as pscf_utils
-
+from . import pscf_io
         
 class main(cell.main, plot.main):
     def __init__(self,  pyscf_cell):
@@ -72,16 +72,51 @@ class main(cell.main, plot.main):
             frac_kpts.append(path)
 
         frac_kpts = np.concatenate(frac_kpts)
-        return frac_kpts       
+        lattice = self.cell[0]
+        recip_lattice = 2 * np.pi * np.linalg.inv(lattice).T # Get the reciprocal lattice in the row vector format
+        abs_kpts = frac_kpts.dot(recip_lattice) * const.AUTOA       # in AU for PySCF 
         
+        return frac_kpts, abs_kpts      
+
+    def set_kpts_bands(self, list_or_tuple_or_filename):
+        '''Set kpts (fractional) and bands from PySCF calculation'''
+        if isinstance(list_or_tuple_or_filename, list) or isinstance(list_or_tuple_or_filename, tuple):
+            self.kpts, self.band = list_or_tuple_or_filename
+        elif isinstance(list_or_tuple_or_filename, str):
+            self.kpts, self.band = pscf_io.load_kpts_bands(list_or_tuple_or_filename)
+    
+    def save_kpts_bands(self, filename, list_or_tuple_or_filename):
+        pscf_io.save_kpts_bands(filename, list_or_tuple_or_filename)
+    
+    def get_efermi(self, band=None):
+        '''E_fermi is assumed to be the valence band maximum
+        '''
+        
+        if band is None: 
+            assert self.band is not None, "You need to provide bands calculated by PySCF kks.get_bands function"
+            band = np.asarray(self.band[0])
+            nkpts, nband = band.shape[-2:]
+            band = band.reshape(-1, nkpts, nband) * const.AUTOEV
+        
+        # Determine efermi
+        nkpts, nband = band.shape[-2:]
+        nelectron = nkpts * self.nelec
+        nocc = nelectron // 2       #TODO: uhf is considered 
+        energy = band.flatten()
+        idx = energy.argsort()
+        efermi = energy[idx][:nocc].max()
+        
+        return efermi
+
+    
     def get_band(self, band=None, kpts=None):
         '''Processing band structure info'''
         if band is None: 
             assert self.band is not None, "You need to provide bands calculated by PySCF kks.get_bands function"
             band = np.asarray(self.band[0])
-            nkpts = band.shape[-2]
-            nband = band.shape[-1]
+            nkpts, nband = band.shape[-2:]
             band = band.reshape(-1, nkpts, nband) * const.AUTOEV
+            
         if kpts is None: 
             assert self.kpts is not None, "You need to provide kpts used in the PySCF kks.get_bands function"
             kpath_frac = self.kpts     
@@ -95,12 +130,8 @@ class main(cell.main, plot.main):
         temp_kpts[1:] = abs_kpts[:-1] 
         proj_kpath = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
             
-        # Determine efermi
-        nelectron = nkpts * self.nelec
-        nocc = nelectron // 2       #TODO: uhf is considered 
-        energy = band.flatten()
-        idx = energy.argsort()
-        efermi = energy[idx][:nocc].max()
+        # Get efermi
+        efermi = self.get_efermi(band)
         
         return band, kpath_frac, proj_kpath, recip_lattice, efermi
         
@@ -108,9 +139,9 @@ class main(cell.main, plot.main):
         if band is None: 
             assert self.band is not None, "You need to provide bands calculated by PySCF kks.get_bands function"
             mo_coeff = np.asarray(self.band[1])
-            nkpts = band.shape[-2]
-            nband = band.shape[-1]
+            nkpts, nband = band.shape[-2:]
             band = band.reshape(-1, nkpts, nband) * const.AUTOEV
+            
         if kpts is None: 
             assert self.kpts is not None, "You need to provide kpts used in the PySCF kks.get_bands function"
             kpts = self.kpts     
@@ -140,7 +171,6 @@ class main(cell.main, plot.main):
            klabel            : a list of labels and corresponding coordinates for high symmetry k-points
         '''          
         band, kpath_frac, proj_kpath, recip_lattice, efermi_ = self.get_band()
-        
         if efermi is None: efermi = efermi_  
         band = band[spin] - efermi
         
@@ -158,8 +188,7 @@ class main(cell.main, plot.main):
         return band, proj_kpath, sym_kpoint_coor, klabel
 
     def get_bandgap(self):
-        '''Get the bandgap'''
-                
+        '''Get the bandgap'''       
         band, kpath_frac, proj_kpath, recip_lattice, efermi = self.get_band()
         nspin, nkpts, nbands = band.shape
         for spin in range(nspin):

@@ -26,9 +26,11 @@ from ..utils import misc
 
 
 class main:
-    def __init__(self, cell=None):
+    def __init__(self, cell=None, cif=None):
         if cell is not None:
             self.cell = cell
+        if cif is not None:
+            self.cell = self.cif2cell(cif)
          
     def get_symmetry(self, cell=None, symprec=1e-3, print_atom=False):
         '''Get space group information'''

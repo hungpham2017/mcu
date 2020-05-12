@@ -45,14 +45,13 @@ class main(cell.main, plot.main):
             else:
                 assert 0, "Cannot find any prefix.out file"
                 
-        data = cp2k_io.read_ouput(filename)
+        data = cp2k_io.read_out(filename)
         self.cell = data['cell']
         self.atom = data['atom']
-        self.kpts = data['kpts']
-        self.efermi = data['efermi']
+        self.nelec = int(sum(data['Zeff']))
         
 ############ Plotting ################# 
-    def get_efermi(self, num_vb=1, filename=None, set_block=-1):
+    def get_efermi(self, filename=None, set_block=-1):
         '''E_fermi is assumed to be the valence band maximum. This is a reasonable estimation for insulators
         Note: CP2K keeps writing band structure information to the same *.bs file.
         Hence, *.bs file can contain many blocks, each block may have different number of bands and kpts. By default, the last block is used but user can change it by set set_block
@@ -62,25 +61,34 @@ class main(cell.main, plot.main):
                 filename = self.prefix + ".bs"
             else:
                 assert 0, "Cannot find any prefix.bs file"
-               
+
         data = cp2k_io.read_bs(filename)
         band = data['band'][set_block]
         nspin, nkpts, nbands = band.shape
-        VBM = band[:,:,:num_vb].max()
-        return VBM
+        
+        # Determine efermi
+        nelectron = nkpts * self.nelec
+        nocc = nelectron // 2       #TODO: uhf is considered 
+        energy = band.flatten()
+        idx = energy.argsort()
+        efermi = energy[idx][:nocc].max()
+        
+        return efermi
 
     def get_bandgap(self, filename=None, set_block=-1, efermi=None):
         '''Get the bandgap
         Note: CP2K keeps writing band structure information to the same *.bs file.
         Hence, *.bs file can contain many blocks, each block may have different number of bands and kpts. By default, the last block is used but user can change it by set set_block
-        '''
-        if efermi is None: efermi = self.efermi
+        ''' 
         if filename is None:
             if check_exist(self.prefix + ".bs"):
                 filename = self.prefix + ".bs"
             else:
                 assert 0, "Cannot find any prefix.bs file"
                 
+        if efermi is None: 
+            efermi = self.get_efermi(filename, set_block)
+            
         data = cp2k_io.read_bs(filename)
         band = data['band'][set_block]
         kpath_frac = data['kpath_frac'][set_block]
@@ -125,17 +133,21 @@ class main(cell.main, plot.main):
         Note: CP2K keeps writing band structure information to the same *.bs file.
         Hence, *.bs file can contain many blocks, each block may have different number of bands and kpts. By default, the last block is used but user can change it by set set_block
         '''
-        if efermi is None: efermi = self.efermi
+
         if filename is None:
             if check_exist(self.prefix + ".bs"):
                 filename = self.prefix + ".bs"
             else:
                 assert 0, "Cannot find any prefix.bs file"
             
+        if efermi is None: 
+            efermi = self.get_efermi(filename, set_block)
+            
         data = cp2k_io.read_bs(filename)
         band = data['band'][set_block]
         kpath_frac = data['kpath_frac'][set_block]
         symm_k_coor = data['symm_k_coor'][set_block]
+        klabel = data['symm_k_label'][set_block]        
         
         # Find absolute kpts
         lattice = self.cell[0]

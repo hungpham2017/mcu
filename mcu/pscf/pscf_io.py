@@ -21,6 +21,12 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import numpy as np
 
 
-def save_band(band):
-    return 0
+def save_kpts_bands(filename, list_or_tuple_or_filename):
+    kpts, bands = list_or_tuple_or_filename
+    np.savez(filename, kpts, np.asarray(bands[0]), bands[1])
+
+def load_kpts_bands(filename):
+    data = np.load(filename + '.npz')
+    return data['arr_0'], (data['arr_1'], data['arr_2'])
+
     
