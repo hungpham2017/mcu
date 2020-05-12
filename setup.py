@@ -14,7 +14,7 @@ if __name__ == "__main__":
             'numpy>=1.15.2',
             'scipy>=1.1.0',
             'matplotlib>=3.0.1', 
-            'spglib>=1.12.0',
+            'spglib>=1.15.0',
         ],
         extras_require={
             'docs': [

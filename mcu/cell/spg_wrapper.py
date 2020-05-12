@@ -43,87 +43,172 @@ def compare_cells(cell_1, cell_2, prec=1e-3):
             
     return is_the_same
 
-def get_sym(cell, symprec=1e-3, print_atom=False, print_analysis=True):
-    '''Giving a spglib cell, return symmetry analysis'''
-    
-    # spglib only work with tuple
-    cell = tuple(cell)
-    
+def get_sym(cell, symprec=1e-3, verbose='short', angle_tolerance=-1.0, hall_number=0):
+    '''Giving a spglib cell, return symmetry analysis
+       This is wrapper for spglib.get_symmetry_dataset function 
+    '''
+
     #Space group info
-    spg_label, spg_number = spglib.get_spacegroup(cell, symprec).split(' ')
-    spg_number = spg_number.split("(")[1].split(")")[0]
-    Schoenflies_label = spglib.get_spacegroup(cell, symprec, symbol_type=1).split(' ')[0]
-    sym = spglib.get_symmetry(cell, symprec)
-    rotations = sym['rotations'] 
-    translations = sym['translations'] 
-    equi_atoms = sym['equivalent_atoms']  
-    atoms = utils.convert_atomtype(cell[2])
+    dataset = spglib.get_symmetry_dataset(cell, symprec=symprec, angle_tolerance=angle_tolerance, hall_number=hall_number)
     
-    if print_analysis is True:
-        #Cell info
-        std_cell = spglib.refine_cell(cell, symprec)
-        prim_cell = spglib.find_primitive(cell, symprec)
-        if compare_cells(cell, std_cell) and compare_cells(cell, prim_cell):
+    number = dataset['number'] 
+    international = dataset['international']                    # equil. to international_short
+    hall = dataset['hall']                                      # equil. to hall_symbol
+    hall_number = dataset['hall_number']                        
+    choice = dataset['choice'] 
+    transformation_matrix = dataset['transformation_matrix'] 
+    origin_shift = dataset['origin_shift'] 
+    wyckoffs = dataset['wyckoffs'] 
+    site_symmetry_symbols = dataset['site_symmetry_symbols']
+    equivalent_atoms = dataset['equivalent_atoms']
+    crystallographic_orbits = dataset['crystallographic_orbits']
+    mapping_to_primitive = dataset['mapping_to_primitive']
+    rotations = dataset['rotations']
+    translations = dataset['translations']
+    pointgroup = dataset['pointgroup']                          # equil. to pointgroup_international
+    primitive_lattice = dataset['primitive_lattice']
+    std_lattice = dataset['std_lattice']
+    std_positions = dataset['std_positions']
+    std_types = dataset['std_types']
+    std_rotation_matrix = dataset['std_rotation_matrix']
+    std_mapping_to_primitive =  dataset['std_mapping_to_primitive'] 
+        
+    # Get full summetry using the Hall number
+    spacegroup_type = spglib.get_spacegroup_type(hall_number)
+    number = spacegroup_type['number']
+    international_short = spacegroup_type['international_short']
+    international_full = spacegroup_type['international_full']
+    international = spacegroup_type['international']
+    schoenflies = spacegroup_type['schoenflies']
+    hall_symbol = spacegroup_type['hall_symbol']
+    pointgroup_schoenflies = spacegroup_type['pointgroup_schoenflies']
+    pointgroup_international = spacegroup_type['pointgroup_international']
+    arithmetic_crystal_class_number = spacegroup_type['arithmetic_crystal_class_number']
+    arithmetic_crystal_class_symbol = spacegroup_type['arithmetic_crystal_class_symbol']
+
+    atoms = utils.convert_atomtype(cell[2])
+    coords = cell[1]
+    std_cell = cell_to_std(dataset, message=False)
+    primitive_cell = cell_to_primitive(dataset, message=False)
+    
+    if verbose == 'short':
+        # Cell info
+        if compare_cells(cell, std_cell) and compare_cells(cell, primitive_cell):
             misc.print_msg("This is a standard/primitive unit cell")
         elif compare_cells(cell, std_cell):
             misc.print_msg("This is a standard unit cell")
-        elif compare_cells(cell, prim_cell):
+        elif compare_cells(cell, primitive_cell):
+            misc.print_msg("This is a primitive cell") 
+    
+        # Basic info
+        misc.print_msg("Space group  number          : {:d}".format(number))
+        misc.print_msg("Short international symbol   : {:s}".format(international_short))
+        misc.print_msg("Hall symbol                  : {:s}".format(hall_symbol))    
+        misc.print_msg("Schoenflies symbol           : {:s}".format(schoenflies))
+        misc.print_msg("International point group    : {:s}".format(pointgroup_international))
+        misc.print_msg("Origin shift                 : {:4.3f} {:4.3f} {:4.3f}".format(origin_shift[0], origin_shift[1], origin_shift[2])) 
+
+        # Atoms info
+        # Atoms info
+        misc.print_msg("===== Irreducible atoms list =====")
+        misc.print_msg("  #  Atom        x          y          z")
+        unique_atoms_idx = np.unique(equivalent_atoms, return_index=True)[1]
+        for i, index in enumerate(unique_atoms_idx):
+            coord = coords[index]
+            misc.print_msg("{:>3d}  {:>3s}    {:>8.5f}   {:>8.5f}   {:>8.5f}".format(i+1, atoms[index], coord[0], coord[1], coord[2]))
+        
+    elif verbose == 'full':
+        # Cell info
+        if compare_cells(cell, std_cell) and compare_cells(cell, primitive_cell):
+            misc.print_msg("This is a standard/primitive unit cell")
+        elif compare_cells(cell, std_cell):
+            misc.print_msg("This is a standard unit cell")
+        elif compare_cells(cell, primitive_cell):
             misc.print_msg("This is a primitive cell") 
             
-            
-        #Print
-        misc.print_msg("Spacegroup  number           : %s" % (spg_number))
-        misc.print_msg("Short International symbol   : %s" % (spg_label))
-        misc.print_msg("Schoenflies symbol           : %s" % (Schoenflies_label))
-        if print_atom is True:
-            misc.print_msg("Atoms list (No. - Sym - Symbol):")
-            for i, atom in enumerate(atoms):
-                misc.print_msg("%3d   %3d   %s" %(i+1, equi_atoms[i]+1, atom))
-            misc.print_msg("Irreducible atoms:")
-            for i, index in enumerate(np.unique(equi_atoms)):
-                coord = cell[1][index]
-                misc.print_msg("%3d  %3s    %7f5 %7f5 %7f5" %(i+1, atoms[index], coord[0], coord[1], coord[2]))
-        misc.print_msg("Number of irreducible atoms  : %d" % (np.unique(equi_atoms).shape[0]))
-    else:
-        # Return an standard cell object with irreducible atoms
+        # Basic info
+        misc.print_msg("Space group  number          : {:d}".format(number))
+        misc.print_msg("Short international symbol   : {:s}".format(international_short))
+        misc.print_msg("Full international symbol    : {:s}".format(international_full))
+        misc.print_msg("Hall number                  : {:d}".format(hall_number))
+        misc.print_msg("Hall symbol                  : {:s}".format(hall_symbol))  
+        misc.print_msg("Schoenflies symbol           : {:s}".format(schoenflies))
+        misc.print_msg("Schoenflies point group      : {:s}".format(pointgroup_schoenflies))        
+        misc.print_msg("International point group    : {:s}".format(pointgroup_international))
+        misc.print_msg("Origin shift                 : {:4.3f} {:4.3f} {:4.3f}".format(origin_shift[0], origin_shift[1], origin_shift[2])) 
         
-        irred_idx = np.unique(equi_atoms)
-        lattice = cell[0]
-        irred_coord = cell[1][irred_idx,:]
-        irred_label = np.array(cell[2])[irred_idx]
+        # Atoms info
+        misc.print_msg("===== Full atoms list =====")
+        misc.print_msg("  #  Equil.  Atom        x         y         z     Wyckoffs   Site_symmetry")
+        for i, atom in enumerate(atoms):
+            misc.print_msg("{:>3d}  {:>3d}     {:>3s}    {:>8.5f}  {:>8.5f}  {:>8.5f}      {:>2s}          {:>5s}".format(i+1, equivalent_atoms[i] + 1, atoms[i], 
+                            coords[i,0], coords[i,1], coords[i,2], wyckoffs[i], site_symmetry_symbols[i]))
+    elif verbose is None:
+        # Return an standard cell object with irreducible atoms
+        dataset = spglib.get_symmetry_dataset(std_cell, symprec=symprec, angle_tolerance=angle_tolerance, hall_number=hall_number)
+        equivalent_atoms = dataset['equivalent_atoms']
+        irred_idx = np.unique(equivalent_atoms, return_index=True)[1]
+        lattice = std_lattice
+        irred_coord = std_positions[irred_idx,:]
+        irred_label = std_types[irred_idx]
         irred_cell= (lattice, irred_coord, irred_label)  
-        spacegroup = [int(spg_number), spg_label]
+        spacegroup = [number, international]
+        
+        # Get symmetry operators using the Hall number:
+        # For some reason, the symmetry operators by dataset doesn't really match its space group number to write cif file
+        symmetry = spglib.get_symmetry_from_database(hall_number)
+        rotations = symmetry['rotations'] 
+        translations = symmetry['translations'] 
+    
         return spacegroup, irred_cell, rotations, translations
     
-def cell_to_std(cell, symprec=1e-3):
+def cell_to_std(cell_or_dataset, symprec=1e-3, angle_tolerance=-1.0, hall_number=0, message=True):
     '''Convert a cell to a standard cell'''
-    
-    # spglib only work with tuple
-    cell = tuple(cell)
-    std_cell = spglib.refine_cell(cell, symprec) 
-    if compare_cells(cell, std_cell):
-        print('The unit cell was a standard cell. However, the standard cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
+
+    if isinstance(cell_or_dataset, dict):
+        dataset = cell_or_dataset
     else:
-        print('The unit cell was transformed to a standard cell')  
+        cell = tuple(cell_or_dataset)
+        dataset = spglib.get_symmetry_dataset(cell, symprec=symprec, angle_tolerance=angle_tolerance, hall_number=hall_number)
+        
+    # Construct a std cell object    
+    std_lattice = dataset['std_lattice']
+    std_positions = dataset['std_positions']
+    std_types = dataset['std_types']
+    std_cell = (std_lattice, std_positions, std_types)
+    
+    if message == True:
+        if compare_cells(cell, std_cell):
+            print('The unit cell was a standard cell. However, the standard cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
+        else:
+            print('The unit cell was transformed to a standard cell')  
+        
     return std_cell
 
-def cell_to_prim(cell, symprec=1e-3):
+def cell_to_primitive(cell_or_dataset, symprec=1e-3, angle_tolerance=-1.0, hall_number=0, message=True):
     '''Convert a cell to a primitive cell'''
     
-    # spglib only work with tuple
-    cell = tuple(cell)
-    prim_cell = spglib.find_primitive(cell, symprec) 
-    if compare_cells(cell, prim_cell):
-        print('The unit cell was a primitive cell. However, the primitive cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
+    if isinstance(cell_or_dataset, dict):
+        dataset = cell_or_dataset
     else:
-        print('The unit cell was transformed to a primitive cell') 
-    return prim_cell
-
-get_symmetry_from_database = spglib.get_symmetry_from_database       
-
-    
-    
-                      
+        cell = tuple(cell_or_dataset)
+        dataset = spglib.get_symmetry_dataset(cell, symprec=symprec, angle_tolerance=angle_tolerance, hall_number=hall_number)
         
-
-        
+    # Construct a primitive cell object    
+    std_lattice = dataset['std_lattice']
+    std_positions = dataset['std_positions']
+    std_types = dataset['std_types']
+    std_mapping_to_primitive =  dataset['std_mapping_to_primitive'] 
+    unique_atoms_idx = np.unique(std_mapping_to_primitive, return_index=True)[1]
+    primitive_lattice = dataset['primitive_lattice']
+    primitive_positions = std_positions[unique_atoms_idx, :]
+    primitive_types = std_types[unique_atoms_idx]
+    primitive_cell = (primitive_lattice, primitive_positions, primitive_types)
+    
+    if message == True:
+        if compare_cells(cell, primitive_cell):
+            print('The unit cell was a primitive cell. However, the primitive cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
+        else:
+            print('The unit cell was transformed to a primitive cell') 
+            
+    return primitive_cell   

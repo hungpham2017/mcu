@@ -32,10 +32,10 @@ class main:
         if cif is not None:
             self.cell = self.cif2cell(cif)
          
-    def get_symmetry(self, cell=None, symprec=1e-3, print_atom=False):
+    def get_symmetry(self, cell=None, symprec=1e-3, verbose='short', angle_tolerance=-1.0, hall_number=0):
         '''Get space group information'''
         if cell is None: cell = self.cell
-        spg_wrapper.get_sym(cell, symprec, print_atom, print_analysis=True)
+        spg_wrapper.get_sym(cell, symprec, verbose, angle_tolerance, hall_number)
         
     def to_std_cell(self, cell=None, symprec=1e-3):
         '''Transform the unit cell to the standard cell'''
@@ -92,27 +92,21 @@ class main:
         if filename is None: filename = 'xsf_by_mcu'
         cell_io.write_xsf(cell, filename) 
         
-    def write_cif(self, cell=None, symprec=1e-3, filename=None, symmetrize=True):
+    def write_cif(self, cell=None, symprec=1e-3, filename=None, symmetrize=True, angle_tolerance=-1.0, hall_number=0):
         if cell is None: cell = self.cell
         if filename is None: filename = 'cif_by_mcu'
         
         if symmetrize is True:  
+            spacegroup, irred_cell, rotations, translations = \
+            spg_wrapper.get_sym(cell, symprec, verbose=None, angle_tolerance=angle_tolerance, hall_number=hall_number)
             misc.print_msg("A symmetrized structure is written in " + filename + ".cif")
-            spacegroup, irred_cell, rotations, translations = spg_wrapper.get_sym(cell, symprec, print_analysis=False)
         else:
-            misc.print_msg("A P1 structure is written in " + filename + ".cif")
             spacegroup = ['1','P1']
             irred_cell = cell
             symopt = spg_wrapper.get_symmetry_from_database(1)
             rotations = symopt['rotations']
             translations = symopt['translations']
+            misc.print_msg("A P1 structure is written in " + filename + ".cif")
             
         symopt = cell_utils.symop_mat2xyz(rotations, translations)
         cell_io.write_cif(irred_cell, spacegroup, symopt, filename) 
-
-
-        
-
-        
-
-        
