@@ -92,7 +92,7 @@ class main(cell.main, plot.main):
         VBM = band[:,:,:num_vb].max()
         return VBM
                
-    def get_bandgap(self, efermi=None, filename=None):
+    def get_bandgap(self, efermi=None, spin=0, filename=None):
         '''Get the bandgap'''
         assert efermi is not None, "you need to provide the Fermi energy or estimate it using the get_efermi function"
                 
@@ -102,10 +102,10 @@ class main(cell.main, plot.main):
             print('Spin:', spin)  
             CBM = None
             for bandth in range(nbands):
-                shifted_band = band[:,bandth] - efermi
+                shifted_band = band[spin,:,bandth] - efermi
                 if (shifted_band > 0.0).all() == True:
-                    CBM = band[:, bandth]
-                    VBM = band[:, bandth -1]                
+                    CBM = band[spin,:,bandth]
+                    VBM = band[spin,:,bandth -1]                
                     break
                 elif ((shifted_band < 0.0).any() == True) and ((shifted_band > 0.0).any() == True):
                     print("This is a metal")
