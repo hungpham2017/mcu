@@ -152,7 +152,7 @@ def get_sym(cell, symprec=1e-3, verbose='short', angle_tolerance=-1.0, hall_numb
         irred_coord = std_positions[irred_idx,:]
         irred_label = std_types[irred_idx]
         irred_cell= (lattice, irred_coord, irred_label)  
-        spacegroup = [number, international]
+        spacegroup = [number, international_short]
         
         # Get symmetry operators using the Hall number:
         # For some reason, the symmetry operators by dataset doesn't really match its space group number to write cif file
@@ -212,3 +212,5 @@ def cell_to_primitive(cell_or_dataset, symprec=1e-3, angle_tolerance=-1.0, hall_
             print('The unit cell was transformed to a primitive cell') 
             
     return primitive_cell   
+    
+get_symmetry_from_database = spglib.get_symmetry_from_database

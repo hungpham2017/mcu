@@ -99,9 +99,9 @@ class main:
         if symmetrize is True:  
             spacegroup, irred_cell, rotations, translations = \
             spg_wrapper.get_sym(cell, symprec, verbose=None, angle_tolerance=angle_tolerance, hall_number=hall_number)
-            misc.print_msg("A symmetrized structure is written in " + filename + ".cif")
+            misc.print_msg("A symmetrized structure (No. {:d}, {:s}) is written in {:s}.cif".format(spacegroup[0], spacegroup[1], filename))
         else:
-            spacegroup = ['1','P1']
+            spacegroup = [1,'P1']
             irred_cell = cell
             symopt = spg_wrapper.get_symmetry_from_database(1)
             rotations = symopt['rotations']
