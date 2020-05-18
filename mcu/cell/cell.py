@@ -45,7 +45,7 @@ class main:
     def to_prim_cell(self, cell=None, symprec=1e-3):
         '''Transform the unit cell to the primitive cell'''
         if cell is None: cell = self.cell
-        return spg_wrapper.cell_to_prim(cell, symprec)      
+        return spg_wrapper.cell_to_primitive(cell, symprec)      
 
     def cif2cell(self, filename):
         '''Return a cell object from a CIF'''
