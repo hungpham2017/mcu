@@ -327,8 +327,8 @@ def write_cif(cell, space_group, symopt, filename=None):
         f.write('_cell_angle_beta      %15.10f\n' % (lattice[4])) 
         f.write('_cell_angle_gamma     %15.10f\n' % (lattice[5])) 
         f.write('\n')  
-        f.write("_symmetry_space_group_name_H-M     '%s'\n" % (str(space_group[1])))
-        f.write('_symmetry_Int_Tables_number        %s\n' % (space_group[0]))
+        f.write("_symmetry_space_group_name_H-M     '%s'\n" % (space_group[1]))
+        f.write('_symmetry_Int_Tables_number        %d\n' % (space_group[0]))
         f.write('loop_\n')        
         f.write('_symmetry_equiv_pos_as_xyz\n') 
         for i in range(nsymopt):

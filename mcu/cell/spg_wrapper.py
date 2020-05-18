@@ -177,7 +177,7 @@ def cell_to_std(cell_or_dataset, symprec=1e-3, angle_tolerance=-1.0, hall_number
     std_types = dataset['std_types']
     std_cell = (std_lattice, std_positions, std_types)
     
-    if message == True:
+    if message:
         if compare_cells(cell, std_cell):
             print('The unit cell was a standard cell. However, the standard cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
         else:
@@ -198,14 +198,12 @@ def cell_to_primitive(cell_or_dataset, symprec=1e-3, angle_tolerance=-1.0, hall_
     std_lattice = dataset['std_lattice']
     std_positions = dataset['std_positions']
     std_types = dataset['std_types']
-    std_mapping_to_primitive =  dataset['std_mapping_to_primitive'] 
-    unique_atoms_idx = np.unique(std_mapping_to_primitive, return_index=True)[1]
-    primitive_lattice = dataset['primitive_lattice']
-    primitive_positions = std_positions[unique_atoms_idx, :]
-    primitive_types = std_types[unique_atoms_idx]
-    primitive_cell = (primitive_lattice, primitive_positions, primitive_types)
+    std_cell = (std_lattice, std_positions, std_types)
+
+    lattice, scaled_positions, numbers = spglib.standardize_cell(std_cell, to_primitive=True, no_idealize=True, symprec=symprec)
+    primitive_cell = (lattice, scaled_positions, numbers)
     
-    if message == True:
+    if message:
         if compare_cells(cell, primitive_cell):
             print('The unit cell was a primitive cell. However, the primitive cell computed by spglib is returned, it is maybe not the same as the provided unit cell')
         else:

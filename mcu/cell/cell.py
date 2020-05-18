@@ -106,7 +106,7 @@ class main:
             symopt = spg_wrapper.get_symmetry_from_database(1)
             rotations = symopt['rotations']
             translations = symopt['translations']
-            misc.print_msg("A P1 structure is written in " + filename + ".cif")
+            misc.print_msg("A P1 structure is written in {:s}.cif".format(filename))
             
         symopt = cell_utils.symop_mat2xyz(rotations, translations)
         cell_io.write_cif(irred_cell, spacegroup, symopt, filename) 
