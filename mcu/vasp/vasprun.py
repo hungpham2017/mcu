@@ -83,6 +83,12 @@ class main(cell.main, plot.main):
         self.nbands = electronic.general['NBANDS']
         self.soc = electronic.spin['LSORBIT']
         self.ispin = electronic.spin['ISPIN']    
+        self.isym = vasprun.parameters['symmetry']['ISYM']
+        self.isym_symprec = vasprun.parameters['symmetry']['SYMPREC']
+        grids = vasprun.parameters['grids']
+        self.ngrid = [grids['NGX'], grids['NGY'], grids['NGZ']]
+        self.kmesh = vasprun.kpoints['divisions']
+        self.kmesh_shift = vasprun.kpoints['usershift']
         self.kpts = vasprun.kpoints['kpointlist']
         self.kpts_weight = vasprun.kpoints['weights']
         self.nkpts = self.kpts.shape[0] 
@@ -91,6 +97,21 @@ class main(cell.main, plot.main):
         self.element = [atom[1] for atom in vasprun.types]
         self.get_cell(vasprun)
         self.get_efermi()      
+        
+    def get_kpts_nosym(self, symprec=1e-5, no_spatial=False):    
+        '''K-point list in VASP is an irreducible list
+           This function maps the irreducible list to the full list using spglib
+        '''
+        if self.isym == -1: 
+            is_time_reversal = False
+        else:
+            is_time_reversal = True
+
+        mapping_kpts, kpts_grid = self.get_mapping_kpts(mesh=self.kmesh, cell=self.cell, is_shift=self.kmesh_shift, symprec=symprec, 
+                    is_time_reversal=is_time_reversal, no_spatial=no_spatial)
+
+        return mapping_kpts, kpts_grid
+
 
 ############ Plotting #################
     def get_efermi(self):
@@ -221,7 +242,6 @@ class main(cell.main, plot.main):
             if klabel is not None:
                 klabel, coor_kpts = str_format.format_klabel(klabel)
                 
-            assert isinstance(efermi,float)
             vasprun.get_band()
             band = vasprun.band[spin][:,:,0]
             kpts = vasprun.kpoints['kpointlist']
@@ -249,7 +269,6 @@ class main(cell.main, plot.main):
                 assert len(klabel) == len(sym_kpoint_coor), "The number of k label must be " + str(len(sym_kpoint_coor))
         else:
             if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
-                assert isinstance(efermi,float)
                 vasprun.get_band()
                 band = vasprun.band[spin][:,:,0]
                 kpts = vasprun.kpoints['kpointlist']
@@ -260,9 +279,6 @@ class main(cell.main, plot.main):
                 band = band - efermi
             elif isinstance(vasprun,list):                                      # For multiple vasprun.xml file
                 assert isinstance(efermi,list)
-                for i in range(len(self.vasprun)): 
-                    assert isinstance(efermi[i],float)
-                
                 electronic = vasprun[0].parameters['electronic']
                 nbands = electronic.general['NBANDS']
                 bands = np.zeros([1,nbands])

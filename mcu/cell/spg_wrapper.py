@@ -212,3 +212,4 @@ def cell_to_primitive(cell_or_dataset, symprec=1e-3, angle_tolerance=-1.0, hall_
     return primitive_cell   
     
 get_symmetry_from_database = spglib.get_symmetry_from_database
+get_ir_reciprocal_mesh = spglib.get_ir_reciprocal_mesh

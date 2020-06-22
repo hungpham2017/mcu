@@ -19,7 +19,6 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
-import spglib
 from . import cell_io, spg_wrapper
 from . import utils as cell_utils
 from ..utils import misc
@@ -83,16 +82,19 @@ class main:
         return lattice, atoms
 
     def write_poscar(self, cell=None, filename=None):
+        '''Export POSCAR from a cell object'''
         if cell is None: cell = self.cell
         if filename is None: filename = 'POSCAR_by_mcu'
         cell_io.write_poscar(cell, filename)
         
     def write_xsf(self, cell=None, filename=None):
+        '''Export xsf from a cell object'''
         if cell is None: cell = self.cell
         if filename is None: filename = 'xsf_by_mcu'
         cell_io.write_xsf(cell, filename) 
         
     def write_cif(self, cell=None, symprec=1e-3, filename=None, symmetrize=True, angle_tolerance=-1.0, hall_number=0):
+        '''Export CIF from a cell object'''
         if cell is None: cell = self.cell
         if filename is None: filename = 'cif_by_mcu'
         
@@ -110,3 +112,17 @@ class main:
             
         symopt = cell_utils.symop_mat2xyz(rotations, translations)
         cell_io.write_cif(irred_cell, spacegroup, symopt, filename) 
+        
+    def get_mapping_kpts(self, cell=None, mesh=[2,2,2], is_shift=[0, 0, 0], symprec=1e-3, is_time_reversal=True, no_spatial=False):
+        '''Generate a uniform k-mesh taking into account the space group and time-reversal symmetry'''
+        if cell is None: cell = self.cell
+        if no_spatial:
+            cell = (np.random.rand(3,3), cell[1], cell[2])
+            mapping, grid = spg_wrapper.get_ir_reciprocal_mesh(mesh=mesh, cell=cell, is_shift=is_shift, \
+                        symprec=symprec, is_time_reversal=is_time_reversal)
+        else:
+            mapping, grid = spg_wrapper.get_ir_reciprocal_mesh(mesh=mesh, cell=cell, is_shift=is_shift, \
+                        symprec=symprec, is_time_reversal=is_time_reversal)
+                        
+        return mapping, grid
+        

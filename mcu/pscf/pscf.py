@@ -61,7 +61,7 @@ class main(cell.main, plot.main):
         
 ############ Plotting ################# 
     def make_kpts(self, kpath, npoint=20):
-        '''Giving a 1D k-path in fractional coordinates, return the absolute kpts list'''
+        '''Giving a 1D k-path, return the kpts list in frac or absolute coordinates'''
         labels, coords = str_format.format_klabel(kpath)
         frac_kpts = []
         for path_th in range(len(coords) - 1):
@@ -81,17 +81,28 @@ class main(cell.main, plot.main):
     def set_kpts_bands(self, list_or_tuple_or_filename):
         '''Set kpts (fractional) and bands from PySCF calculation'''
         if isinstance(list_or_tuple_or_filename, list) or isinstance(list_or_tuple_or_filename, tuple):
-            self.kpts, self.band = list_or_tuple_or_filename
+            self.kpts, band = list_or_tuple_or_filename
         elif isinstance(list_or_tuple_or_filename, str):
-            self.kpts, self.band = pscf_io.load_kpts_bands(list_or_tuple_or_filename)
-    
+            self.kpts, band = pscf_io.load_kpts_bands(list_or_tuple_or_filename)
+        
+        # The number of MO at each kpt may be different, causing an insistent number of bands
+        # to avoid inconvenience, only 
+        nkpts = self.kpts.shape[0]
+        
+        nmo_smallest = np.min([len(mo_energy) for mo_energy in band[0]])
+        mo_energy_kpts = []
+        mo_coeff_kpts = []
+        for kpt in range(nkpts):
+            mo_energy_kpts.append(band[0][kpt][:nmo_smallest])
+            mo_coeff_kpts.append(band[1][kpt][:,:nmo_smallest])
+        self.band = [mo_energy_kpts, mo_coeff_kpts]
+            
     def save_kpts_bands(self, filename, list_or_tuple_or_filename):
         pscf_io.save_kpts_bands(filename, list_or_tuple_or_filename)
     
     def get_efermi(self, band=None):
         '''E_fermi is assumed to be the valence band maximum
         '''
-        
         if band is None: 
             assert self.band is not None, "You need to provide bands calculated by PySCF kks.get_bands function"
             band = np.asarray(self.band[0])

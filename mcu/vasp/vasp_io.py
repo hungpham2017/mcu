@@ -575,7 +575,7 @@ class XML:
             vec = np.float64(vec)    
             array.append(vec)
             
-        return np.asarray(array)                        
+        return np.asarray(array, dtype=np.float64)                        
        
 ########## OUTCAR ###############
 class OUTCAR:
@@ -733,7 +733,7 @@ class WAVECAR:
     def read_header(self):
         '''Reading haeder + calc info'''
         self._wavecar.seek(0)
-        self.recl, self.nspin, self.rtag = np.array(np.fromfile(self._wavecar, dtype=np.float, count=3),dtype=int)
+        self.recl, self.nspin, self.rtag = np.array(np.fromfile(self._wavecar, dtype=np.float64, count=3),dtype=int)
         if self.rtag == 45200:
             self.prec = np.complex64
         elif self.rtag == 45210:
@@ -743,7 +743,7 @@ class WAVECAR:
             
         # Get kpts, bands, encut, cell info
         self._wavecar.seek(self.recl)
-        dump = np.fromfile(self._wavecar, dtype=np.float, count=12)
+        dump = np.fromfile(self._wavecar, dtype=np.float64, count=12)
         self.nkpts  = int(dump[0])                     # No. of k-points
         self.nbands = int(dump[1])                     # No. of bands
         self.encut  = dump[2]                          # Energy cutoff
@@ -756,16 +756,15 @@ class WAVECAR:
         '''Extract band, occ'''
         
         self.nplws = np.zeros(self.nkpts, dtype=int)
-        self.kpts = np.zeros((self.nkpts, 3), dtype=float)
-        self.band = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=float)
-        self.co_occ  = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=float)           
+        self.kpts = np.zeros((self.nkpts, 3), dtype=np.float64)
+        self.band = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=np.float64)
+        self.co_occ  = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=np.float64)           
         for spin in range(self.nspin):
-            cg_spin = []
             for kpt in range(self.nkpts):
                 # Read eigenvalues + occ
                 rec = 2 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1)
                 self._wavecar.seek(rec * self.recl)
-                dump = np.fromfile(self._wavecar, dtype=np.float, count=4+3*self.nbands)
+                dump = np.fromfile(self._wavecar, dtype=np.float64, count=4+3*self.nbands)
                 if spin == 0:
                     self.nplws[kpt] = int(dump[0])
                     self.kpts[kpt] = dump[1:4]
