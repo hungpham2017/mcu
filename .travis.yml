@@ -16,13 +16,13 @@ before_install:
   - ulimit -a
   - python -V
   - pip install --upgrade pip setuptools
-  - pip install pytest pytest-cov
-  - pip install numpy
-  - pip install scipy
-  - pip install matplotlib  
+  - pip install pytest==5.4.3 pytest-cov
+  - pip install numpy==1.19.0
+  - pip install scipy==1.5.0
+  - pip install matplotlib==3.2.2 
   - pip install codecov
   - pip install -e .
-  - pip install spglib
+  - pip install spglib==1.15.1
   
 before_script: cd tests
 
