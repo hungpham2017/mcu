@@ -195,6 +195,7 @@ def format_klabel(klabel):
         nkpt = len(temp) // 4
         labels = [temp[i] for i in np.arange(nkpt)*4]
         coords = np.float64([[temp[i + 1], temp[i + 2], temp[i + 3]] for i in np.arange(nkpt)*4]) 
+        assert -1 <= coords.all() <= 1, 'k-point coordinates needs to be in the fractional unit.'
     return labels, coords
     
 def format_legend(legend):

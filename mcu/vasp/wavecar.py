@@ -27,7 +27,7 @@ import scipy.linalg
 from ..utils.misc import check_exist
 from . import utils, vasp_io, const
 from scipy.fftpack import fftfreq, fftn, ifftn
-
+from scipy.io import FortranFile
             
 class main:
     def __init__(self, file="WAVECAR", lsorbit=False, vasprun=None):
@@ -191,7 +191,7 @@ class main:
         # the iFFT has a factor 1/N_G, unk exported by VASP does not have this factor
         Gp = np.int64(Gp)
         gvec = self.get_gvec(kpt) - Gp
-        unk = np.zeros([self.nbands, ngrid[0], ngrid[1], ngrid[2]], dtype=np.complex128)
+        unk_G = np.zeros([self.nbands, ngrid[0], ngrid[1], ngrid[2]], dtype=np.complex128)
         gvec %= ngrid[np.newaxis,:]
         nx, ny, nz = gvec[:,0], gvec[:,1], gvec[:,2]
 
@@ -201,27 +201,27 @@ class main:
             nplw = Cg.shape[1] // 2
             
             # spinor up
-            unk[:, nx, ny, nz] = Cg[:, :nplw]
-            wfc_spinor.append(ifftn(unk, axes=[1,2,3]))
+            unk_G[:, nx, ny, nz] = Cg[:, :nplw]
+            unk_up = ifftn(unk_G, axes=[1,2,3])
             
             # spinor down
-            unk[:, nx, ny, nz] = Cg[:, nplw:]
-            wfc_spinor.append(ifftn(unk, axes=[1,2,3]))
-            del Cg
-            return np.asarray(wfc_spinor) 
+            unk_G[:, nx, ny, nz] = Cg[:, nplw:]
+            unk_down = ifftn(unk_G, axes=[1,2,3])
             
+            del Cg
+            unk = np.hstack([unk_up, unk_down])     # dimension: (nbands, nx*2, ny, nz)
         else:
-            unk[:, nx, ny, nz] = self.get_coeff(spin)[kpt]
-            unk = ifftn(unk, axes=[1,2,3])
+            unk_G[:, nx, ny, nz] = self.get_coeff(spin)[kpt]
+            unk = ifftn(unk_G, axes=[1,2,3])
 
-            if norm:
-                norm = np.einsum('ixyz,jxyz->ij', unk, unk.conj())
-                inv_sqrt_norm = scipy.linalg.inv(scipy.linalg.sqrtm(norm))
-                norm_unk = np.einsum('ij,jxyz->ixyz', inv_sqrt_norm, unk)
-                return norm_unk
-            else:
-                # Note: ifftn has a norm factor of 1/N
-                return unk * np.prod(ngrid)  
+        if norm:
+            norm = np.einsum('ixyz,jxyz->ij', unk, unk.conj())
+            inv_sqrt_norm = scipy.linalg.inv(scipy.linalg.sqrtm(norm))
+            norm_unk = np.einsum('ij,jxyz->ixyz', inv_sqrt_norm, unk)
+            return norm_unk
+        else:
+            # Note: ifftn has a norm factor of 1/N, but VASP doesn't have
+            return unk * np.prod(ngrid)  
                    
     def get_unk_kpts(self, spin=0, Gp=[0,0,0], ngrid=None, norm=False):
         '''
@@ -371,8 +371,10 @@ class main:
         Export the periodic part of BF in a real space grid for plotting with wannier90
         '''    
         
-        from scipy.io import FortranFile
-        if spin == 0:
+        if self.lsorbit:
+            spin_str = '.NC'
+            spin = 0
+        elif spin == 0:
             spin_str = '.1'
         else:
             spin_str = '.2'
@@ -392,10 +394,21 @@ class main:
             kpts, band, unk_list = self.get_wave_nosym(spin, ngrid=ngrid)
             nkpts = kpts.shape[0]
         
-        for kpt in range(nkpts):
-            unk_file = FortranFile('UNK' + "%05d" % (kpt + 1) + spin_str, 'w')
-            unk_file.write_record(np.asarray([ngrid[0], ngrid[1], ngrid[2], kpt + 1, self.nbands], dtype = np.int32)) 
-            for band in range(self.nbands):
-                unk = unk_list[kpt][band].T.flatten()
-                unk_file.write_record(unk)                    
-            unk_file.close()
+        if self.lsorbit:
+            for kpt in range(nkpts):
+                unk_file = FortranFile('UNK' + "%05d" % (kpt + 1) + spin_str, 'w')
+                unk_file.write_record(np.asarray([ngrid[0], ngrid[1], ngrid[2], kpt + 1, self.nbands], dtype=np.int32)) 
+                for band in range(self.nbands):
+                    unk_up = unk_list[kpt][band,:ngrid[0],:,:].T.flatten()
+                    unk_down = unk_list[kpt][band,ngrid[0]:,:,:].T.flatten()
+                    unk_file.write_record(unk_up)
+                    unk_file.write_record(unk_down)                    
+                unk_file.close()
+        else:
+            for kpt in range(nkpts):
+                unk_file = FortranFile('UNK' + "%05d" % (kpt + 1) + spin_str, 'w')
+                unk_file.write_record(np.asarray([ngrid[0], ngrid[1], ngrid[2], kpt + 1, self.nbands], dtype=np.int32)) 
+                for band in range(self.nbands):
+                    unk = unk_list[kpt][band].T.flatten()
+                    unk_file.write_record(unk)                    
+                unk_file.close()

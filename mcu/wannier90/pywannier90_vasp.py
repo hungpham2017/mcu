@@ -89,7 +89,7 @@ def cartesian_prod(arrays, out=None, order='C'):
 
     return tout.reshape((nd,-1),order=order).T
     
-def periodic_grid(lattice, grid = [50,50,50], supercell = [1,1,1], order = 'C'):
+def periodic_grid(lattice, grid = [30,30,30], supercell = [1,1,1], order = 'C'):
 	'''
 	Generate a periodic grid for the unit/computational cell in F/C order
     Note: coords has the same unit as lattice
@@ -435,11 +435,23 @@ def ws_translate_dist(w90, irvec, ws_search_size=[2,2,2], ws_distance_tol=1e-6):
     
 '''Main class of pyWannier90'''
 class W90:
-    def __init__(self, vasprun, mp_grid, num_wann, wavecar='WAVECAR', gamma=False, spinors=False, spin_up=True, other_keywords=None):
+    def __init__(self, vasprun, mp_grid, num_wann, wavecar='WAVECAR', gamma=False, spin_up=True, other_keywords=None, nimgs=1):
+        '''
+        == Input ==
+            vasprun         : a vasprun object from mcu.VASP()
+            mp_grid         : k-mesh used to sample the wave function
+            num_wann        : number of MLWFs
+            wavecar         : WAVECAR name
+            gamma           : whether execute the gamma version of wannier90
+            spin_up         : localized spin up or down for collinear calculation
+            other_keywords  : passing additional keywords to wannier90
+            nimgs           : number of neiboring cells used in evaluate Amn
+        '''
         
         self.wave = mcu.WAVECAR(wavecar, vasprun=vasprun)
         self.num_wann = num_wann
         self.keywords = other_keywords
+        self.nimgs = nimgs
         
         # Collect the pyscf calculation info
         lattice = vasprun.cell[0]
@@ -449,6 +461,13 @@ class W90:
         atoms = cell_utils.convert_atomtype(atom_Z)
         
         # Get unk 
+        if vasprun.soc: 
+            self.spinors = 1
+            self.spin = 0
+            spin_up = True
+        else:
+            self.spinors = 0
+            
         self.spin_up = spin_up
         if spin_up:
             self.spin = 0
@@ -472,12 +491,9 @@ class W90:
         self.atom_symbols_loc = atoms
         self.atom_atomic_loc = atom_Z
         self.atoms_cart_loc = np.asarray(atom_frac_coord).dot(self.real_lattice_loc)
-        self.gamma_only, self.spinors = (0 , 0) 
-        if gamma == True : self.gamma_only = 1
-        if spinors == True: 
-            self.spinors = 1
-            self.spin = 0
-        
+        self.gamma_only = 0
+        if gamma: self.gamma_only = 1
+
         # Wannier90_setup outputs
         self.num_bands_loc = None 
         self.num_wann_loc = None 
@@ -485,7 +501,7 @@ class W90:
         self.nn_list = None 
         self.proj_site = None
         self.proj_l = None
-        proj_m = None
+        self.proj_m = None
         self.proj_radial = None
         self.proj_z = None 
         self.proj_x = None
@@ -578,7 +594,7 @@ class W90:
                 b = self.nn_list[nn, k_id, 1:4] 
                 umk = self.unk[k_id][band_list]
                 unk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id2, Gp=b, norm=True)[band_list]
-                M_matrix_loc[k_id,nn] = np.einsum('ixyz,jxyz->ij', unk, umk.conj())
+                M_matrix_loc[k_id,nn] = np.einsum('mxyz,nxyz->mn', unk, umk.conj())
 
         return M_matrix_loc
         
@@ -623,30 +639,40 @@ class W90:
             A_matrix_loc[:,:,:] = Amn
         else:        
             coords, weights = periodic_grid(self.real_lattice_loc, ngrid, supercell = [1,1,1], order = 'F')
-            weights_ = weights.reshape(ngrid, order = 'F')
-
+            weights = weights.reshape(ngrid, order = 'F')
+            if self.spinors:
+                weights = np.vstack([weights,weights])
+                
             # Only use a 3x3x3 supercell to evaluate the <psi|g>
-            Ts = cartesian_prod((np.arange(1), np.arange(1), np.arange(1)))
+            Ts = cartesian_prod((np.arange(self.nimgs), np.arange(self.nimgs), np.arange(self.nimgs)))
             Rs = Ts.dot(self.real_lattice_loc)
             for ith_wann in range(self.num_wann_loc):
                 frac_site = self.proj_site[ith_wann] 
                 abs_site = frac_site.dot(self.real_lattice_loc)
                 l = self.proj_l[ith_wann]
                 mr = self.proj_m[ith_wann]
+                if self.spinors:
+                    s = self.proj_s[ith_wann]
                 r = self.proj_radial[ith_wann]
                 zona = self.proj_zona[ith_wann]
                 x_axis = self.proj_x[ith_wann]
                 z_axis = self.proj_z[ith_wann] 
                 for k_id in range(self.num_kpts_loc):
                     umk = self.unk[k_id][band_list]
-                    s = 0.0   
+                    ovlp = 0.0   
                     for R in Rs:
                         gr_R = g_r(coords, abs_site + R, l, mr, r, zona, x_axis, z_axis, unit='A').reshape(ngrid, order = 'F')
                         exp = np.exp(1j*(coords + R).dot(self.kpts_abs[k_id])).reshape(ngrid, order = 'F') 
-                        psi_mkR = np.einsum('ixyz,xyz->ixyz', umk, exp)
-                        s += np.einsum('xyz,xyz,xyz,ixyz->i', weights_, gr_R, exp.conj(), psi_mkR.conj())
+                        if self.spinors:
+                            zero_mat = np.zeros_like(gr_R)
+                            if s == 1: gr_R = np.vstack([gr_R,zero_mat])
+                            if s == -1: gr_R = np.vstack([zero_mat,gr_R])
+                            exp = np.vstack([exp,exp])
+
+                        psi_mkR = np.einsum('mxyz,xyz->mxyz', umk, exp)
+                        ovlp += np.einsum('xyz,xyz,xyz,mxyz->m', weights, gr_R, exp.conj(), psi_mkR.conj())
   
-                    A_matrix_loc[k_id,ith_wann] = s
+                    A_matrix_loc[k_id,ith_wann] = ovlp
                     
         return A_matrix_loc 
         
@@ -671,7 +697,6 @@ class W90:
         '''
         Construct the eigenvalues matrix: \epsilon_{n}^(\mathbf{k})
         '''
-            
         return np.asarray(self.mo_energy_kpts, dtype = np.float64)[:,self.band_included_list]
         
     def read_epsilon_mat(self, filename=None):
@@ -861,7 +886,13 @@ class W90:
         
         return mo_coeff_Rs.imag.max() < threshold
 
-    def export_AME(self, grid=[50,50,50]):
+    def export_unk(self, grid=None):
+        '''
+        Export the periodic part of BF in a real space grid for plotting with wannier90
+        '''    
+        self.wave.export_unk(spin=self.spin, ngrid=grid)
+            
+    def export_AME(self, grid=None):
         '''
         Export A_{m,n}^{\mathbf{k}} and M_{m,n}^{(\mathbf{k,b})} and \epsilon_{n}^(\mathbf{k})
         '''    
@@ -872,7 +903,7 @@ class W90:
             self.M_matrix_loc = self.get_M_mat()
             self.A_matrix_loc = self.get_A_mat()        
             self.eigenvalues_loc = self.get_epsilon_mat()
-            self.export_unk(self, grid = grid)
+            self.export_unk(grid=grid)
             
         with open('wannier90.mmn', 'w') as f:
             f.write('Generated by the pyWannier90. Date: %s\n' % (time.ctime()))          
@@ -902,37 +933,77 @@ class W90:
                 for band in range(self.num_bands_loc):
                         f.write('    %d    %d    %22.18e\n' % (band+1, k_id+1, self.eigenvalues_loc[k_id,band]))
 
-    def get_wannier(self, supercell = [1,1,1], grid = [50,50,50]):
+    def get_wannier(self, spinor_mode='total', spinor_phase=True, supercell=[1,1,1], grid=None):
         '''
         Evaluate the MLWF using a periodic grid
+        Args:
+            spinor_mode        : 'up' or 'down' or 'total', only applicable for the spinors wave function
+                          
+            
+            supercell   : the computational supercell used to plot MLWFs
+            grid        : nx x ny x nz grid point
+        Return:
+            WF0         : the MLWFs at the reference unit cell 
         '''    
         
-        grids_coor, weights = periodic_grid(self.real_lattice_loc, grid, supercell = [1,1,1], order = 'C')    
-        kpts = self.abs_kpts        
+        if not spinor_mode in ['up', 'down', 'total']:
+            raise ValueError("Spinor_mode options: up, down, total")
+        
         band_list = np.asarray(self.band_included_list)
+        kpts, band, unk = self.wave.get_wave_nosym(spin=self.spin, ngrid=grid, norm=False)
+        if self.spinors:
+            u_mo_up  = []
+            u_mo_down = []
+            for k_id in range(self.num_kpts_loc):
+                mo_in_window = self.lwindow[k_id]
+                unk_in_window = unk[k_id][band_list][mo_in_window]
+                U_matrix_opt = self.U_matrix_opt[k_id][:, mo_in_window].T
+                umo_kpt = np.einsum('mxyz,mo,os->sxyz', unk_in_window, U_matrix_opt, self.U_matrix[k_id].T)
+                u_mo_up.append(umo_kpt[:,:grid[0],:,:].reshape(self.num_wann, -1).T) 
+                u_mo_down.append(umo_kpt[:,grid[0]:,:,:].reshape(self.num_wann, -1).T) 
+                
+            WF0_nc_up = libwannier90.get_WF0s(self.kpt_latt_loc.shape[0],self.kpt_latt_loc, supercell, grid, np.asarray(u_mo_up))
+            WF0_nc_down = libwannier90.get_WF0s(self.kpt_latt_loc.shape[0],self.kpt_latt_loc, supercell, grid, np.asarray(u_mo_down))
+            WF0_nc_up_sq = (WF0_nc_up.conj() * WF0_nc_up).real
+            WF0_nc_down_sq = (WF0_nc_down.conj() * WF0_nc_down).real
+            
+            if spinor_phase:
+                phase_up = np.sign(WF0_nc_up.real)
+                phase_down = np.sign(WF0_nc_down.real)
+            else:
+                phase_up = np.ones_like(WF0_nc_up.real)
+                phase_down = np.ones_like(WF0_nc_down.real)
+            
+            if spinor_mode == 'up':
+                WF0 = np.sqrt(WF0_nc_up_sq) * phase_up / self.num_kpts_loc
+            elif spinor_mode == 'down':
+                WF0 = np.sqrt(WF0_nc_down_sq) * phase_up / self.num_kpts_loc
+            else:
+                WF0 = np.sqrt(WF0_nc_up_sq + WF0_nc_down_sq) / self.num_kpts_loc
+        else:
+            u_mo  = []   
+            for k_id in range(self.num_kpts_loc):
+                mo_in_window = self.lwindow[k_id]
+                unk_in_window = unk[k_id][band_list][mo_in_window]
+                U_matrix_opt = self.U_matrix_opt[k_id][:, mo_in_window].T
+                umo_kpt = np.einsum('mxyz,mo,os->sxyz', unk_in_window, U_matrix_opt, self.U_matrix[k_id].T)
+                u_mo.append(umo_kpt.reshape(self.num_wann, -1).T)      
+            
+            WF0 = libwannier90.get_WF0s(self.kpt_latt_loc.shape[0],self.kpt_latt_loc, supercell, grid, np.asarray(u_mo))    
         
-        u_mo  = []            
-        for k_id in range(self.num_kpts_loc):
-            unk = self.wave.get_unk_list(spin=self.spin, kpt=k_id+1, band_list=band_list+1, ngrid=grid).reshape(len(self.band_included_list),-1).T
-            unk = np.einsum('xn,nm,ml->xl', unk, self.U_matrix_opt[k_id].T, self.U_matrix[k_id].T)
-            u_mo.append(unk)      
-        
-        u_mo = np.asarray(u_mo)
-        WF0 = libwannier90.get_WF0s(self.kpt_latt_loc.shape[0],self.kpt_latt_loc, supercell, grid, u_mo)    
-        
-        # Fix the global phase following the pw2wannier90 procedure
-        max_index = (WF0*WF0.conj()).real.argmax(axis=0)
-        norm_wfs = np.diag(WF0[max_index,:])
-        norm_wfs = norm_wfs/np.absolute(norm_wfs)
-        WF0 = WF0/norm_wfs/self.num_kpts_loc
-        
-        # Check the 'reality' following the pw2wannier90 procedure
-        for WF_id in range(self.num_wann_loc):
-            ratio_max = np.abs(WF0[np.abs(WF0[:,WF_id].real) >= 0.01,WF_id].imag/WF0[np.abs(WF0[:,WF_id].real) >= 0.01,WF_id].real).max(axis=0)        
-            print('The maximum imag/real for wannier function ', WF_id,' : ', ratio_max)        
+            # Fix the global phase following the pw2wannier90 procedure
+            max_index = (WF0 * WF0.conj()).real.argmax(axis=0)
+            norm_wfs = np.diag(WF0[max_index,:])
+            norm_wfs = norm_wfs/np.absolute(norm_wfs)
+            WF0 = WF0/norm_wfs/self.num_kpts_loc
+            
+            # Check the 'reality' following the pw2wannier90 procedure
+            for WF_id in range(self.num_wann_loc):
+                ratio_max = np.abs(WF0[np.abs(WF0[:,WF_id].real) >= 0.01,WF_id].imag/WF0[np.abs(WF0[:,WF_id].real) >= 0.01,WF_id].real).max(axis=0)        
+                print('The maximum imag/real for wannier function ', WF_id,' : ', ratio_max)        
         return WF0
         
-    def plot_wf(self, outfile = 'MLWF', wf_list = None, supercell = [1,1,1], grid = [50,50,50]):
+    def plot_wf(self, outfile='MLWF', spinor_mode='total', spinor_phase=True, wf_list=None, supercell=[1,1,1], grid=None):
         '''
         Export Wannier function at cell R
         xsf format: http://web.mit.edu/xcrysden_v1.5.60/www/XCRYSDEN/doc/XSF.html
@@ -941,13 +1012,14 @@ class W90:
             supercell    : a supercell used for plotting
         '''    
         
-        if wf_list == None: wf_list = list(range(self.num_wann_loc))
+        if wf_list is None: wf_list = list(range(self.num_wann_loc))
+        if grid is None: grid = self.wave.ngrid  
         
         grid = np.asarray(grid)
         origin = np.asarray([-(grid[i]*(supercell[i]//2) + 1)/grid[i] for i in range(3)]).dot(self.real_lattice_loc)       
         real_lattice_loc = (grid*supercell-1)/grid * self.real_lattice_loc
         nx, ny, nz = grid*supercell
-        WF0 = self.get_wannier(supercell = supercell, grid = grid)
+        WF0 = self.get_wannier(spinor_mode=spinor_mode, spinor_phase=spinor_phase, supercell=supercell, grid=grid)
         
         for wf_id in wf_list:
             assert wf_id in list(range(self.num_wann_loc))
@@ -982,7 +1054,7 @@ class W90:
                         f.write(fmt % tuple(WF[:,iy,iz].tolist()))                                        
                 f.write('END_DATAGRID_3D\nEND_BLOCK_DATAGRID_3D')                                                
                 
-    def plot_guess_orbs(self, outfile='guess_orb', frac_site=[0,0,0], l=0, mr=1, r=1, zona=1.0, x_axis=[1,0,0], z_axis=[0,0,1], supercell=[1,1,1], grid=[50,50,50]):
+    def plot_guess_orbs(self, outfile='guess_orb', frac_site=[0,0,0], l=0, mr=1, r=1, zona=1.0, x_axis=[1,0,0], z_axis=[0,0,1], supercell=[1,1,1], grid=[30,30,30]):
         '''
         Export Wannier function at cell R
         xsf format: http://web.mit.edu/xcrysden_v1.5.60/www/XCRYSDEN/doc/XSF.html
