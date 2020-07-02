@@ -87,8 +87,10 @@ class main(cell.main, plot.main):
         self.isym_symprec = vasprun.parameters['symmetry']['SYMPREC']
         grids = vasprun.parameters['grids']
         self.ngrid = [grids['NGX'], grids['NGY'], grids['NGZ']]
+        self.kmesh_type = vasprun.kpoints['type']
         self.kmesh = vasprun.kpoints['divisions']
-        self.kmesh_shift = vasprun.kpoints['usershift']
+        if self.kmesh_type == 'Monkhorst-Pack':
+            self.kmesh_shift = vasprun.kpoints['usershift']
         self.kpts = vasprun.kpoints['kpointlist']
         self.kpts_weight = vasprun.kpoints['weights']
         self.nkpts = self.kpts.shape[0] 
@@ -102,6 +104,9 @@ class main(cell.main, plot.main):
         '''K-point list in VASP is an irreducible list
            This function maps the irreducible list to the full list using spglib
         '''
+        
+        assert self.kmesh_type == 'Monkhorst-Pack', \
+                        "This function can only use for a wave function used a k-mesh scheme like Gamma center or Monkhorst-Pack"
         if self.isym == -1: 
             is_time_reversal = False
         else:
