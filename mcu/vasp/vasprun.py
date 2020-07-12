@@ -31,41 +31,27 @@ from mpl_toolkits.mplot3d import axes3d, Axes3D
 
         
 class main(cell.main, plot.main):
-    def __init__(self, path=None, vaspruns='vasprun', outcars='OUTCAR'):
+    def __init__(self, prefix=None):
         '''
-            path        : the project directory
-            vaspruns    : a str or a list of string as names for *.xml files
-            outcars     : a str or a list of string as names for OUTCAR files
+            prefix      : the working directory
         '''
         
         # Create vasprun object(s)
-        if path == None: path = os.getcwd()
-        if isinstance(vaspruns, str):                   # For one vasprun.xml file    
-            self.vasprun = vasp_io.XML(path + '/' + vaspruns + '.xml')
-            self.useOUTCAR = False
-            self.outcar = vasp_io.OUTCAR(path + '/' + outcars)
-            if self.outcar.success == True: 
-                self.useOUTCAR = True
+        if prefix is None: 
+            self.prefix = os.getcwd()
+        else:
+            self.prefix = prefix
+            
+        if isinstance(self.prefix, str):                   # For one vasprun.xml file    
+            self.vasprun = vasp_io.XML(self.prefix + '/vasprun.xml')
             self.get_info(self.vasprun)
             
-        elif isinstance(vaspruns, list):                # For multiple vasprun.xml file
+        elif isinstance(self.prefix, list):                # For multiple vasprun.xml file
             self.vasprun = []
-            for xml in vaspruns:
-                xml_file = path + '/' + xml + '.xml'
-                assert check_exist(xml_file), 'Cannot find the vasprun.xml file. Check the path:' + xml_file
-                self.vasprun.append(vasp_io.XML(xml_file))
-
-            self.useOUTCAR = False
-            if isinstance(outcars, list):               
-                assert len(outcars) == len(vaspruns)
-                self.outcar = []
-                for outcar in outcars:
-                    outcar_file = path + '/' + outcar
-                    if not check_exist(outcar_file):
-                        print('Cannot find:', outcar_file)
-                        break
-                    self.outcar.append(vasp_io.OUTCAR(outcar_file))  
-                    self.useOUTCAR = True                    
+            for xml in self.prefix:
+                xml_file = xml + '/vasprun.xml'
+                assert check_exist(xml_file), 'Cannot find the vasprun.xml file. Check the prefix:' + xml_file
+                self.vasprun.append(vasp_io.XML(xml_file))                
             self.get_info(self.vasprun[0])      # Only get info for the first vasprun.xml
         else:
             print('Provide a string or a list of names for *.xml file')
@@ -88,8 +74,8 @@ class main(cell.main, plot.main):
         grids = vasprun.parameters['grids']
         self.ngrid = [grids['NGX'], grids['NGY'], grids['NGZ']]
         self.kmesh_type = vasprun.kpoints['type']
-        self.kmesh = vasprun.kpoints['divisions']
-        if self.kmesh_type == 'Monkhorst-Pack':
+        if self.kmesh_type != 0 : self.kmesh = vasprun.kpoints['divisions']
+        if self.kmesh_type == 2 :
             self.kmesh_shift = vasprun.kpoints['usershift']
         self.kpts = vasprun.kpoints['kpointlist']
         self.kpts_weight = vasprun.kpoints['weights']
@@ -122,45 +108,43 @@ class main(cell.main, plot.main):
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
         if isinstance(self.vasprun, vasp_io.XML):
-            self.vasprun.get_dos()
-            if hasattr(self.vasprun,'efermi'):
-                self.efermi = self.vasprun.efermi
-            else:
-                if self.useOUTCAR == False:
-                    print ("Fermi level need to be read from OUTCAR")
+            tdos, pdos, efermi = self.vasprun.get_dos()
+            if efermi is not None:
+                return efermi
+            else:           # Get E_fermi from OUTCAR
+                efermi = vasp_io.get_efermi_from_OUTCAR(self.prefix + "/OUTCAR")
+                if efermi is not None:
+                    return efermi
                 else:
-                    self.efermi = self.outcar.efermi 
+                    print("E_fermi cannot be read from vasprun.xml or OUTCAR, hence it is set to zero")
+                    return 0
         elif isinstance(self.vasprun, list):        
-            self.efermi = []
-            for i in range(len(self.vasprun)):
-                self.vasprun[i].get_dos()
-                if hasattr(self.vasprun[i],'efermi'):
-                    self.efermi.append(self.vasprun[i].efermi)
-                else:
-                    if self.useOUTCAR == False:
-                        print ("Fermi level need to be read from OUTCAR")
-                    else:
-                        self.efermi.append(self.outcar[i].efermi)   
-        return self.efermi
+            efermi_list = []
+            for i in range(len(self.prefix)):
+                tdos, pdos, efermi = self.vasprun[i].get_dos()
+                if efermi is not None:
+                    efermi_list.append(efermi)
+                else:           # Get E_fermi from OUTCAR
+                    efermi = vasp_io.get_efermi_from_OUTCAR(self.prefix + "/OUTCAR")
+                    if efermi is None:
+                        efermi = 0.0
+                        print("E_fermi cannot be read from vasprun.xml or OUTCAR, hence it is set to zero")
+                    efermi_list.append(efermi)
+            return efermi_list
             
     def get_bandgap(self, efermi=None):
         '''Get the bandgap'''
         
         # Get the fermi level
-        if efermi == None: efermi = self.efermi
+        if efermi is None: efermi = self.get_efermi()
             
         if isinstance(self.vasprun, vasp_io.XML):              # For one vasprun.xml file
-            assert isinstance(efermi,float) 
-            self.vasprun.get_band()
-            self.band = self.vasprun.band[:,:,:,0]
-            self.co_occ = self.vasprun.band[:,:,:,1] 
-            self.co_occ_ = self.co_occ > 0.5       
+            band_occ = self.vasprun.get_band()
+            band, co_occ = band_occ[:,:,:,0], band_occ[:,:,:,1]
+            co_occ_ = co_occ > 0.5       
             electronic = self.vasprun.parameters['electronic']
         elif isinstance(self.vasprun,list):                             # For multiple vasprun.xml file
-            assert isinstance(efermi,list)
-            for i in range(len(self.vasprun)): 
-                assert isinstance(efermi[i],float)
-                
+            assert isinstance(efermi,list), "There are more than one vasprun.xml, hence please provide a list of efermi"
             electronic = self.vasprun[0].parameters['electronic']
             nbands = electronic.general['NBANDS']
             
@@ -172,14 +156,14 @@ class main(cell.main, plot.main):
                 co_occ1 = np.zeros([1,nbands])    
                 co_occ2 = np.zeros([1,nbands], dtype=bool)                 
                 kptss = np.zeros([1,3])
-                for i, vasprun in enumerate(self.vasprun):
-                    vasprun.get_band()
-                    band = vasprun.band[spin,:,:,0]
+                for i, vasprun in enumerate(self.vasprun):          # loop over vasprun.xml
+                    band_occ = vasprun.get_band()
+                    band = band_occ[spin,:,:,0]
                     kpts = vasprun.kpoints['kpointlist']
                     weight = vasprun.kpoints['weights']
                     nonzero = np.count_nonzero(weight)
                     kpts, band = kpts[nonzero:], band[nonzero:]
-                    co_occ = vasprun.band[spin,nonzero:,:,1]
+                    co_occ = band_occ[spin,nonzero:,:,1]
                     co_occ_ = band < efermi[i] 
                     bands = np.vstack([bands,band])
                     kptss = np.vstack([kptss,kpts])
@@ -188,23 +172,23 @@ class main(cell.main, plot.main):
                 band_spin.append(bands[1:])  
                 co_occ_spin1.append(co_occ1[1:])   
                 co_occ_spin2.append(co_occ2[1:])  
-            self.kpts, self.band = np.asarray(kptss[1:]), np.asarray(band_spin)
+            self.kpts, band = np.asarray(kptss[1:]), np.asarray(band_spin)
             self.nkpts = self.kpts.shape[0]
-            self.co_occ, self.co_occ_ = np.asarray(co_occ_spin1), np.asarray(co_occ_spin2)
+            co_occ, co_occ_ = np.asarray(co_occ_spin1), np.asarray(co_occ_spin2)
             
         bandedge = np.zeros([self.ispin,self.nkpts,2,2])
         self.bandgap = []
         for spin in range(self.ispin):
             print('Spin:', spin)        
             for kpt in range(self.nkpts):
-                band_kpt = self.band[spin,kpt]
-                occ = self.co_occ_[spin,kpt]               
+                band_kpt = band[spin,kpt]
+                occ = co_occ_[spin,kpt]               
                 homo_idx = np.count_nonzero(occ) - 1
                 lumo_idx = homo_idx + 1               
                 bandedge[spin,kpt,0,0] = band_kpt[homo_idx]
-                bandedge[spin,kpt,0,1] = self.co_occ[spin,kpt,homo_idx]
+                bandedge[spin,kpt,0,1] = co_occ[spin,kpt,homo_idx]
                 bandedge[spin,kpt,1,0] = band_kpt[lumo_idx]
-                bandedge[spin,kpt,1,1] = self.co_occ[spin,kpt,lumo_idx]
+                bandedge[spin,kpt,1,1] = co_occ[spin,kpt,lumo_idx]
                 
             vbm_idx = np.argmax(bandedge[spin,:,0,0])
             cbm_idx = np.argmin(bandedge[spin,:,1,0])
@@ -237,7 +221,7 @@ class main(cell.main, plot.main):
         if vasprun is None: vasprun = self.vasprun
         
         # Get the fermi level
-        if efermi is None: efermi = self.efermi        
+        if efermi is None: efermi = self.get_efermi()   
         
         sym_kpoint_coor = None
         band = None
@@ -246,9 +230,8 @@ class main(cell.main, plot.main):
         if isinstance(vasprun, vasp_io.XML) and vasprun.kpoints['type'] == 1: # For conventional band structure calculation 
             if klabel is not None:
                 klabel, coor_kpts = str_format.format_klabel(klabel)
-                
-            vasprun.get_band()
-            band = vasprun.band[spin][:,:,0]
+            
+            band = vasprun.get_band()[spin,:,:,0]
             kpts = vasprun.kpoints['kpointlist']
             kpts, band = utils.rm_redundant_band(kpts, band) 
             
@@ -274,8 +257,7 @@ class main(cell.main, plot.main):
                 assert len(klabel) == len(sym_kpoint_coor), "The number of k label must be " + str(len(sym_kpoint_coor))
         else:
             if isinstance(vasprun, vasp_io.XML):                       # For one vasprun.xml file
-                vasprun.get_band()
-                band = vasprun.band[spin][:,:,0]
+                band = vasprun.get_band()[spin,:,:,0]
                 kpts = vasprun.kpoints['kpointlist']
                 if vasprun.kpoints['type'] == 0:
                     weight = vasprun.kpoints['weights']
@@ -289,8 +271,7 @@ class main(cell.main, plot.main):
                 bands = np.zeros([1,nbands])
                 kptss = np.zeros([1,3])
                 for i, run in enumerate(vasprun):
-                    run.get_band()
-                    band = run.band[spin][:,:,0]
+                    band = run.get_band()[spin,:,:,0]
                     kpts = run.kpoints['kpointlist']
                     weight = run.kpoints['weights']
                     nonzero = np.count_nonzero(weight)
@@ -435,21 +416,21 @@ class main(cell.main, plot.main):
         if vasprun is None: 
             if isinstance(self.vasprun, vasp_io.XML): 
                 vasprun = self.vasprun
-                if efermi is None: efermi = self.efermi
+                if efermi is None: efermi = self.get_efermi() 
             if isinstance(self.vasprun,list): 
                 vasprun = self.vasprun[0]  
-                if efermi is None: efermi = self.efermi[0]
+                if efermi is None: efermi = self.get_efermi()[0]
         else:
             assert isinstance(vasprun, vasp_io.XML)
             
-        vasprun.get_dos()
-        tdos = vasprun.tdos[spin,:,:2]
+        tdos, pdos, e_fermi = vasprun.get_dos()
+        assert tdos is not None, "Cannot find DOS data in vasprun.xml" 
+        tdos = tdos[spin,:,:2]
         lm_list = vasprun.lm
-        pdos = None
         
         # Compute pDOS
-        if vasprun.pdos_exist == True: 
-            pdos_data = vasprun.pdos[:,spin,:,1:].transpose(1,0,2)
+        if pdos is not None:
+            pdos_spin = pdos[spin,:,:,1:]
             formatted_atom, formatted_lm = str_format.general_lm(lm)
 
             pdos = []             
@@ -486,13 +467,13 @@ class main(cell.main, plot.main):
                             elif each_lm == lm:
                                 idx_lm.append(idx)              
                     
-                    proj_val += (pdos_data[:,idx_atom, :][:,:,idx_lm]).sum(axis=(1,2))
+                    proj_val += (pdos_spin[:,idx_atom, :][:,:,idx_lm]).sum(axis=(1,2))
                 pdos.append(proj_val)
             pdos = np.asarray(pdos).T 
   
         # Shift the energy 
         tdos[:,0] = tdos[:,0] - efermi
-        
+
         return tdos, pdos
         
     def _generate_spin(self, vasprun, lm=None):

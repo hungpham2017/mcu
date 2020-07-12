@@ -95,7 +95,6 @@ class main(cell.main, plot.main):
         
         return efermi
 
-
     def get_band(self, filename=None):
         '''
         if filename is not specified, band structure is obtained by searching for:
@@ -124,7 +123,7 @@ class main(cell.main, plot.main):
         temp_kpts[0] = abs_kpts[0]
         temp_kpts[1:] = abs_kpts[:-1] 
         proj_kpath = np.matrix(np.sqrt(((temp_kpts - abs_kpts)**2).sum(axis=1)).cumsum())
-        
+
         efermi = self.get_efermi(data)
         
         return band, kpts, proj_kpath, recip_lattice, efermi
@@ -412,7 +411,7 @@ class main(cell.main, plot.main):
         assert check_exist(prefix + ".pdos_tot"), "Cannot find " + tdos_file
         
         formatted_atom, formatted_lm = str_format.general_lm(lm)
-        assert len(formatted_atom) == 1, "For kDOS plot, you only need to provide one groups of orbitals, for example, lm = 'Ni:sp'"
+        assert len(formatted_atom) == 1, "For kDOS plot, you only need to provide one groups of orbitals, for example, lm = 'Ni:sp', meaning "
             
         # Get total kDOS
         total_kdos_data = qe_io.read_kdos_output(prefix + ".pdos_tot")
@@ -420,7 +419,6 @@ class main(cell.main, plot.main):
         if efermi is None: 
             efermi = self.get_efermi()
             
-        
         # Collect the pdos files
         projwfc_data = qe_io.read_projwfc_output(prefix + ".projwfc.out")
         site = projwfc_data['site']

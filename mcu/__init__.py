@@ -3,7 +3,7 @@
 __version__ = '0.9.0'
 from . import utils
 from . import cell
-from . import vasp, cp2k, crystal, pscf, qe, wannier90
+from . import vasp, cp2k, crystal, elk, pscf, qe, wannier90
 
 # Quick shortcuts to VASP tools
 VASP = vasp.vasprun.main
@@ -13,7 +13,6 @@ LOCPOT = vasp.locpot.main
 POSCAR = vasp.poscar.main
 WAVECAR = vasp.wavecar.main
 vasprun = vasp.vasp_io.XML
-OUTCAR = vasp.vasp_io.OUTCAR
 make_KPOINTS = vasp.utils.get_1Dkpath
 read_WAVEDER = vasp.utils.read_WAVEDER
 read_WAVEDERF = vasp.utils.read_WAVEDERF
@@ -38,3 +37,6 @@ QE = qe.qe.main
 
 # Quick shortcuts to QE tools
 PYSCF = pscf.pscf.main
+
+# Quick shortcuts to QE tools
+ELK = elk.elk.main
