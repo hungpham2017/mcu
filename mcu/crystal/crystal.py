@@ -106,7 +106,6 @@ class main(cell.main, plot.main):
                 available_orbs = list(dict.fromkeys(['None'] + available_orbs))
                 
                 for atm_idx in idx_atom:
-                    print(atm_idx, formatted_lm[i][j])  
                     for orb in formatted_lm[i][j]:
                         assert str(orb) in available_orbs, "This is wrong: " + str(orb) + ". Check the lm string/list. Available basis functions " + atom_ +  " are: " +  ", ".join(available_orbs)
                         idx = crystal_utils.orb_index(self.atom, self.basis, atm_idx, orb)
@@ -153,6 +152,7 @@ class main(cell.main, plot.main):
                 assert 0, "Cannot find " + self.prefix + ".f25" + " or fort.25. Check if you has band structure file"
 
         data = crystal_io.read_f25(filename)[0]
+        print("HAHA", data, type(data))
         assert data is not None, "Cannot find BAND information, check if you have generated fort.25: " + filename
         temp = []
         ihferm_list = []

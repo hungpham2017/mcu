@@ -262,9 +262,11 @@ def read_f25(filename):
         data = data_file.read()
         
         # Get BAND
-        out_BAND = []
-        for block in f25_BAND_MATCH.finditer(data + '\n-%-'):
-            if block is not None:
+        if f25_BAND_MATCH.match(data + '\n-%-') is None:
+            out_BAND = None
+        else:
+            out_BAND = []
+            for block in f25_BAND_MATCH.finditer(data + '\n-%-'):
                 ihferm = int(block['ihferm'])
                 nband = int(block['nband'])
                 nkp = int(block['nkp'])
@@ -289,13 +291,13 @@ def read_f25(filename):
                 block_data['values'] = values    
                 block_data['eigenvals'] = eigenvals
                 out_BAND.append(block_data)
-            else:
-                out_BAND = None
                 
         # Get DOSS
-        out_DOSS = []
-        for block in f25_DOSS_MATCH.finditer(data + '\n-%-'):
-            if block is not None:
+        if f25_DOSS_MATCH.match(data + '\n-%-') is None:
+            out_BAND = None
+        else:
+            out_DOSS = []
+            for block in f25_DOSS_MATCH.finditer(data + '\n-%-'):
                 ihferm = int(block['ihferm'])
                 nrow = int(block['nrow'])
                 ncol = int(block['ncol'])
@@ -320,8 +322,6 @@ def read_f25(filename):
                 block_data['values'] = values    
                 block_data['dos'] = dos
                 out_DOSS.append(block_data)
-            else:
-                out_DOSS = None
 
     return out_BAND, out_DOSS
        
