@@ -152,7 +152,6 @@ class main(cell.main, plot.main):
                 assert 0, "Cannot find " + self.prefix + ".f25" + " or fort.25. Check if you has band structure file"
 
         data = crystal_io.read_f25(filename)[0]
-        print("HAHA", data, type(data))
         assert data is not None, "Cannot find BAND information, check if you have generated fort.25: " + filename
         temp = []
         ihferm_list = []

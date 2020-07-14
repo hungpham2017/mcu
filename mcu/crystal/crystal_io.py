@@ -294,7 +294,7 @@ def read_f25(filename):
                 
         # Get DOSS
         if f25_DOSS_MATCH.match(data + '\n-%-') is None:
-            out_BAND = None
+            out_DOSS = None
         else:
             out_DOSS = []
             for block in f25_DOSS_MATCH.finditer(data + '\n-%-'):
