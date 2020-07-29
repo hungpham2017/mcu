@@ -189,8 +189,8 @@ class main(cell.main, plot.main):
             
         sym_kpoint_coor = np.float64(sym_kpoint_coor)
         
-        if phonon == True:
-            if gamma_correct == True:
+        if phonon:
+            if gamma_correct:
                 # Should be checked first before using the correction to make sure it is really acoustic phonon modes
                 nspin, nkpts, nband = band.shape
                 band = band.flatten()
@@ -203,10 +203,10 @@ class main(cell.main, plot.main):
         else:
             band = const.AUTOEV * band
             efermi = const.AUTOEV * efermi
-            
+
         return band, proj_kpath, sym_kpoint_coor, efermi
 
-    def get_bandgap(self, filename=None):
+    def get_bandgap(self, filename=None, efermi=None):
         '''Get the bandgap'''
         if filename is None:
             if check_exist(self.prefix + ".f25"):
@@ -217,7 +217,8 @@ class main(cell.main, plot.main):
             else:
                 assert 0, "Cannot find " + self.prefix + ".f25" + " or fort.25. Check if you has band structure file"
                 
-        band, proj_kpath, sym_kpoint_coor, efermi = self.get_band(filename) 
+        band, proj_kpath, sym_kpoint_coor, efermi_ = self.get_band(filename)
+        if efermi is None: efermi = efermi_
         nspin, nkpts, nbands = band.shape
         for spin in range(nspin):
             print('Spin:', spin)  
@@ -288,6 +289,11 @@ class main(cell.main, plot.main):
         elif unit.lower() == "mev":
             band = const.CMTOMEV * band
             
+        # Process the labels for k-point
+        if klabel is not None:
+            klabel, coor_kpts = str_format.format_klabel(klabel) 
+            assert len(klabel) == len(sym_kpoint_coor), "The number of k label must be " + str(len(sym_kpoint_coor))
+            
         return band[spin], proj_kpath, sym_kpoint_coor, klabel
         
     def _generate_dos(self, filename=None, efermi=None, spin=0, lm=None):
@@ -327,15 +333,15 @@ class main(cell.main, plot.main):
             ivalues = block['values']
             dos_data.append(block['dos'])
 
-        # if ihferm == 0 or ihferm == 2:
-            # band = np.float64([np.vstack(temp)])
-            # proj_kpath = np.hstack(proj_kpath)
-        # elif ihferm == 1 or ihferm == 3:
-            # nblock = len(temp) // 2
-            # band_up = np.vstack(temp[:nblock])            
-            # band_down = np.vstack(temp[nblock:])  
-            # band = np.float64([band_up, band_down])
-            # proj_kpath = np.hstack(proj_kpath[:nblock])
+        if ihferm == 0 or ihferm == 2:
+            band = np.float64([np.vstack(temp)])
+            proj_kpath = np.hstack(proj_kpath)
+        elif ihferm == 1 or ihferm == 3:
+            nblock = len(temp) // 2
+            band_up = np.vstack(temp[:nblock])            
+            band_down = np.vstack(temp[nblock:])  
+            band = np.float64([band_up, band_down])
+            proj_kpath = np.hstack(proj_kpath[:nblock])
 
         # Compute energy points:
         energy_path = const.AUTOEV * (np.arange(ncol)*dy + emax) - efermi
