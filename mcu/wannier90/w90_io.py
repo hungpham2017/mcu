@@ -72,7 +72,7 @@ def read_win(filename):
         atoms_frac = get_info_from_block(data, 'atoms_frac')
         if atoms_frac is not None:
             atoms_frac = atoms_frac.split()
-            natom = len(atoms_car) // 4
+            natom = len(atoms_frac) // 4
             atom = [atoms_frac[4*i] for i in range(natom)]
             frac_coords = np.float64([atoms_frac[4*i + 1 : 4*i + 4] for i in range(natom)])            
         

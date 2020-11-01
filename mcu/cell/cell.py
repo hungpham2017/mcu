@@ -81,19 +81,19 @@ class main:
         atoms = [[atm, abs_coods[i]] for i, atm in enumerate(atom_symbol)]
         return lattice, atoms
 
-    def write_poscar(self, cell=None, filename=None):
+    def write_poscar(self, filename=None, cell=None):
         '''Export POSCAR from a cell object'''
         if cell is None: cell = self.cell
         if filename is None: filename = 'POSCAR_by_mcu'
         cell_io.write_poscar(cell, filename)
         
-    def write_xsf(self, cell=None, filename=None):
+    def write_xsf(self, filename=None, cell=None):
         '''Export xsf from a cell object'''
         if cell is None: cell = self.cell
         if filename is None: filename = 'xsf_by_mcu'
         cell_io.write_xsf(cell, filename) 
         
-    def write_cif(self, cell=None, symprec=1e-3, filename=None, symmetrize=True, angle_tolerance=-1.0, hall_number=0):
+    def write_cif(self, filename=None, cell=None, symprec=1e-3, symmetrize=True, angle_tolerance=-1.0, hall_number=0):
         '''Export CIF from a cell object'''
         if cell is None: cell = self.cell
         if filename is None: filename = 'cif_by_mcu'

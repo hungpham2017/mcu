@@ -74,7 +74,9 @@ class main(cell.main, plot.main):
         grids = vasprun.parameters['grids']
         self.ngrid = [grids['NGX'], grids['NGY'], grids['NGZ']]
         self.kmesh_type = vasprun.kpoints['type']
-        if self.kmesh_type != 0 : self.kmesh = vasprun.kpoints['divisions']
+        self.kmesh = None
+        if self.kmesh_type != 0 : 
+            self.kmesh = vasprun.kpoints['divisions']
         if self.kmesh_type == 2 :
             self.kmesh_shift = vasprun.kpoints['usershift']
         self.kpts = vasprun.kpoints['kpointlist']
@@ -91,7 +93,7 @@ class main(cell.main, plot.main):
            This function maps the irreducible list to the full list using spglib
         '''
         
-        assert self.kmesh_type == 'Monkhorst-Pack', \
+        assert self.kmesh_type == 2, \
                         "This function can only use for a wave function used a k-mesh scheme like Gamma center or Monkhorst-Pack"
         if self.isym == -1: 
             is_time_reversal = False
@@ -100,11 +102,11 @@ class main(cell.main, plot.main):
 
         mapping_kpts, kpts_grid = self.get_mapping_kpts(mesh=self.kmesh, cell=self.cell, is_shift=self.kmesh_shift, symprec=symprec, 
                     is_time_reversal=is_time_reversal, no_spatial=no_spatial)
-
+                    
         return mapping_kpts, kpts_grid
 
 
-############ Plotting #################
+############ Analysis #################
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
         if isinstance(self.vasprun, vasp_io.XML):
@@ -214,7 +216,16 @@ class main(cell.main, plot.main):
                     
                 print('  Direct bandgap   : %7.4f at k = [%6.4f,%6.4f,%6.4f]' % (direct_gap, direct_k[0], direct_k[1], direct_k[2]))                   
                 
+    # def get_parity(self, kpt=0, inversion_center=[0,0,0]):
+        # '''Calculate the parity of the psi(k)
+
+        
+        # '''
+        # assert check_exist(self.prefix + '/WAVECAR'), 'Cannot find the WAVECAR file. Check the prefix:' + self.prefix + '/WAVECAR'
+        # wave = mcu.WAVECAR(wavecar, vasprun=self)
+    
                 
+############ Plotting #################
     def _generate_band(self, vasprun=None, efermi=None, spin=0, klabel=None):
         '''Processing/collecting the band data before the plotting function
         '''
@@ -262,7 +273,8 @@ class main(cell.main, plot.main):
                 if vasprun.kpoints['type'] == 0:
                     weight = vasprun.kpoints['weights']
                     nonzero = np.count_nonzero(weight)
-                    kpts, band = kpts[nonzero:], band[nonzero:]
+                    if nonzero != weight.shape[0]:
+                        kpts, band = kpts[nonzero:], band[nonzero:]
                 band = band - efermi
             elif isinstance(vasprun,list):                                      # For multiple vasprun.xml file
                 assert isinstance(efermi,list)

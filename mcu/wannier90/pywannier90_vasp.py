@@ -468,16 +468,10 @@ class W90:
         else:
             self.spinors = 0
             
-        self.spin_up = spin_up
-        if spin_up:
-            self.spin = 0
-            kpts, band, self.unk = self.wave.get_wave_nosym(spin=self.spin, norm=True)
-            self.mo_energy_kpts = band
-        else:
-            self.spin = 1
-            kpts, band, self.unk = self.wave.get_wave_nosym(spin=self.spin, norm=True)
-            self.mo_energy_kpts = band    
-        
+        kpts, band = self.wave.kpts, self.wave.band[self.spin] 
+        self.mo_energy_kpts = band
+        self.spin = 0
+        if not spin_up: self.spin = 1 
         self.num_bands_tot = band.shape[-1]
         self.num_kpts_loc = band.shape[-2]
         self.mp_grid_loc = mp_grid
@@ -539,11 +533,13 @@ class W90:
             self.A_matrix_loc = self.read_A_mat(external_AME + '.amn')      
             self.eigenvalues_loc = self.read_epsilon_mat(external_AME + '.eig') 
         else:
+            print(" Calculating Mmn")
             self.M_matrix_loc = self.get_M_mat()
-            self.A_matrix_loc = self.get_A_mat()        
-            self.eigenvalues_loc = self.get_epsilon_mat()  
+            print(" Calculating Amn")
+            self.A_matrix_loc = self.get_A_mat() 
+            self.eigenvalues_loc = self.get_epsilon_mat() 
         self.run()
-    
+        
     def make_win(self):
         '''
         Make a basic *.win file for wannier90
@@ -589,11 +585,11 @@ class W90:
         M_matrix_loc = np.empty([self.num_kpts_loc, self.nntot_loc, self.num_bands_loc, self.num_bands_loc], dtype = np.complex128)
         band_list = np.asarray(self.band_included_list)
         for k_id in range(self.num_kpts_loc):
+            umk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id, band_list=band_list, norm=True)
             for nn in range(self.nntot_loc):
                 k_id2 = self.nn_list[nn, k_id, 0] - 1
                 b = self.nn_list[nn, k_id, 1:4] 
-                umk = self.unk[k_id][band_list]
-                unk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id2, Gp=b, norm=True)[band_list]
+                unk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id2, band_list=band_list, Gp=b, norm=True)
                 M_matrix_loc[k_id,nn] = np.einsum('mxyz,nxyz->mn', unk, umk.conj())
 
         return M_matrix_loc
@@ -646,19 +642,20 @@ class W90:
             # Only use a 3x3x3 supercell to evaluate the <psi|g>
             Ts = cartesian_prod((np.arange(self.nimgs), np.arange(self.nimgs), np.arange(self.nimgs)))
             Rs = Ts.dot(self.real_lattice_loc)
-            for ith_wann in range(self.num_wann_loc):
-                frac_site = self.proj_site[ith_wann] 
-                abs_site = frac_site.dot(self.real_lattice_loc)
-                l = self.proj_l[ith_wann]
-                mr = self.proj_m[ith_wann]
-                if self.spinors:
-                    s = self.proj_s[ith_wann]
-                r = self.proj_radial[ith_wann]
-                zona = self.proj_zona[ith_wann]
-                x_axis = self.proj_x[ith_wann]
-                z_axis = self.proj_z[ith_wann] 
-                for k_id in range(self.num_kpts_loc):
-                    umk = self.unk[k_id][band_list]
+            
+            for k_id in range(self.num_kpts_loc):
+                umk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id, band_list=band_list, norm=True)
+                for ith_wann in range(self.num_wann_loc):
+                    frac_site = self.proj_site[ith_wann] 
+                    abs_site = frac_site.dot(self.real_lattice_loc)
+                    l = self.proj_l[ith_wann]
+                    mr = self.proj_m[ith_wann]
+                    if self.spinors:
+                        s = self.proj_s[ith_wann]
+                    r = self.proj_radial[ith_wann]
+                    zona = self.proj_zona[ith_wann]
+                    x_axis = self.proj_x[ith_wann]
+                    z_axis = self.proj_z[ith_wann] 
                     ovlp = 0.0   
                     for R in Rs:
                         gr_R = g_r(coords, abs_site + R, l, mr, r, zona, x_axis, z_axis, unit='A').reshape(ngrid, order = 'F')
@@ -673,7 +670,7 @@ class W90:
                         ovlp += np.einsum('xyz,xyz,xyz,mxyz->m', weights, gr_R, exp.conj(), psi_mkR.conj())
   
                     A_matrix_loc[k_id,ith_wann] = ovlp
-                    
+                
         return A_matrix_loc 
         
     def read_A_mat(self, filename=None):
@@ -950,13 +947,13 @@ class W90:
             raise ValueError("Spinor_mode options: up, down, total")
         
         band_list = np.asarray(self.band_included_list)
-        kpts, band, unk = self.wave.get_wave_nosym(spin=self.spin, ngrid=grid, norm=False)
         if self.spinors:
             u_mo_up  = []
             u_mo_down = []
             for k_id in range(self.num_kpts_loc):
                 mo_in_window = self.lwindow[k_id]
-                unk_in_window = unk[k_id][band_list][mo_in_window]
+                unk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id, band_list=band_list, norm=True)
+                unk_in_window = unk[mo_in_window]
                 U_matrix_opt = self.U_matrix_opt[k_id][:, mo_in_window].T
                 umo_kpt = np.einsum('mxyz,mo,os->sxyz', unk_in_window, U_matrix_opt, self.U_matrix[k_id].T)
                 u_mo_up.append(umo_kpt[:,:grid[0],:,:].reshape(self.num_wann, -1).T) 

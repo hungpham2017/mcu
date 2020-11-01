@@ -275,7 +275,8 @@ class XML:
         
         initialpos = self.copy_block(self.vasprun,'structure', 'initialpos', level=1)           
         finalpos = self.copy_block(self.vasprun,'structure', 'finalpos', level=1)  
-        
+        assert not not finalpos, "This is a broken vasprun.xml, the calculation may be not finished yet!"
+                    
         self.cell_init = self.get_cell(initialpos,level=1)       
         self.cell_final = self.get_cell(finalpos,level=1)  
 

@@ -104,6 +104,13 @@ basis_function_MATCH = re.compile(r'''
  (?P<order>\d+) [ ]+ (?P<orb>\S+) [ ]+ XX
 ''', re.VERBOSE)
    
+sp_energy_SEARCH = re.compile(r'''
+SCF [ ]* ENDED [ ]* - [ ]* CONVERGENCE [ ]* ON [ ]* ENERGY [ ]* E\(AU\) [ ]* (?P<energy>\S+)
+''', re.VERBOSE)
+
+final_energy_SEARCH = re.compile(r'''
+OPT [ ]* END [ ]* - [ ]* CONVERGED [ ]* \* [ ]* E\(AU\)\: [ ]* (?P<energy>\S+)
+''', re.VERBOSE)
 
 def read_out(filename):
     '''Read prefix.out file'''
@@ -159,6 +166,18 @@ def read_out(filename):
                 function.append(orb.groupdict()['orb'].lower())
             basis[element] = function
         
+        # Get the energy
+        find_sp_energy = sp_energy_SEARCH.search(data)
+        if find_sp_energy is not None:
+            energy_sp = float(find_sp_energy['energy'])
+        else:
+            energy_sp = None
+            
+        energy_final = None
+        if final_energy_SEARCH.search(data) is not None:
+            energy_final = float(final_energy_SEARCH.search(data)['energy'])        
+        
+        
         out = {}
         out['nelec'] = nelec
         out['nelec core'] = nelec_core
@@ -169,7 +188,8 @@ def read_out(filename):
         out['atom'] = atom
         out['atom_position'] = np.float64(atom_position)
         out['kpts'] = kpts
-        
+        out['total energy - sp'] = energy_sp
+        out['total energy - final'] = energy_final
         
     return out
     
@@ -262,9 +282,9 @@ def read_f25(filename):
         data = data_file.read()
         
         # Get BAND
-        if f25_BAND_MATCH.match(data + '\n-%-') is None:
-            out_BAND = None
-        else:
+        found_band = f25_BAND_MATCH.search(data + '\n-%-') is not None
+        out_BAND = None
+        if found_band:
             out_BAND = []
             for block in f25_BAND_MATCH.finditer(data + '\n-%-'):
                 ihferm = int(block['ihferm'])
@@ -293,9 +313,9 @@ def read_f25(filename):
                 out_BAND.append(block_data)
                 
         # Get DOSS
-        if f25_DOSS_MATCH.match(data + '\n-%-') is None:
-            out_DOSS = None
-        else:
+        found_DOSS = f25_DOSS_MATCH.search(data + '\n-%-') is not None
+        out_DOSS = None
+        if found_DOSS:
             out_DOSS = []
             for block in f25_DOSS_MATCH.finditer(data + '\n-%-'):
                 ihferm = int(block['ihferm'])

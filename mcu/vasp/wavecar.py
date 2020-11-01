@@ -26,7 +26,7 @@ import numpy as np
 import scipy.linalg
 from ..utils.misc import check_exist
 from . import utils, vasp_io, const
-from scipy.fftpack import fftfreq, fftn, ifftn
+from scipy.fftpack import ifftn
 from scipy.io import FortranFile
             
 class main:
@@ -105,21 +105,18 @@ class main:
                 self.band[spin,kpt,:] = dump[:,0]
                 self.co_occ[spin,kpt,:] = dump[:,2]
             
-    def get_coeff(self, spin=0):
+    def get_coeff(self, spin=0, kpt=0, band_list=None):
         '''Extract plw coefficients of the wfn''' 
-    
-        #TODO: check spin value
+        
+        if band_list is None: band_list = np.arange(self.nbands)
         cg = []
-        for kpt in range(self.nkpts):
-            cg_kpt = []
-            for band in range(self.nbands):
-                rec = 3 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1) + band 
-                self._wavecar.seek(rec * self._recl)
-                dump = np.fromfile(self._wavecar, dtype=self.prec, count=self.nplws[kpt])
-                cg_kpt.append(dump)
-            cg.append(np.asarray(cg_kpt, dtype=np.complex128))
-            
-        return cg
+        for band in band_list:
+            rec = 3 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1) + band 
+            self._wavecar.seek(rec * self._recl)
+            dump = np.fromfile(self._wavecar, dtype=self.prec, count=self.nplws[kpt])
+            cg.append(dump)
+                
+        return np.asarray(cg)
         
     def get_gvec(self, kpt=0):
         '''
@@ -153,7 +150,7 @@ class main:
                          
         return Gvec
         
-    def get_unk(self, spin=0, kpt=0, Gp=[0,0,0], ngrid=None, norm=False):
+    def get_unk(self, spin=0, kpt=0, band_list=None, Gp=[0,0,0], ngrid=None, norm=False):
         '''
         Obtain the irreducible pseudo periodic parts of the Bloch function in real space
 
@@ -189,15 +186,16 @@ class main:
 
         # The FFT normalization factor
         # the iFFT has a factor 1/N_G, unk exported by VASP does not have this factor
+        nband = len(band_list)
         Gp = np.int64(Gp)
         gvec = self.get_gvec(kpt) - Gp
-        unk_G = np.zeros([self.nbands, ngrid[0], ngrid[1], ngrid[2]], dtype=np.complex128)
+        unk_G = np.zeros([nband, ngrid[0], ngrid[1], ngrid[2]], dtype=self.prec)
         gvec %= ngrid[np.newaxis,:]
         nx, ny, nz = gvec[:,0], gvec[:,1], gvec[:,2]
 
         if self.lsorbit:
             wfc_spinor = []
-            Cg = self.get_coeff(spin)[kpt]
+            Cg = self.get_coeff(spin, kpt, band_list)
             nplw = Cg.shape[1] // 2
             
             # spinor up
@@ -207,11 +205,12 @@ class main:
             # spinor down
             unk_G[:, nx, ny, nz] = Cg[:, nplw:]
             unk_down = ifftn(unk_G, axes=[1,2,3])
-            
-            del Cg
-            unk = np.hstack([unk_up, unk_down])     # dimension: (nbands, nx*2, ny, nz)
+
+            del Cg, unk_G
+            unk = np.hstack([unk_up, unk_down])     # dimension: (nband, nx*2, ny, nz)
+            del unk_up, unk_down
         else:
-            unk_G[:, nx, ny, nz] = self.get_coeff(spin)[kpt]
+            unk_G[:, nx, ny, nz] = self.get_coeff(spin, kpt)
             unk = ifftn(unk_G, axes=[1,2,3])
 
         if norm:
@@ -236,6 +235,9 @@ class main:
           
     def get_wave_nosym(self, spin=0, Gp=[0,0,0], ngrid=None, norm=False, match_vasp_kpts=True):
         '''
+        This function was meant to collet the entire wave function.
+        In practice, it costs huge amount of memory, hence need a lot of work here        
+        
         Obtain:
             - the reducible pseudo periodic parts of the Bloch function in real space
             - the reducible band 
@@ -255,15 +257,15 @@ class main:
             self.idx_sym = np.arange(irred_kpts.shape[0])
             return irred_kpts, irred_band, irred_unk_kpts
         elif self.isym == 0: # only time-reversal symmetry
+            raise ValueError('Spatial symmetry is not supported yet. ISYM must be -1')
             mapping, kpts_grid = self.get_kpts_nosym(self.isym_symprec, no_spatial=True)
         else: # spatial symmetry
-            raise ValueError('Spatial symmetry is not supported yet. ISYM must be -1 or 0')
+            raise ValueError('Spatial symmetry is not supported yet. ISYM must be -1')
             mapping, kpts_grid = self.get_kpts_nosym(self.isym_symprec)
             
         idx_irred, idx, idx_inverse, idx_count = np.unique(mapping, 
         return_index=True, return_inverse=True, return_counts=True)
-        
-
+ 
         kpts = kpts_grid/self.kmesh
         nkpts = kpts.shape[0]
         
@@ -304,20 +306,16 @@ class main:
         
         return kpts, np.asarray(band), unk
         
-    def get_unk_kpt(self, spin=0, kpt=0, Gp=[0,0,0], ngrid=None, norm=False): 
+    def get_unk_kpt(self, spin=0, kpt=0, band_list=None, Gp=[0,0,0], ngrid=None, norm=False): 
         '''
         Obtain the irreducible pseudo periodic parts of the Bloch function in real space
         at all abitrary kpts considering symmetry
         Must run after calling get_wave_nosym
         '''
 
-        assert 0 <= kpt < self.kpts_nosym.shape[0], "Invalid value of kpt"
-        k_reserv = abs(self.kpts_nosym[kpt] + self.kpts[self.idx_sym[kpt]]).sum() < 1e-7
-        unk_kpt = self.get_unk(spin=spin, kpt=kpt, Gp=Gp, ngrid=ngrid, norm=norm)
-        if abs(self.kpts_nosym[kpt]).sum() > 1e-7 and k_reserv:
-            return unk_kpt.conj()
-        else:
-            return unk_kpt
+        assert 0 <= kpt < self.kpts.shape[0], "Invalid value of kpt"
+        unk_kpt = self.get_unk(spin=spin, kpt=kpt, band_list=band_list, Gp=Gp, ngrid=ngrid, norm=norm)
+        return unk_kpt
 
         
     def write_vesta(self, unk, realonly=False, poscar='POSCAR', filename='unk', ncol=10):

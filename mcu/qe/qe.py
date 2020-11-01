@@ -74,13 +74,20 @@ class main(cell.main, plot.main):
                 filename = self.prefix + ".band.out"
             elif check_exist(self.prefix + ".scf.out"):
                 filename = self.prefix + ".scf.out"
+
             data = qe_io.read_pw_output(filename)
             
         if data['hoco'] is not None:
             efermi = data['hoco']
         elif data['efermi'] is not None:
             efermi = data['efermi']
+        elif check_exist(self.prefix + ".scf.out"):
+            filename = self.prefix + ".scf.out"
+            data = qe_io.read_pw_output(filename)
+            efermi = data['efermi']
         else:
+            print("WARNING! Fermi energy is estimated from the number of electrons. \
+                    For metallic systems, this may be wrong")
             # Take the HOMO as the E Fermi
             band = data['eigenvals']
             nelec = int(data['nelec']) 

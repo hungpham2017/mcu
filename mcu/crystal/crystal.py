@@ -52,6 +52,10 @@ class main(cell.main, plot.main):
         self.natom  = len(self.atom)
         self.element = list(dict.fromkeys(self.atom ))
         self.kpts = data['kpts']
+        if data['total energy - final'] is None:
+            self.e_tot = data['total energy - sp']
+        else:
+            self.e_tot = data['total energy - final']
         
         # Make a cell object in the spglib format
         lattice = data['lattice']

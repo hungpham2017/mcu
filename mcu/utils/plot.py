@@ -207,8 +207,8 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
     if band_idx is None:
         idx_vbm = int(calculator.nelec)
         if calculator.soc == False: idx_vbm = idx_vbm//2               # Estimation for insulator, generally wrong for metal
-        first_band = int(idx_vbm - 5)
-        last_band = int(idx_vbm + 4)
+        first_band = int(idx_vbm - 50)
+        last_band = int(idx_vbm + 49)
         if first_band < 0: first_band = 0
         if last_band > calculator.nbands - 1: last_band = calculator.nbands - 1
         band_idx = [first_band, last_band]
@@ -249,8 +249,8 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
     # Plot bands            
     ax.plot([0, kpath.max()], [0,0], color=band_color[2], linewidth=1.0, dashes=[6,3])
     for ith in range(band.shape[1]):
-        ax.plot(kpath.T, band[:,ith], color=band_color[0],linewidth=1.0)    
-         
+        ax.plot(kpath.T, band[:,ith], color=band_color[0],linewidth=1.0) 
+        
     # Plot pbands 
     color_list = ['r','g','b','y','m','c']
     kpath = np.array(kpath).flatten() 
@@ -313,9 +313,8 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
             
         if legend is not None: 
             lgnd = ax.legend(loc=loc, numpoints=1, fontsize=fontsize)
-            for i in range(len(pband)): lgnd.legendHandles[i]._sizes = [legend_size*60]
-            
-    
+            for i in range(len(pband)): lgnd.legendHandles[i]._sizes = [legend_size*60]   
+         
     # Graph adjustments             
     ax.tick_params(labelsize=fontsize, width=border)
     ax.spines['top'].set_linewidth(border)
@@ -359,7 +358,7 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
             spin            : spin of DOS.
                               For LSORBIT == True: spin = 0,1,2,3
                               For ISPIN = 2      : spin = 0,1
-        spin                : updown, visualize both up and down spin
+        spin                : both, visualize both up and down spin
                           
         lm              : string or a list of string, e.g. 'Ni:s' or ['Ni:s','C:s,px,pz']
     '''
