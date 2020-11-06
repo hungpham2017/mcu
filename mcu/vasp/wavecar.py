@@ -150,7 +150,7 @@ class main:
                          
         return Gvec
         
-    def get_unk(self, spin=0, kpt=0, band_list=None, Gp=[0,0,0], ngrid=None, norm=False):
+    def get_unk(self, spin=0, kpt=0, band_list=None, Gp=[0,0,0], minus_r=False, ngrid=None, norm=False):
         '''
         Obtain the irreducible pseudo periodic parts of the Bloch function in real space
 
@@ -184,11 +184,16 @@ class main:
             assert np.alltrue(ngrid >= self.ngrid), "Minium FT grid size: (%d, %d, %d)" % \
                     (self.ngrid[0], self.ngrid[1], self.ngrid[2])                            
 
+        if band_list is not None:
+            nband = len(band_list)
+        else:
+            nband = self.nbands
+        
         # The FFT normalization factor
         # the iFFT has a factor 1/N_G, unk exported by VASP does not have this factor
-        nband = len(band_list)
         Gp = np.int64(Gp)
         gvec = self.get_gvec(kpt) - Gp
+        if minus_r: gvec = -1 * gvec
         unk_G = np.zeros([nband, ngrid[0], ngrid[1], ngrid[2]], dtype=self.prec)
         gvec %= ngrid[np.newaxis,:]
         nx, ny, nz = gvec[:,0], gvec[:,1], gvec[:,2]
@@ -210,7 +215,7 @@ class main:
             unk = np.hstack([unk_up, unk_down])     # dimension: (nband, nx*2, ny, nz)
             del unk_up, unk_down
         else:
-            unk_G[:, nx, ny, nz] = self.get_coeff(spin, kpt)
+            unk_G[:, nx, ny, nz] = self.get_coeff(spin, kpt, band_list)
             unk = ifftn(unk_G, axes=[1,2,3])
 
         if norm:
@@ -221,6 +226,11 @@ class main:
         else:
             # Note: ifftn has a norm factor of 1/N, but VASP doesn't have
             return unk * np.prod(ngrid)  
+                   
+    def get_uk(self, spin=0, kpt=0, band=0, Gp=[0,0,0], minus_r=False, ngrid=None, norm=False):
+        ''' Get unk at specific n'''
+        band_list = [band]
+        return self.get_unk(spin, kpt, band_list, Gp, minus_r, ngrid, norm)[0]
                    
     def get_unk_kpts(self, spin=0, Gp=[0,0,0], ngrid=None, norm=False):
         '''

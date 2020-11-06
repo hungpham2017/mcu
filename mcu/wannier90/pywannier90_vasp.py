@@ -38,7 +38,7 @@ else:
     print('libwannier90 can be found at: https://github.com/hungpham2017/pyWannier90')
     raise ImportError
     
-
+    sys.stdout.flush()
 def angle(v1, v2):
     '''
     Return the angle (in radiant between v1 and v2)
@@ -97,7 +97,7 @@ def periodic_grid(lattice, grid = [30,30,30], supercell = [1,1,1], order = 'C'):
 
 	ngrid = np.asarray(grid)
 	qv = cartesian_prod([np.arange(-ngrid[i]*(supercell[i]//2),ngrid[i]*((supercell[i]+1)//2)) for i in range(3)], order=order)   
-	a_frac = np.einsum('i,ij->ij', 1./ngrid, lattice)
+	a_frac = np.einsum('i,ij->ij', 1./ngrid, lattice )
 	coords = np.dot(qv, a_frac)
 
 	# Compute weight    
@@ -270,11 +270,11 @@ def g_r(grids_coor, site, l, mr, r, zona, x_axis=[1,0,0], z_axis=[0,0,1], unit='
     if unit == 'A': unit_conv = const.AUTOA
     
     r_vec = (grids_coor - site)        
-    r_vec = np.einsum('iv,uv ->iu', r_vec, transform(x_axis, z_axis))
+    r_vec = np.einsum('iv,uv ->iu', r_vec, transform(x_axis, z_axis) )
     r_norm = np.linalg.norm(r_vec,axis=1) 
     if (r_norm < 1e-8).any() == True:
         r_vec = (grids_coor - site - 1e-5) 
-        r_vec = np.einsum('iv,uv ->iu', r_vec, transform(x_axis, z_axis))
+        r_vec = np.einsum('iv,uv ->iu', r_vec, transform(x_axis, z_axis) )
         r_norm = np.linalg.norm(r_vec,axis=1)        
     cost = r_vec[:,2]/r_norm
     
@@ -435,7 +435,7 @@ def ws_translate_dist(w90, irvec, ws_search_size=[2,2,2], ws_distance_tol=1e-6):
     
 '''Main class of pyWannier90'''
 class W90:
-    def __init__(self, vasprun, mp_grid, num_wann, wavecar='WAVECAR', gamma=False, spin_up=True, other_keywords=None, nimgs=1):
+    def __init__(self, vasprun, mp_grid, num_wann, wavecar='WAVECAR', gamma=False, spin_up=True, other_keywords=None, nimgs=1, verbose=False):
         '''
         == Input ==
             vasprun         : a vasprun object from mcu.VASP()
@@ -448,11 +448,15 @@ class W90:
             nimgs           : number of neiboring cells used in evaluate Amn
         '''
         
+        self.verbose = verbose
         self.wave = mcu.WAVECAR(wavecar, vasprun=vasprun)
         self.num_wann = num_wann
         self.keywords = other_keywords
         self.nimgs = nimgs
-        
+        if self.verbose:
+            print("== pyWannier90: BEGIN ==", flush=True)
+            print(" Reading WAVECAR: Done", flush=True)
+            
         # Collect the pyscf calculation info
         lattice = vasprun.cell[0]
         recip_lattice = 2*np.pi*np.linalg.inv(lattice).T
@@ -520,25 +524,32 @@ class W90:
         
         # Others
         self.use_bloch_phases = False
-        self.check_complex = False       
-
+        self.check_complex = False 
+        
+        if self.verbose: print(" Initialize: Done", flush=True)
+            
     def kernel(self, external_AME=None):
         '''
         Main kernel for pyWannier90
         '''    
         self.make_win()
+        if self.verbose: print(" Executing wannier_setup", flush=True)
         self.setup()
         if external_AME is not None:
             self.M_matrix_loc = self.read_M_mat(external_AME + '.mmn')
             self.A_matrix_loc = self.read_A_mat(external_AME + '.amn')      
             self.eigenvalues_loc = self.read_epsilon_mat(external_AME + '.eig') 
         else:
-            print(" Calculating Mmn")
+            if self.verbose: print(" Calculating M^{k,k+b}_{mn}:", flush=True)
             self.M_matrix_loc = self.get_M_mat()
-            print(" Calculating Amn")
-            self.A_matrix_loc = self.get_A_mat() 
+            if self.verbose: print(" Calculating A^{k}_{mn}:", flush=True)
+            self.A_matrix_loc = self.get_A_mat()
+            if self.verbose: print(" Calculating e^{k}", flush=True)
             self.eigenvalues_loc = self.get_epsilon_mat() 
+            
+        if self.verbose: print(" Executing wannier_run", flush=True)
         self.run()
+        if self.verbose: print("== pyWannier90: DONE ==", flush=True)
         
     def make_win(self):
         '''
@@ -590,8 +601,9 @@ class W90:
                 k_id2 = self.nn_list[nn, k_id, 0] - 1
                 b = self.nn_list[nn, k_id, 1:4] 
                 unk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id2, band_list=band_list, Gp=b, norm=True)
-                M_matrix_loc[k_id,nn] = np.einsum('mxyz,nxyz->mn', unk, umk.conj())
-
+                M_matrix_loc[k_id,nn] = np.einsum('nxyz,mxyz->nm', unk, umk.conj())
+            if self.verbose: print("   kpt {0:3d}: Done".format(k_id), flush=True)
+            
         return M_matrix_loc
         
     def read_M_mat(self, filename=None):
@@ -666,10 +678,11 @@ class W90:
                             if s == -1: gr_R = np.vstack([zero_mat,gr_R])
                             exp = np.vstack([exp,exp])
 
-                        psi_mkR = np.einsum('mxyz,xyz->mxyz', umk, exp)
-                        ovlp += np.einsum('xyz,xyz,xyz,mxyz->m', weights, gr_R, exp.conj(), psi_mkR.conj())
+                        psi_mkR = np.einsum('mxyz,xyz->mxyz', umk, exp )
+                        ovlp += np.einsum('xyz,xyz,xyz,mxyz->m', weights, gr_R, exp.conj(), psi_mkR.conj() )
   
                     A_matrix_loc[k_id,ith_wann] = ovlp
+                if self.verbose: print("   kpt {0:3d}: Done".format(k_id), flush=True)
                 
         return A_matrix_loc 
         
@@ -789,10 +802,10 @@ class W90:
             orbs_in_win = self.lwindow[k_id]
             mo_in_window = mo_included[orbs_in_win]
             U_matrix_opt = self.U_matrix_opt[k_id][ :, orbs_in_win].T
-            eigenvals = np.einsum('m,mo,mo->o', mo_in_window, U_matrix_opt.conj(), U_matrix_opt)
+            eigenvals = np.einsum('m,mo,mo->o', mo_in_window, U_matrix_opt.conj(), U_matrix_opt )
             eigenvals_in_window.append(eigenvals)
 
-        hamiltonian_kpts = np.einsum('kso,ko,kto->kst', self.U_matrix.conj(), eigenvals_in_window, self.U_matrix)  
+        hamiltonian_kpts = np.einsum('kso,ko,kto->kst', self.U_matrix.conj(), eigenvals_in_window, self.U_matrix )  
         return hamiltonian_kpts
         
     def get_hamiltonian_Rs(self, Rs):
@@ -813,7 +826,7 @@ class W90:
 
         # The phase factor is computed using the exp(1j*R.dot(k)) rather than exp(-1j*R.dot(k)) in wannier90
         phase = 1/np.sqrt(nkpts) * np.exp(1j* 2*np.pi * np.dot(Rs, self.kpt_latt_loc.T))
-        hamiltonian_R0 = np.einsum('k,kst,Rk->Rst', phase[center], hamiltonian_kpts, phase.conj())
+        hamiltonian_R0 = np.einsum('k,kst,Rk->Rst', phase[center], hamiltonian_kpts, phase.conj() )
        
         return hamiltonian_R0
 
@@ -830,14 +843,14 @@ class W90:
         # Interpolate H(kpts) at the desired k-pts
         if use_ws_distance:
             wdist_ndeg, wdist_ndeg_, irdist_ws, crdist_ws = self.ws_translate_dist(Rs)
-            temp = np.einsum('iRstx,kx->iRstk', irdist_ws, frac_kpts)
-            phase = np.einsum('iRstk,iRst->Rstk', np.exp(1j* 2*np.pi * temp), wdist_ndeg_)
+            temp = np.einsum('iRstx,kx->iRstk', irdist_ws, frac_kpts )
+            phase = np.einsum('iRstk,iRst->Rstk', np.exp(1j* 2*np.pi * temp), wdist_ndeg_ )
             inter_hamiltonian_kpts = \
-            np.einsum('R,Rst,Rts,Rstk->kst', 1/ndegen, 1/wdist_ndeg, hamiltonian_R0, phase) 
+            np.einsum('R,Rst,Rts,Rstk->kst', 1/ndegen, 1/wdist_ndeg, hamiltonian_R0, phase ) 
         else:
             phase = np.exp(1j* 2*np.pi * np.dot(Rs, frac_kpts.T))
             inter_hamiltonian_kpts = \
-            np.einsum('R,Rst,Rk->kst', 1/ndegen, hamiltonian_R0, phase) 
+            np.einsum('R,Rst,Rk->kst', 1/ndegen, hamiltonian_R0, phase ) 
 
         return inter_hamiltonian_kpts
         
@@ -872,14 +885,14 @@ class W90:
             eigenvecs_in_window.append(mo_in_window) 
             
         # Rotate the mo(kpts) into localized basis
-        rotated_mo_coeff_kpts = np.einsum('kum,ksm->kus', eigenvecs_in_window, self.U_matrix)
+        rotated_mo_coeff_kpts = np.einsum('kum,ksm->kus', eigenvecs_in_window, self.U_matrix )
         
         # Fourier transform the localized mo
         nkx, nky, nkz = self.mp_grid_loc
         Ts = cartesian_prod((np.arange(nkx), np.arange(nky), np.arange(nkz)))
         nkpts = self.kpt_latt_loc.shape[0]
         phase = 1/np.sqrt(nkpts) * np.exp(1j* 2*np.pi * np.dot(Ts, self.kpt_latt_loc.T))
-        mo_coeff_Rs = np.einsum('k,kus,Rk->Rus', phase[0], rotated_mo_coeff_kpts, phase.conj()) 
+        mo_coeff_Rs = np.einsum('k,kus,Rk->Rus', phase[0], rotated_mo_coeff_kpts, phase.conj() ) 
         
         return mo_coeff_Rs.imag.max() < threshold
 
@@ -955,7 +968,7 @@ class W90:
                 unk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id, band_list=band_list, norm=True)
                 unk_in_window = unk[mo_in_window]
                 U_matrix_opt = self.U_matrix_opt[k_id][:, mo_in_window].T
-                umo_kpt = np.einsum('mxyz,mo,os->sxyz', unk_in_window, U_matrix_opt, self.U_matrix[k_id].T)
+                umo_kpt = np.einsum('mxyz,mo,os->sxyz', unk_in_window, U_matrix_opt, self.U_matrix[k_id].T )
                 u_mo_up.append(umo_kpt[:,:grid[0],:,:].reshape(self.num_wann, -1).T) 
                 u_mo_down.append(umo_kpt[:,grid[0]:,:,:].reshape(self.num_wann, -1).T) 
                 
@@ -997,7 +1010,7 @@ class W90:
             # Check the 'reality' following the pw2wannier90 procedure
             for WF_id in range(self.num_wann_loc):
                 ratio_max = np.abs(WF0[np.abs(WF0[:,WF_id].real) >= 0.01,WF_id].imag/WF0[np.abs(WF0[:,WF_id].real) >= 0.01,WF_id].real).max(axis=0)        
-                print('The maximum imag/real for wannier function ', WF_id,' : ', ratio_max)        
+                print('The maximum imag/real for wannier function ', WF_id,' : ', ratio_max, flush=True)        
         return WF0
         
     def plot_wf(self, outfile='MLWF', spinor_mode='total', spinor_phase=True, wf_list=None, supercell=[1,1,1], grid=None):

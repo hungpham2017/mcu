@@ -24,7 +24,7 @@ from ..utils import plot, str_format
 from ..utils.misc import check_exist
 from ..cell import spg_wrapper, cell_io, cell
 from ..cell import utils as cell_utils
-from . import utils, vasp_io
+from . import utils, vasp_io, parity
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
@@ -105,8 +105,12 @@ class main(cell.main, plot.main):
                     
         return mapping_kpts, kpts_grid
 
-
+    def get_parity(self, spin=0, kpt=0, band_list=None, time_reversal=True):
+        '''Get the parity of the Bloch function for the centrosymmetric crystal'''
+        parity.get_parity(self, spin=spin, kpt=kpt, band_list=band_list, time_reversal=time_reversal)
+        
 ############ Analysis #################
+
     def get_efermi(self):
         '''Extract E_fermi either from vasprun.xml or OUTCAR'''
         if isinstance(self.vasprun, vasp_io.XML):
