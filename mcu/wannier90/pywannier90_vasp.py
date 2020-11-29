@@ -472,10 +472,10 @@ class W90:
         else:
             self.spinors = 0
             
-        kpts, band = self.wave.kpts, self.wave.band[self.spin] 
-        self.mo_energy_kpts = band
         self.spin = 0
         if not spin_up: self.spin = 1 
+        kpts, band = self.wave.kpts, self.wave.band[self.spin] 
+        self.mo_energy_kpts = band
         self.num_bands_tot = band.shape[-1]
         self.num_kpts_loc = band.shape[-2]
         self.mp_grid_loc = mp_grid
@@ -793,7 +793,7 @@ class W90:
     ws_translate_dist = ws_translate_dist
     
     def get_hamiltonian_kpts(self):
-        '''Get the Hamiltonian in k-space, this should be identical to Fock matrix from PySCF'''
+        '''Get the Hamiltonian in k-space'''
 
         assert self.U_matrix is not None, "You must wannierize first, then you can run this function"     
         eigenvals_in_window = []            
@@ -802,14 +802,15 @@ class W90:
             orbs_in_win = self.lwindow[k_id]
             mo_in_window = mo_included[orbs_in_win]
             U_matrix_opt = self.U_matrix_opt[k_id][ :, orbs_in_win].T
-            eigenvals = np.einsum('m,mo,mo->o', mo_in_window, U_matrix_opt.conj(), U_matrix_opt )
+            eigenvals = np.einsum('m,mo,mo->o', mo_in_window, U_matrix_opt.conj(), U_matrix_opt)
             eigenvals_in_window.append(eigenvals)
 
-        hamiltonian_kpts = np.einsum('kso,ko,kto->kst', self.U_matrix.conj(), eigenvals_in_window, self.U_matrix )  
+        hamiltonian_kpts = np.einsum('kso,ko,kto->kst', self.U_matrix.conj(), eigenvals_in_window, self.U_matrix)  
         return hamiltonian_kpts
         
     def get_hamiltonian_Rs(self, Rs):
         '''Get the R-space Hamiltonian H(R0, R) centered at R0 or the first R in Rs list
+           Note: H(R, R0) is printed in the wannier90_hf.dat instead as the column-wise convetion of Fortran is used.
         '''
         
         assert self.U_matrix is not None, "You must wannierize first, then you can run this function" 
@@ -824,10 +825,9 @@ class W90:
         else:
             center = 0
 
-        # The phase factor is computed using the exp(1j*R.dot(k)) rather than exp(-1j*R.dot(k)) in wannier90
-        phase = 1/np.sqrt(nkpts) * np.exp(1j* 2*np.pi * np.dot(Rs, self.kpt_latt_loc.T))
-        hamiltonian_R0 = np.einsum('k,kst,Rk->Rst', phase[center], hamiltonian_kpts, phase.conj() )
-       
+        phase = 1/np.sqrt(nkpts) * np.exp(-1j* 2*np.pi * np.dot(Rs, self.kpt_latt_loc.T))
+        hamiltonian_R0 = np.einsum('k,kst,Rk->Rst', phase[center], hamiltonian_kpts, phase.conj())
+        
         return hamiltonian_R0
 
     def interpolate_ham_kpts(self, frac_kpts, use_ws_distance=True, ws_search_size=[2,2,2], ws_distance_tol=1e-6):
@@ -844,13 +844,13 @@ class W90:
         if use_ws_distance:
             wdist_ndeg, wdist_ndeg_, irdist_ws, crdist_ws = self.ws_translate_dist(Rs)
             temp = np.einsum('iRstx,kx->iRstk', irdist_ws, frac_kpts )
-            phase = np.einsum('iRstk,iRst->Rstk', np.exp(1j* 2*np.pi * temp), wdist_ndeg_ )
+            phase = np.einsum('iRstk,iRst->Rstk', np.exp(-1j* 2*np.pi * temp), wdist_ndeg_)
             inter_hamiltonian_kpts = \
-            np.einsum('R,Rst,Rts,Rstk->kst', 1/ndegen, 1/wdist_ndeg, hamiltonian_R0, phase ) 
+            np.einsum('R,Rst,Rst,Rstk->kst', 1/ndegen, 1/wdist_ndeg, hamiltonian_R0, phase)
         else:
-            phase = np.exp(1j* 2*np.pi * np.dot(Rs, frac_kpts.T))
+            phase = np.exp(-1j* 2*np.pi * np.dot(Rs, frac_kpts.T))
             inter_hamiltonian_kpts = \
-            np.einsum('R,Rst,Rk->kst', 1/ndegen, hamiltonian_R0, phase ) 
+            np.einsum('R,Rst,Rk->kst', 1/ndegen, hamiltonian_R0, phase) 
 
         return inter_hamiltonian_kpts
         
@@ -891,7 +891,7 @@ class W90:
         nkx, nky, nkz = self.mp_grid_loc
         Ts = cartesian_prod((np.arange(nkx), np.arange(nky), np.arange(nkz)))
         nkpts = self.kpt_latt_loc.shape[0]
-        phase = 1/np.sqrt(nkpts) * np.exp(1j* 2*np.pi * np.dot(Ts, self.kpt_latt_loc.T))
+        phase = 1/np.sqrt(nkpts) * np.exp(-1j* 2*np.pi * np.dot(Ts, self.kpt_latt_loc.T))
         mo_coeff_Rs = np.einsum('k,kus,Rk->Rus', phase[0], rotated_mo_coeff_kpts, phase.conj() ) 
         
         return mo_coeff_Rs.imag.max() < threshold
@@ -994,7 +994,8 @@ class W90:
             u_mo  = []   
             for k_id in range(self.num_kpts_loc):
                 mo_in_window = self.lwindow[k_id]
-                unk_in_window = unk[k_id][band_list][mo_in_window]
+                unk = self.wave.get_unk_kpt(spin=self.spin, kpt=k_id, band_list=band_list, norm=True)
+                unk_in_window = unk[band_list][mo_in_window]
                 U_matrix_opt = self.U_matrix_opt[k_id][:, mo_in_window].T
                 umo_kpt = np.einsum('mxyz,mo,os->sxyz', unk_in_window, U_matrix_opt, self.U_matrix[k_id].T)
                 u_mo.append(umo_kpt.reshape(self.num_wann, -1).T)      
