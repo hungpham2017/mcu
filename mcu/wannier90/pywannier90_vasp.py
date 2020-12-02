@@ -1075,8 +1075,8 @@ class W90:
         '''    
 
         grid = np.asarray(grid)
-        origin = np.asarray([-grid[i]*(supercell[i]//2)/grid[i] for i in range(3)]).dot(self.cell.lattice_vectors().T)* param.BOHR            
-        real_lattice_loc = (grid*supercell-1)/grid * self.cell.lattice_vectors() * param.BOHR    
+        origin = np.asarray([-grid[i]*(supercell[i]//2)/grid[i] for i in range(3)]).dot(self.real_lattice_loc)           
+        real_lattice_loc = (grid*supercell-1)/grid * self.real_lattice_loc 
         nx, ny, nz = grid*supercell
         guess_orb = self.get_guess_orb(frac_site=frac_site, l=l, mr=mr, r=r, zona=zona, x_axis=x_axis, z_axis=z_axis, supercell=supercell, grid=grid)
         guess_orb = guess_orb.reshape(nx,ny,nz).real
