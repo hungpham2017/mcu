@@ -408,9 +408,6 @@ class main(cell.main, plot.main):
                 proj_val += (proj_wf[:,:,idx_atom, :][:,:,:,idx_lm]).sum(axis=(2,3))
             pband.append(proj_val/total)
         pband = np.asarray(pband)
-        
-        if gradient:  
-            pband = pband[0]/(pband.sum(axis=0))
 
         if isinstance(vasprun, vasp_io.XML) and vasprun.kpoints['type'] == 0:
             weight = vasprun.kpoints['weights']
@@ -419,6 +416,9 @@ class main(cell.main, plot.main):
                 pband = pband[:,nonzero:,:]
         elif isinstance(vasprun,list):                                      # For multiple vasprun.xml file
             raise NotImplementedError("The projected band structure for multiple vasprun.xml files is not implemented yet")
+                
+        if gradient:  
+            pband = pband[0]/(pband.sum(axis=0))
                 
         return pband   
                 

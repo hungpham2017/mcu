@@ -327,7 +327,6 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
         plt.xlim(xlim)
         plt.xlabel('k ' + r'($\AA^{-1}$)', size=fontsize+4)
     ax.xaxis.set_label_coords(0.5, -0.08) 
-    if legend is not None: ax.legend()
     plt.ylabel('Energy (eV)', size=fontsize+4)        
     plt.ylim(ylim)
     plt.tight_layout()
