@@ -22,7 +22,8 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from . import str_format
-      
+    
+border = 1.08    
       
 def plot_band(calculator, efermi=None, spin=0, klabel=None, save=False, band_color=['#007acc','#808080','#808080'],
                 figsize=(6,6), figname='BAND', xlim=None, ylim=[-6,6], fontsize=18, dpi=300, format='png'):
@@ -228,9 +229,6 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111)
     yrange = (-500,500)
-    
-    # Customization:
-    border = 1.08
     
     # Plot the high symmetric kpoint grid
     if sym_kpoint_coor is not None:

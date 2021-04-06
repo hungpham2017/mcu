@@ -7,6 +7,10 @@
 # Modeling and Crystallographic Utilities (mcu)
 A package for periodic wavefunction and crystallography analysis. **mcu** is designed to support large scale analysis and topological descriptions for periodic wavefunction.
 
+# WARNING!
+Please clone the dev branch for the latest version of the code. I would need time to update the documentary page.
+In the meantime, feel free to shoot me a message at pqh3.14 at gmail.com if you have any question.
+
 ## A quick look
 
 <img src="https://github.com/hungpham2017/mcu/blob/gh-pages/docs/image/quicklook.png" width="800" align="middle">
