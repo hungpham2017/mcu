@@ -412,6 +412,14 @@ class main(cell.main, plot.main):
         if gradient:  
             pband = pband[0]/(pband.sum(axis=0))
 
+        if isinstance(vasprun, vasp_io.XML) and vasprun.kpoints['type'] == 0:
+            weight = vasprun.kpoints['weights']
+            nonzero = np.count_nonzero(weight)
+            if nonzero != weight.shape[0]:
+                pband = pband[:,nonzero:,:]
+        elif isinstance(vasprun,list):                                      # For multiple vasprun.xml file
+            raise NotImplementedError("The projected band structure for multiple vasprun.xml files is not implemented yet")
+                
         return pband   
                 
     def _generate_dos(self, vasprun=None, efermi=None, spin=0, lm=None):
