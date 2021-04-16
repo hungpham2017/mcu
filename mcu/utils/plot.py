@@ -370,7 +370,7 @@ def plot_pband(calculator, efermi=None, spin=0, klabel=None, gradient=False, lm=
         
         
 def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color=None, legend=None, loc="upper right", 
-            fill=True, alpha=0.5, save=False, figname='DOS', figsize=None, elim=(-6,6), yaxis_position='left', xaxis_position='bottom',
+            fill=True, alpha=0.5, save=False, figname='DOS', figsize=None, elim=(-6,6), xlabel=None, ylabel=None, yaxis_position='left', xaxis_position='bottom',
             yscale=1.0, fontsize=18, dpi=600, format='png'):
     '''Plot projected band structure
         For multiple vasprun.xml, user can choose one of them to plot the DOS. Default: the first vasprun.xml
@@ -507,8 +507,15 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
                         ax.fill_between(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha * 0.5)
     
         # Graph adjustments 
-        plt.xlabel('Energy (eV)', size=fontsize+4)   
-        plt.ylabel('DOS', size=fontsize+4)
+        if xlabel is None:
+            plt.xlabel('Energy (eV)', size=fontsize+4)   
+        else:
+            plt.xlabel(xlabel, size=fontsize+4)   
+        if ylabel is None:
+            plt.ylabel('DOS', size=fontsize+4)  
+        else:
+            plt.ylabel(ylabel, size=fontsize+4)   
+        
         ax.plot([0,0], [0, max_density], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha)  # Fermi level
         plt.ylim(0, max_density)
         
@@ -560,8 +567,15 @@ def plot_dos(calculator, style='horizontal', efermi=None, spin=0, lm=None, color
                         ax.fill_betweenx(tdos0[:,0], curve1, curve2, color=color[pdos_th+1],alpha=alpha * 0.5)
     
         # Graph adjustments 
-        plt.xlabel('DOS', size=fontsize+4)   
-        plt.ylabel('Energy (eV)', size=fontsize+4)
+        if xlabel is None:
+            plt.xlabel('DOS', size=fontsize+4)  
+        else:
+            plt.xlabel(xlabel, size=fontsize+4)   
+        if ylabel is None:
+            plt.ylabel('Energy (eV)', size=fontsize+4) 
+        else:
+            plt.ylabel(ylabel, size=fontsize+4)   
+     
         ax.plot([0, max_density], [0,0], color=color[0], linewidth=1.0, dashes=[6,3], alpha=alpha)  # Fermi level
         plt.xlim([0, max_density])
         if spin == 'both':
@@ -752,7 +766,7 @@ class main:
 
     def plot_dos(self, style='horizontal', efermi=None, spin=0, lm=None, color=None,
                     legend=None, loc="upper right", fill=True, alpha=0.5,
-                    save=False, figname='DOS', figsize=None, elim=(-6,6), yaxis_position='left', xaxis_position='bottom', 
+                    save=False, figname='DOS', figsize=None, elim=(-6,6), xlabel=None, ylabel=None, yaxis_position='left', xaxis_position='bottom', 
                     yscale=1.0, fontsize=18, dpi=600, format='png'):
         '''Plot projected band structure
            Please see mcu.utils.plot.plot_dos for full documents 
@@ -760,7 +774,7 @@ class main:
         plot_dos(self, style=style, efermi=efermi, spin=spin, lm=lm, color=color,
                 legend=legend, loc=loc, fill=fill, alpha=alpha,
                 save=save, figname=figname, figsize=figsize, elim=elim, yaxis_position=yaxis_position, xaxis_position=xaxis_position, 
-                yscale=yscale, fontsize=fontsize, dpi=dpi, format=format)
+                yscale=yscale, xlabel=xlabel, ylabel=ylabel, fontsize=fontsize, dpi=dpi, format=format)
         
     def plot_kdos(self, efermi=None, spin=0, lm=None, plot_band=False, klabel=None, cmap='afmhot', save=False, band_color=['#ffffff','#f2f2f2','#f2f2f2'],
                     figsize=(7,6), figname='kDOS', xlim=None, xlabel=None, ylim=[-6,6], ylabel=None, fontsize=18, dpi=300, format='png'):
