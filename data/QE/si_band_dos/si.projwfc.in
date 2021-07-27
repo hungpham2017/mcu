@@ -1,0 +1,9 @@
+&PROJWFC
+  prefix='si'
+  outdir='/burg/home/hqp2000/mcu/data/QE/si_band_dos/tmp/'
+  Emin=-20
+  Emax=20
+  DeltaE=0.1
+  kresolveddos=.true.
+   /
+
