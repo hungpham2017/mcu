@@ -3,7 +3,7 @@ import setuptools
 if __name__ == "__main__":
     setuptools.setup(
         name='mcu',
-        version="0.3.2",
+        version="0.9.0",
         description='Modeling and Crystallographic Utilities',
         author='Hung Pham',
         author_email='pqh3.14@gmail.com',
@@ -14,7 +14,7 @@ if __name__ == "__main__":
             'numpy>=1.15.2',
             'scipy>=1.1.0',
             'matplotlib>=3.0.1', 
-            'spglib>=1.12.0',
+            'spglib>=1.15.1',
         ],
         extras_require={
             'docs': [

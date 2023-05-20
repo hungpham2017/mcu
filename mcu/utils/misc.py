@@ -22,6 +22,7 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 import os, sys, datetime
 import numpy as np        
 
+
 def check_exist(file):
     '''Check if a file exists in the running directory '''        
     exist = os.path.exists(file)
@@ -50,4 +51,3 @@ def unique(array):
             counts.append(count)
 
     return unique_array, counts
-        

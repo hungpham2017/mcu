@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 
-__version__ = '0.3'
+__version__ = '0.9.0'
 from . import utils
 from . import cell
-from . import vasp, cp2k, crystal, wannier90
+from . import vasp, cp2k, crystal, elk, pscf, qe, wannier90
 
 # Quick shortcuts to VASP tools
 VASP = vasp.vasprun.main
+
+# TODO: The following syntax looks confusing and messing, make it simpler!!!
 LOCPOT = vasp.locpot.main
 POSCAR = vasp.poscar.main
 WAVECAR = vasp.wavecar.main
-CIF = cell.cell_io.cif
-vasprun = vasp.vasp_io.vasprun
-OUTCAR = vasp.vasp_io.OUTCAR
+vasprun = vasp.vasp_io.XML
 make_KPOINTS = vasp.utils.get_1Dkpath
 read_WAVEDER = vasp.utils.read_WAVEDER
 read_WAVEDERF = vasp.utils.read_WAVEDERF
 
-CELL = cell.main.CELL
+
+# Quick shortcuts to cell tools
+CELL = cell.cell.main
 
 # Quick shortcuts to wannier90 tools
 W90 = wannier90.w90.main
@@ -29,3 +31,12 @@ CP2K = cp2k.cp2k.main
 
 # Quick shortcuts to cp2k tools
 CRYSTAL = crystal.crystal.main
+
+# Quick shortcuts to QE tools
+QE = qe.qe.main
+
+# Quick shortcuts to QE tools
+PYSCF = pscf.pscf.main
+
+# Quick shortcuts to QE tools
+ELK = elk.elk.main

@@ -19,30 +19,29 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
+import re, argparse
 from ..utils.misc import check_exist
 from ..cell import utils as cell_utils
 from . import utils
 import subprocess
 
-class vasprun:
+class XML:
     def __init__(self, file="vasprun.xml"):
         
-        if not check_exist(file):
-            print('Cannot find the vasprun.xml file. Check the path:', file)
-        else:
-            self.vasprun = open(file, "r").readlines()  
+        assert check_exist(file), 'Cannot find the vasprun.xml file. Check the path:' + file
+        self.vasprun = open(file, "r").readlines()  
 
-            # Read parameters:
-            generator = self.copy_block(self.vasprun,'generator', level=1)
-            incar = self.copy_block(self.vasprun,'incar', level=1)       
-            self.generator = self.extract_param(generator)
-            self.incar = self.extract_param(incar)     
-            self.kpoints = self.get_kpoints()
-            self.parameters = self.get_parameters() 
-            self.get_atominfo()         
-            self.get_structure()     
-            self.calculation_block = self.copy_block(self.vasprun,'calculation', level=1)    
-            self.lm = None
+        # Read parameters:
+        generator = self.copy_block(self.vasprun,'generator', level=1)
+        incar = self.copy_block(self.vasprun,'incar', level=1)       
+        self.generator = self.extract_param(generator)
+        self.incar = self.extract_param(incar)     
+        self.kpoints = self.get_kpoints()
+        self.parameters = self.get_parameters() 
+        self.get_atominfo()         
+        self.get_structure()     
+        self.calculation_block = self.copy_block(self.vasprun,'calculation', level=1)    
+        self.lm = None
         
     def get_lm(self):  
         '''Extract lm from either dos block or projected block'''
@@ -85,6 +84,7 @@ class vasprun:
         kpoints_dict = {}
         kpoint_type = 0         # for hybrid band structure calculation
         
+        kpoints_dict['divisions'] = None
         if len(generation) == 1:
             if 'listgenerated' in generation[0][0]:
                 kpoints_dict['type'] = 'listgenerated'
@@ -275,7 +275,8 @@ class vasprun:
         
         initialpos = self.copy_block(self.vasprun,'structure', 'initialpos', level=1)           
         finalpos = self.copy_block(self.vasprun,'structure', 'finalpos', level=1)  
-        
+        assert not not finalpos, "This is a broken vasprun.xml, the calculation may be not finished yet!"
+                    
         self.cell_init = self.get_cell(initialpos,level=1)       
         self.cell_final = self.get_cell(finalpos,level=1)  
 
@@ -353,7 +354,7 @@ class vasprun:
         
     def get_band(self):
         '''Get band (eigenvalues)'''
-        self.band = self.get_eigenvalues(self.calculation_block[-1], level=2)
+        return self.get_eigenvalues(self.calculation_block[-1], level=2)
         
     def get_dos(self):
         '''Get info from the <dos> block
@@ -367,7 +368,7 @@ class vasprun:
            N(\epsilon_i) = \int_{-infty}^{epsilon_i} n(\epsilon) d\epsilon
             
         #################################################
-           tdos = [atom,spin,epsilon,ith]           
+           pdos = [atom,spin,epsilon,ith]           
                 ith = 0     : epsilon
                 ith = 1-9   : lm =  pz     px    dxy    dyz    dz2    dxz  x2-y2
            
@@ -386,10 +387,10 @@ class vasprun:
         DOS = self.copy_block(self.calculation_block[-1],'dos', level=2) 
         
         if len(DOS) == 0:
-            print('DOS was not computed')        
+            return None, None, None
         else:
             # print('Get total density of states (tdos)')           
-            self.efermi = np.float64(utils.str_extract(DOS[0][1],'>','<').strip())
+            efermi = np.float64(utils.str_extract(DOS[0][1],'>','<').strip())
             
             # Total DOS
             total = self.copy_block(DOS,'total', level=3)
@@ -398,11 +399,10 @@ class vasprun:
             for spin in dos_spin:
                 total_out.append(self.extract_vec(spin))
                 
-            self.tdos = np.asarray(total_out) 
+            tdos = np.asarray(total_out) 
             
             # Partial DOS            
             partial = self.copy_block(DOS,'partial', level=3) 
-            self.pdos_exist = False
             if len(partial) == 1:            
                 # Get lm 
                 if self.lm == None: self.get_lm()
@@ -417,9 +417,11 @@ class vasprun:
                         out_ion.append(self.extract_vec(spin))
                     partial_out.append(out_ion)
 
-                self.pdos = np.asarray(partial_out)
-                self.pdos_exist = True
-
+                pdos = np.asarray(partial_out).transpose(1,2,0,3)
+            else:
+                pdos = None
+                
+            return tdos, pdos, efermi
                   
     def get_projected(self):
         '''Get info from the <projected> block
@@ -577,32 +579,30 @@ class vasprun:
             vec = np.float64(vec)    
             array.append(vec)
             
-        return np.asarray(array)                        
+        return np.asarray(array, dtype=np.float64)                        
        
-########## OUTCAR ###############
-class OUTCAR:
-    def __init__(self, file="OUTCAR"):
-        '''Read additional infomation that cannot be extracted from vasprun.xml'''
-        if not check_exist(file):
-            print('Cannot find the OUTCAR file (optional). Check the path:', file)
-            self.success = False
-        else: 
-            rungrep = subprocess.run(['grep', 'E-fermi', file], stdout=subprocess.PIPE) 
-            self.efermi = np.float64(str(rungrep.stdout).split()[3])
-            self.success = True
-            
-    def get_efermi(self):    
-        '''Extract E_fermi'''
-        pass
-  
-  
+########## OUTCAR ############### 
+efermi_MATCH = re.compile(r'''
+[\w\W]* E-fermi [ ]* \: [ ]* (?P<efermi>\S+)
+''', re.VERBOSE)
+def get_efermi_from_OUTCAR(filename):
+    '''Read the INFO.OUT file'''
+    if check_exist(filename):
+        with open(filename, "r") as data_file:
+            data = data_file.read()
+            efermi = float(efermi_MATCH.match(data)['efermi'])
+            return efermi
+    else:
+        return None
+
+
 def get_atominfo(poscar):
     '''Get atom block from POSCAR, CONTCAR, LOCCAR'''
     lattice = []
     for i in range(2,5):
         lattice.append(np.float64(poscar[i].split()))
     lattice = np.asarray(lattice)                       # Unit: A, row vector format
-    recip_lattice = 2*np.pi*np.linalg.inv(lattice).T      # Unit: A^-1, row vector:   a^T.dot(b) = 2pi 
+    recip_lattice = 2 * np.pi * np.linalg.inv(lattice).T      # Unit: A^-1, row vector:   a^T.dot(b) = 2pi 
     
     atom_type = poscar[5].split()
     natom = np.int64(poscar[6].split())
@@ -718,77 +718,4 @@ class KPOINTS:
         npoint = np.int64(self.kpoints[0].split()[-2:])
         
         return plane, krange, npoint  
-        
-########## WAVECAR ###############         
-class WAVECAR:
-    def __init__(self, file="WAVECAR"):
-        '''WAVECAR reading is modied the vaspwfc.py from QijingZheng's project
-            ref: https://github.com/QijingZheng/VaspBandUnfolding/blob/master/vaspwfc.py)
-        '''
-        if not check_exist(file):
-            assert False, 'Cannot find the WAVECAR file. Check the path: ' + file
-        else: 
-            self._wavecar = open(file, 'rb')
-            self.read_header()
-            self.get_band()
-            
-    def read_header(self):
-        '''Reading haeder + calc info'''
-        self._wavecar.seek(0)
-        self.recl, self.nspin, self.rtag = np.array(np.fromfile(self._wavecar, dtype=np.float, count=3),dtype=int)
-        if self.rtag == 45200:
-            self.prec = np.complex64
-        elif self.rtag == 45210:
-            self.prec = np.complex128
-        else:
-            raise ValueError("Invalid TAG values: {}".format(self.rtag))
-            
-        # Get kpts, bands, encut, cell info
-        self._wavecar.seek(self.recl)
-        dump = np.fromfile(self._wavecar, dtype=np.float, count=12)
-        self.nkpts  = int(dump[0])                     # No. of k-points
-        self.nbands = int(dump[1])                     # No. of bands
-        self.encut  = dump[2]                          # Energy cutoff
-        lattice  = dump[3:].reshape((3,3))             # real space supercell basis
-        volume  = np.linalg.det(lattice)               # real space supercell volume, unit: 2pi*(A-3)
-        recip_lattice  = np.linalg.inv(lattice).T                        # reciprocal space supercell volume
-        self.cell = (lattice, recip_lattice, None, volume)
-        
-    def get_band(self):
-        '''Extract band, occ'''
-        
-        self.nplws = np.zeros(self.nkpts, dtype=int)
-        self.kpts = np.zeros((self.nkpts, 3), dtype=float)
-        self.band = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=float)
-        self.co_occ  = np.zeros((self.nspin, self.nkpts, self.nbands), dtype=float)           
-        for spin in range(self.nspin):
-            cg_spin = []
-            for kpt in range(self.nkpts):
-                # Read eigenvalues + occ
-                rec = 2 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1)
-                self._wavecar.seek(rec * self.recl)
-                dump = np.fromfile(self._wavecar, dtype=np.float, count=4+3*self.nbands)
-                if spin == 0:
-                    self.nplws[kpt] = int(dump[0])
-                    self.kpts[kpt] = dump[1:4]
-                dump = dump[4:].reshape((-1, 3))
-                self.band[spin,kpt,:] = dump[:,0]
-                self.co_occ[spin,kpt,:] = dump[:,2]
-            
-    def get_wfn(self, spin=0, kpt=0):
-        '''Extract wfn coefficients''' 
-
-        if kpt >= self.nkpts:
-            raise ValueError("kpt must be smaller than the maximum index for kpt", self.nkpts)
-            
-        #TODO: check spin value
-
-        cg = []
-        for band in range(self.nkpts):
-            rec = 3 + spin*self.nkpts*(self.nbands + 1) + kpt*(self.nbands + 1) + band 
-            self._wavecar.seek(rec * self.recl)
-            dump = np.fromfile(self._wavecar, dtype=self.prec, count=self.nplws[kpt])
-            cg.append(np.asarray(dump, dtype=np.complex128))
-  
-        return np.asarray(cg)
         

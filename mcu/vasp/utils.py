@@ -25,7 +25,8 @@ Utilities for vasp module
 import os
 import numpy as np
 from ..utils.misc import check_exist
-from ..cell import parameters, utils            
+from ..cell import parameters
+from ..cell import utils as cell_utils             
             
     
 def str_extract(string, start, end):
@@ -70,11 +71,11 @@ def read_WAVEDER(file='WAVEDER'):
         print('Cannot find the %s file. Check the path:' % file)
         
     from scipy.io import FortranFile
-    file = FortranFile(waveder, 'r')
-    nb_tot, nbands_cder, nkpts, ispin = file.read_record(dtype= np.int32)
-    nodesn_i_dielectric_function = file.read_record(dtype= np.float)
-    wplasmon = file.read_record(dtype= np.float).reshape(3,3)
-    cder = file.read_record(dtype= np.complex64).reshape(ispin,nkpts,nbands_cder,nbands_cder,3)
+    data = FortranFile(file, 'r')
+    nb_tot, nbands_cder, nkpts, ispin = data.read_record(dtype= np.int32)
+    nodesn_i_dielectric_function = data.read_record(dtype= np.float)
+    wplasmon = data.read_record(dtype= np.float).reshape(3,3)
+    cder = data.read_record(dtype= np.complex64).reshape(ispin,nkpts,nbands_cder,nb_tot,3)
     
     return cder, nodesn_i_dielectric_function, wplasmon
     
@@ -85,8 +86,8 @@ def read_WAVEDERF(file='WAVEDERF'):
     if not check_exist(file):
         print('Cannot find the %s file. Check the path:' % file)
         
-    file = open(wavederf, "r").readlines() 
-    ispin, nkpts, nbands_cder = np.int32(file[0].split())
+    data = open(file, "r").readlines() 
+    ispin, nkpts, nbands_cder = np.int32(data[0].split())
     
     # the last index of cder for cdum_x,cdum_y,cdum_z
     cder = np.empty([ispin,nkpts,nbands_cder,nbands_cder,3]) 
@@ -96,7 +97,7 @@ def read_WAVEDERF(file='WAVEDERF'):
         for kpt in range(nkpts):
             for band1 in range(nbands_cder):      
                 for band2 in range(nbands_cder):      
-                    x_real, x_imag, y_real, y_imag, z_real, z_imag = np.float64(file[line].split())[-6:]
+                    x_real, x_imag, y_real, y_imag, z_real, z_imag = np.float64(data[line].split())[-6:]
                     cdum[spin,kpt,band1,band2] = np.asarray([np.complex(x_real,x_imag), np.complex(y_real,y_imag), np.complex(z_real,z_imag)])     
                     line += 1
                 
@@ -145,7 +146,7 @@ def get_1Dkpath(kpath, npoint=20):
         line = k_list[path][1] - k_list[path-1][1]
         kpts.append(k_list[path-1][1] + temp*line/npath)
     kpts = np.asarray(kpts).reshape(npath*(npoint+1),-1)
-    kpts = utils.rm_redundant_band(kpts,kpts)[0]
+    kpts = rm_redundant_band(kpts,kpts)[0]
     
     with open('KPOINTS', 'w') as f:
         f.write('Generated mesh by mcu\n')	
@@ -160,7 +161,7 @@ def get_1Dkpath(kpath, npoint=20):
 def cell_to_spgcell(cell, atoms):
     '''Providing the cell attribute from vasprun.xml, return the cell for spglib'''
     
-    lattice = np.ndarray.tolist(cell[0])      
-    positions = np.ndarray.tolist(cell[2])
-    numbers = utils.convert_atomtype(atoms)
+    lattice = cell[0]
+    positions = cell[2]
+    numbers = cell_utils.convert_atomtype(atoms)
     return (lattice, positions, numbers)

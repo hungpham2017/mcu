@@ -19,47 +19,192 @@ Email: Hung Q. Pham <pqh3.14@gmail.com>
 '''
 
 import numpy as np
+import re, textwrap
 from ..utils.misc import check_exist
-
-            
-def read_ouput(self, filename=None):  
-    '''Read the CRYSTAL output file'''
-    if filename is None:
-        if self.seedname is not None: 
-            filename = self.seedname + ".out"
-    assert check_exist(filename), "Cannot find the output. Check the path: " + filename
-    # with open(filename, "r") as file:
-        # outfile = file.read().splitlines()
-        
-    # Cell information
-    # cell_block = copy_block(outfile, "CELL_TOP")
-    # a_vec =cell_block[1].split()[4:7]
-    # b_vec = cell_block[2].split()[4:7]
-    # c_vec = cell_block[3].split()[4:7]           
-    # lattice = np.float64([a_vec, b_vec, c_vec])
-    
-
-    # atom_type, atom_position = get_atoms(outfile)
-    # self.atom = atom_type
-    # atom_number = utils.convert_atomtype(atom_type)
-    # self.cell = (lattice, atom_position, atom_number)
-
-    # self.efermi = get_value(outfile, keyword="Fermi energy")
-    # self.kpts = 0   # kmesh info: TODO: will test the Gamma point case first
+from ..cell import utils as cell_utils         
            
+############ CRYSTAL output ##################
+primitive_cell_MATCH = re.compile(r'''
+[\w\W]*
+ LATTICE [ ]* PARAMETERS [ ]* \( [ ]* ANGSTROMS [ ]* AND [ ]* DEGREES [ ]* \) [ ]* - [ ]* BOHR [ ]* = [ ]* (?P<BOHR>\S+) [ ]* ANGSTROM
+(?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|\n\n)  # match everything until next blank line or EOL
+)
+''', re.VERBOSE)
+
+lattice_MATCH = re.compile(r'''
+[\w\W]*
+  A [ ]* B [ ]* C [ ]* ALPHA [ ]* BETA [ ]* GAMMA
+(?P<content>
+  [\s\S]*?(?=\n.*?[ ] \*|$)  # match everything until next blank line or EOL
+)
+''', re.VERBOSE)
+
+irred_atoms_MATCH = re.compile(r'''
+[\w\W]*
+ ATOM [ ]* (?P<X>\S+) [ ]* (?P<Y>\S+) [ ]* (?P<Z>\S+)
+ [\*]*
+ (?P<content>
+  [\w\W]*
+)
+''', re.VERBOSE)
+
+atoms_MATCH = re.compile(r'''
+[ ]*
+ (?P<order>\d+) [ ]* (?P<asym>\S+) [ ]* (?P<Z>\d+) [ ]* (?P<atom>\S+) [ ]* (?P<x>\S+) [ ]* (?P<y>\S+) [ ]*  (?P<z>\S+)
+''', re.VERBOSE)
+
+nshells_MATCH = re.compile(r'''
+[\w\W]* NUMBER [ ]* OF [ ]* SHELLS [ ]* (?P<nshells>\d+)
+''', re.VERBOSE)
+
+nao_MATCH = re.compile(r'''
+[\w\W]* NUMBER [ ]* OF [ ]* AO [ ]* (?P<nao>\d+)
+''', re.VERBOSE)
+
+nelec_MATCH = re.compile(r'''
+[\w\W]*  N. [ ]* OF [ ]* ELECTRONS [ ]* PER [ ]* CELL [ ]* (?P<nelec>\d+)
+''', re.VERBOSE)
+
+nelec_core_MATCH = re.compile(r'''
+[\w\W]* CORE [ ]* ELECTRONS [ ]* PER [ ]* CELL [ ]* (?P<nelec>\d+)
+''', re.VERBOSE)
+ 
+kpts_MATCH = re.compile(r'''
+[\w\W]*
+ [\*]* [ ]* K [ ]* POINTS [ ]* COORDINATES [ ]* \( [ ]* OBLIQUE [ ]* COORDINATES [ ]* IN [ ]* UNITS [ ]* OF [ ]* IS [ ]* = [ ]* (?P<IS>\d+) [ ]* \)
+ (?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|\n\n)
+)
+''', re.VERBOSE)
+
+kpt_MATCH = re.compile(r'''
+[ ]*
+ (?P<order>\d+)-(?P<label>\S+)\( [ ]* (?P<kx>\S+) [ ]* (?P<ky>\S+) [ ]* (?P<kz>\S+) [ ]*\)
+''', re.VERBOSE)
+
+basisset_MATCH = re.compile(r'''
+[\w\W]*
+   ATOM [ ]* X\(AU\) [ ]* Y\(AU\) [ ]* Z\(AU\) [ ]* N. [ ]* TYPE [ ]* EXPONENT [ ]* S [ ]* COEF [ ]* P [ ]* COEF [ ]* D/F/G [ ]* COEF
+ [\*]*
+ (?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|\n\n)
+)
+''', re.VERBOSE)
+
+basis_atom_MATCH = re.compile(r'''
+[ ]+
+ (?P<order>\d+) [ ]+ (?P<atom>\S+) [ ]+ (?P<x>\S+) [ ]+ (?P<y>\S+) [ ]+ (?P<z>\S+)XX
+ (?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|\n))
+''', re.VERBOSE)
+   
+basis_function_MATCH = re.compile(r'''
+[ ]+
+ (?P<order>\d+) [ ]+ (?P<orb>\S+) [ ]+ XX
+''', re.VERBOSE)
+   
+sp_energy_SEARCH = re.compile(r'''
+SCF [ ]* ENDED [ ]* - [ ]* CONVERGENCE [ ]* ON [ ]* ENERGY [ ]* E\(AU\) [ ]* (?P<energy>\S+)
+''', re.VERBOSE)
+
+final_energy_SEARCH = re.compile(r'''
+OPT [ ]* END [ ]* - [ ]* CONVERGED [ ]* \* [ ]* E\(AU\)\: [ ]* (?P<energy>\S+)
+''', re.VERBOSE)
+
+def read_out(filename):
+    '''Read prefix.out file'''
+ 
+    with open(filename, 'r') as data_file:
+        data = data_file.read()
+        
+        # Get the primitive lattice
+        primitive_cell = primitive_cell_MATCH.match(data).group('content')
+        temp = lattice_MATCH.match(primitive_cell).group('content')
+        lattice = np.float64(temp.split())
+        lattice = cell_utils.convert_lattice(lattice)
+                
+        # Get irreducible atoms
+        irred_atoms = irred_atoms_MATCH.match(primitive_cell).group('content')        
+        atom = []
+        atom_position = []
+        for atom_data in atoms_MATCH.finditer(irred_atoms):
+            content = atom_data.groupdict()
+            atom.append(content['atom'].capitalize())   
+            atom_position.append([content['x'], content['y'], content['z']])  
+
+        # electronic information
+        nshells = int(nshells_MATCH.match(data)['nshells'])
+        nao = int(nao_MATCH.match(data)['nao'])
+        nelec = int(nelec_MATCH.match(data)['nelec'])
+        nelec_core = int(nelec_core_MATCH.match(data)['nelec'])
+
+        # Get kpts:
+        temp = kpts_MATCH.match(data)
+        IS = int(temp['IS'])
+        kpts_data = temp.group('content')
+        kpts_label = []
+        kpts = []
+        for kpt_data in kpt_MATCH.finditer(kpts_data):
+            content = kpt_data.groupdict()
+            kpts_label.append(content['label']) 
+            kpts.append([content['kx'], content['ky'], content['kz']])  
+        kpts = np.float64(kpts) / IS
+        
+        # Get basis function
+        basisset = basisset_MATCH.match(data).group('content')
+        basis_function = basisset.replace('\n                                         ','XX')
+        basis_atom = basisset.replace('\n              ','XX')
+
+        basis = {}
+        for irred_atom in basis_atom_MATCH.finditer(basis_atom):
+            content = irred_atom.groupdict()
+            element = content['atom'].capitalize()
+            temp = content['content'].replace('\n                                         ','XX')
+            function = []
+            for orb in basis_function_MATCH.finditer(temp):
+                function.append(orb.groupdict()['orb'].lower())
+            basis[element] = function
+        
+        # Get the energy
+        find_sp_energy = sp_energy_SEARCH.search(data)
+        if find_sp_energy is not None:
+            energy_sp = float(find_sp_energy['energy'])
+        else:
+            energy_sp = None
+            
+        energy_final = None
+        if final_energy_SEARCH.search(data) is not None:
+            energy_final = float(final_energy_SEARCH.search(data)['energy'])        
+        
+        
+        out = {}
+        out['nelec'] = nelec
+        out['nelec core'] = nelec_core
+        out['nao'] = nao
+        out['basis'] = basis 
+        out['nshells'] = nshells      
+        out['lattice'] = lattice
+        out['atom'] = atom
+        out['atom_position'] = np.float64(atom_position)
+        out['kpts'] = kpts
+        out['total energy - sp'] = energy_sp
+        out['total energy - final'] = energy_final
+        
+    return out
+    
         
 def read_BAND(filename):
-    '''Read seedname_dat.BAND/BAND.DAT file'''
+    '''Read prefix.BAND/BAND.DAT file'''
     
     if not check_exist(filename):
         if check_exist("BAND.DAT"):
             print('Cannot find : ' + filename, '. BAND.DAT is used instead')
             filename = "BAND.DAT"
         else:
-            print('Cannot find the BAND file. Check the path: ' + filename)
-            assert False
+            assert False, 'Cannot find the BAND file. Check the path: ' + filename
     
-    with open(filename, "r") as data_file:
+    with open(filename, 'r') as data_file:
         data = data_file.readlines()
         nkpt, nband, nspin = np.int64([data[0].split()[i] for i in [2,4,6]])
         npath = int(data[1].split()[2])
@@ -81,17 +226,16 @@ def read_BAND(filename):
     return symm_k_coor, kpath_abs, band, efermi
 
 def read_DOSS(filename):
-    '''Read seedname_dat.DOSS/DOSS.DAT file'''
+    '''Read prefix.DOSS/DOSS.DAT file'''
     
     if not check_exist(filename):
         if check_exist("DOSS.DAT"):
             print('Cannot find : ' + filename, '. DOSS.DAT is used instead')
             filename = "DOSS.DAT"
         else:
-            print('Cannot find the DOSS file. Check the path: ' + filename)
-            assert False
+            assert False, 'Cannot find the DOSS file. Check the path: ' + filename
 
-    with open(filename, "r") as data_file:
+    with open(filename, 'r') as data_file:
         data = data_file.readlines()
         nepts, nproj, nspin = np.int64([data[0].split()[i] for i in [2,4,6]]) 
         block_length = nepts + 2
@@ -110,35 +254,94 @@ def read_DOSS(filename):
     
     return epts, dos, efermi
         
+
+f25_BAND_MATCH = re.compile(r'''
+[ ]*
+ -\%-(?P<ihferm>\d)BAND [ ]* (?P<nband>\d+) [ ]* (?P<nkp>\d+)(?P<dum>[\s\S]{12}?(?=.[ ]|))(?P<dk>[\s\S]{12}?(?=.[ ]|))(?P<efermi>[\s\S]{12}?(?=.[ ]|))
+ \n(?P<emin>[\s\S]{12}?(?=.[ ]|))(?P<emax>[\s\S]{12}?(?=.[ ]|))\n
+ [ ]* (?P<val1>\d+) [ ]* (?P<val2>\d+) [ ]* (?P<val3>\d+) [ ]* (?P<val4>\d+) [ ]* (?P<val5>\d+) [ ]* (?P<val6>\d+) 
+(?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|\n-%-)  # match everything until next blank line or EOL
+)
+''', re.VERBOSE)
+
+f25_DOSS_MATCH = re.compile(r'''
+[ ]*
+ -\%-(?P<ihferm>\d)DOSS [ ]* (?P<nrow>\d+) [ ]* (?P<ncol>\d+)(?P<dx>[\s\S]{12}?(?=.[ ]|))(?P<dy>[\s\S]{12}?(?=.[ ]|))(?P<efermi>[\s\S]{12}?(?=.[ ]|))
+ \n(?P<emin>[\s\S]{12}?(?=.[ ]|))(?P<emax>[\s\S]{12}?(?=.[ ]|))\n
+ [ ]* (?P<val1>\d+) [ ]* (?P<val2>\d+) [ ]* (?P<val3>\d+) [ ]* (?P<val4>\d+) [ ]* (?P<val5>\d+) [ ]* (?P<val6>\d+) 
+(?P<content>
+  [\s\S]*?(?=\n.*?[ ] $|\n-%-)  # match everything until next blank line or EOL
+)
+''', re.VERBOSE)
+
+        
 def read_f25(filename):
-    '''Read seedname_dat.f25/fort.25 file'''
-    
-    if not check_exist(filename):
-        if check_exist("fort.25"):
-            print('Cannot find : ' + filename, '. fort.25 is used instead')
-            filename = "fort.25"
-        else:
-            assert False, "Cannot find the f25 file. Check the path: " + filename
+    '''Read prefix.f25/fort.25 file'''
+    with open(filename, 'r') as data_file:
+        data = data_file.read()
         
-    with open(filename, "r") as data_file:
-        data = data_file.read().split('\n')
-        
-        jump = 0
-        out = []
-        EOS = False
-        while EOS == False:
-            first_line = data[jump]
-            ihferm = int(first_line[3])
-            type = first_line[4:8]
-            nband, nkp = int(first_line[8:13]), int(first_line[13:18])
-            dk, efermi = float(first_line[-24:-12]), float(first_line[-12:])
-            length = int(np.ceil(nband * nkp / 6))
-            data_block = data[(jump+3):(jump+3+length)]
-            data_block = "".join(data_block)
-            eigenvals = np.float64(list(map(''.join, zip(*[iter(data_block)]*12))))
-            out.append([ihferm, type, nband, nkp, dk, efermi, eigenvals])
-            jump += length + 3
-            
-            if data[jump] is '': EOS = True
-    return out
-        
+        # Get BAND
+        found_band = f25_BAND_MATCH.search(data + '\n-%-') is not None
+        out_BAND = None
+        if found_band:
+            out_BAND = []
+            for block in f25_BAND_MATCH.finditer(data + '\n-%-'):
+                ihferm = int(block['ihferm'])
+                nband = int(block['nband'])
+                nkp = int(block['nkp'])
+                dum = float(block['dum'])
+                dk = float(block['dk'])
+                efermi = float(block['efermi'])
+                emin = float(block['emin'])
+                emax = float(block['emax'])
+                values = np.int64([block['val1'], block['val2'], block['val3'], block['val4'], block['val5'], block['val6']])
+                band_data = block.group('content').replace("\n", "")
+                eigenvals = np.float64(list(map(''.join, zip(*[iter(band_data)]*12))))
+                
+                block_data = {}
+                block_data['ihferm'] = ihferm
+                block_data['nband'] = nband
+                block_data['nkp'] = nkp
+                block_data['dum'] = dum
+                block_data['dk'] = dk  
+                block_data['efermi'] = efermi
+                block_data['emin'] = emin
+                block_data['emax'] = emax
+                block_data['values'] = values    
+                block_data['eigenvals'] = eigenvals
+                out_BAND.append(block_data)
+                
+        # Get DOSS
+        found_DOSS = f25_DOSS_MATCH.search(data + '\n-%-') is not None
+        out_DOSS = None
+        if found_DOSS:
+            out_DOSS = []
+            for block in f25_DOSS_MATCH.finditer(data + '\n-%-'):
+                ihferm = int(block['ihferm'])
+                nrow = int(block['nrow'])
+                ncol = int(block['ncol'])
+                dx = float(block['dx'])
+                dy = float(block['dy'])
+                efermi = float(block['efermi'])
+                emin = float(block['emin'])
+                emax = float(block['emax'])
+                values = np.int64([block['val1'], block['val2'], block['val3'], block['val4'], block['val5'], block['val6']])
+                band_data = block.group('content').replace("\n", "")
+                dos = np.float64(list(map(''.join, zip(*[iter(band_data)]*12))))
+                
+                block_data = {}
+                block_data['ihferm'] = ihferm
+                block_data['nrow'] = nrow
+                block_data['ncol'] = ncol
+                block_data['dx'] = dx
+                block_data['dy'] = dy 
+                block_data['efermi'] = efermi
+                block_data['emin'] = emin
+                block_data['emax'] = emax
+                block_data['values'] = values    
+                block_data['dos'] = dos
+                out_DOSS.append(block_data)
+
+    return out_BAND, out_DOSS
+       

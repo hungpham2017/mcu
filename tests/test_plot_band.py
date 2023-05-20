@@ -9,5 +9,3 @@ def test_plotband():
     
 def test_sym():
     mymcu.get_symmetry()
-    mymcu.to_primcell()  
-    mymcu.to_convcell()    

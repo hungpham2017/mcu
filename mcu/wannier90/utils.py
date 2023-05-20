@@ -27,34 +27,33 @@ from ..utils.misc import check_exist
 from ..cell import parameters, utils            
 
     
-def read_unk(path='.', spin=0, kpt=1, band=1):
-    '''Export the periodic part of BF in a real space grid for plotting with wannier90
+def read_unk(path='.', spin=0, kpt=0):
+    '''Read UNK file
+       Return:
+            unk[band-th, ngrid]
     '''	
-    spin = spin + 1
-    file = path + '/' + 'UNK' + "%05d" % (kpt) + '.' + str(spin)
+    file = path + '/' + 'UNK' + "%05d" % (kpt + 1) + '.' + str(spin + 1)
     assert check_exist(file), 'Cannot find the %s file. Check the path:' + file
         
     from scipy.io import FortranFile
     unk_file = FortranFile(file, 'r')
     temp = unk_file.read_record(dtype=np.int32)
     ngrid, kpt, nbands = temp[:3], temp[3], temp[4]
-    assert band <= nbands, 'The band index is larger than the No. of bands in the unk file'
-
-    for i in range(band):
+    
+    unk = []
+    for i in range(nbands):
         temp = unk_file.read_record(dtype=np.complex128)
-        if i == band - 1:
-            unk = temp
-        del temp 
-
+        unk.append(temp.reshape(ngrid, order='F'))
+        
     unk_file.close()
     
-    return unk.reshape(ngrid, order='F')
+    return unk
     
 def read_U_matrix(filename):
     '''Read seedname_u.mat file
     '''	
     
-    with open(filename, "r") as file:
+    with open(filename, "rb") as file:
         data = file.read().split('\n')
         nkpts, nwann, nband =  np.int64(data[1].split())
         temp = data[2:-1]
