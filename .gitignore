@@ -1,0 +1,9 @@
+*.pyc
+__pycache__/
+meta.yaml
+mcu.egg-info/
+dist/
+data/
+build/
+__pycache__/
+*.pyc
