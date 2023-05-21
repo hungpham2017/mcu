@@ -3,7 +3,7 @@ import setuptools
 if __name__ == "__main__":
     setuptools.setup(
         name='mcu',
-        version="0.9.0",
+        version="1.0.0",
         description='Modeling and Crystallographic Utilities',
         author='Hung Pham',
         author_email='pqh3.14@gmail.com',
@@ -16,20 +16,6 @@ if __name__ == "__main__":
             'matplotlib>=3.0.1', 
             'spglib>=1.15.1',
         ],
-        extras_require={
-            'docs': [
-                'sphinx==1.2.3',
-                'sphinxcontrib-napoleon',
-                'sphinx_rtd_theme',
-                'numpydoc',
-            ],
-            'tests': [
-                'pytest',
-                'pytest-cov',
-                'pytest-pep8',
-                'tox',
-            ],
-        },
 
         tests_require=[
             'pytest',
