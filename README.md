@@ -9,6 +9,8 @@ MCU is a comprehensive package for the analysis of periodic wavefunctions and cr
 
 <img src="https://github.com/hungpham2017/mcu/blob/gh-pages/docs/image/quicklook.png" width="800" align="middle">
 
+---
+
 # Installation
 
 ```
@@ -20,12 +22,20 @@ pip install mcu
 ```
 
 ## Features:
-- MCU provides support for various major periodic electronic structure codes, including [VASP](https://www.vasp.at/), [Quantum Espresso](https://www.quantum-espresso.org/), [CRYSTAL](https://www.crystal.unito.it/), [CP2K(https://www.cp2k.org/)], and [Wannier90](http://www.wannier.org/).
+- MCU provides support for various major periodic electronic structure codes, including [VASP](https://www.vasp.at/), [Quantum Espresso](https://www.quantum-espresso.org/), [CRYSTAL](https://www.crystal.unito.it/), [CP2K](https://www.cp2k.org/), and [Wannier90](http://www.wannier.org/).
 - It offers a flexible syntax for orbital selection, making it easy to plot projected band structures and density of states (DOS).
 - MCU also provides a convenient method for selecting orbitals and generating input (d3) files for CRYSTAL calculations. Projected DOS analysis using CRYSTAL has never been easier.
 
 ## Documentation:
 -  Installation and tutorials can be found [here](https://hungqpham.com/mcu/)
+
+## References
+If you find **mcu** useful for your research, please consider citing the following:
+
+```
+Pham, H. Q. MCU: Modeling and Crystallographic Utilities, 2021 https://github.com/hungpham2017/mcu (accessed Jan, 18,
+2021).
+```
 
 ## Authors
 - **Hung Pham**
@@ -38,12 +48,3 @@ This project is licensed under the Apache License - see the [LICENSE](LICENSE) f
 
 ## Acknowledgments
 We would like to thank the contributors and the open-source community for their valuable contributions and support.
-
-## References
-If you find **mcu** useful for your research, please consider citing the following:
-
-```
-Pham, H. Q. MCU: Modeling and Crystallographic Utilities,
-2021 https://github.com/hungpham2017/mcu (accessed Jan, 18,
-2021).
-```
