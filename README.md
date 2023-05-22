@@ -14,6 +14,10 @@ MCU is a comprehensive package for the analysis of periodic wavefunctions and cr
 ```
 conda install -c hqp mcu
 ```
+or
+```
+pip install mcu
+```
 
 ## Features:
 - MCU provides support for various major periodic electronic structure codes, including [VASP](https://www.vasp.at/), [Quantum Espresso](https://www.quantum-espresso.org/), [CRYSTAL](https://www.crystal.unito.it/), [CP2K(https://www.cp2k.org/)], and [Wannier90](http://www.wannier.org/).

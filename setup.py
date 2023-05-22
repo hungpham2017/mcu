@@ -3,11 +3,12 @@ import setuptools
 if __name__ == "__main__":
     setuptools.setup(
         name='mcu',
-        version="1.0.0",
+        version="1.0.1",
         description='Modeling and Crystallographic Utilities',
+        project_description='A package for periodic wavefunction and crystallography analysis. mcu is designed to support large scale analysis and topological descriptions for periodic wavefunction.',
         author='Hung Pham',
         author_email='pqh3.14@gmail.com',
-        url="https://github.com/hungpham2017/mcu.git",
+        url="https://github.com/hungpham2017/mcu",
         license='Apache 2.0',
         packages=setuptools.find_packages(),
         install_requires=[  
