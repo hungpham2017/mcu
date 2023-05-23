@@ -14,6 +14,7 @@ MCU is a comprehensive package for the analysis of periodic wavefunctions and cr
 # Installation
 
 ### Install with pip
+
 ```
 pip install mcu
 ```
@@ -21,10 +22,6 @@ pip install mcu
 ### Install with conda (macOS)
 ```
 conda install -c hqp mcu
-```
-or
-```
-pip install mcu
 ```
 
 ## Features:
