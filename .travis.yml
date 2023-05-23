@@ -8,6 +8,7 @@ sudo: false
 matrix:
   include:
     - python: 3.7
+
 before_install:
   - uname -a
   - free -m
@@ -22,7 +23,7 @@ before_install:
   - pip install codecov
   - pip install -e .
   - pip install spglib==1.15.1
-  
+
 before_script: cd tests
 
 script:
